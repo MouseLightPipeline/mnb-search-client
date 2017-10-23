@@ -163,7 +163,7 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
     public resetPage() {
         this._colorIndex = 0;
         // Must do before cancelFetch which will update state for this property.
-        this.state.neuronViewModels.map(n => {
+        Array.from(neuronViewModelMap.values()).map(n => {
             n.isSelected = n.isSelected || PreferencesManager.Instance.ShouldAlwaysShowSoma
         });
         this.onCancelFetch();
@@ -246,16 +246,6 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
         this.setState({isNeuronListOpen: true});
     }
 
-    private onChangeSelectTracing(id: string, shouldSelect: boolean) {
-        const neuronViewModels2 = this.state.neuronViewModels.slice();
-
-        neuronViewModelMap.get(id).isSelected = shouldSelect;
-
-        const fetchCalc = this.determineTracingFetchState(neuronViewModels2);
-
-        this.setState({neuronViewModels: neuronViewModels2, tracingsToDisplay: fetchCalc.knownTracings});
-    }
-
     private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
         neuronViewModel.isInHighlightList = isNullOrUndefined(shouldHighlight) ? !neuronViewModel.isInHighlightList : shouldHighlight;
 
@@ -292,6 +282,16 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
             wasDisplayHighlightedOnly: this.state.displayHighlightedOnly,
             cycleFocusNeuronId
         });
+    }
+
+    private onChangeSelectTracing(id: string, shouldSelect: boolean) {
+        const neuronViewModels = this.state.neuronViewModels.slice();
+
+        neuronViewModelMap.get(id).isSelected = shouldSelect;
+
+        const fetchCalc = this.determineTracingFetchState(neuronViewModels);
+
+        this.setState({neuronViewModels, tracingsToDisplay: fetchCalc.knownTracings});
     }
 
     private onChangeSelectAllTracings(shouldSelectAll: boolean) {
