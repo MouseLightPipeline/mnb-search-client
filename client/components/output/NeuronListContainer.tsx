@@ -4,6 +4,7 @@ import {Glyphicon} from "react-bootstrap";
 import {INeuronTableProps, NeuronTable} from "./NeuronTable";
 import {DrawerState} from "./MainView";
 import {QueryStatus} from "../query/QueryHeader";
+import {primaryBackground} from "../../util/styles";
 
 interface INeuronListContainerProps extends INeuronTableProps {
     isDocked: boolean;
@@ -35,7 +36,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
     private renderHeader() {
         return (
             <div style={{
-                backgroundColor: "rgb(5, 141, 150)",
+                backgroundColor: primaryBackground,
                 color: "white",
                 maxHeight: "40px",
                 minHeight: "40px",

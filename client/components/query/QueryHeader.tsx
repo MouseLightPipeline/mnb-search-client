@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Button, Glyphicon} from "react-bootstrap";
 
-import {headerButton, spinnerStyle} from "../../util/styles";
+import {headerButton, primaryBackground, spinnerStyle} from "../../util/styles";
 
 
 const styles = {
@@ -118,7 +118,7 @@ export class QueryHeader extends React.Component<IQueryHeaderProps, IQueryHeader
     public render() {
         return (
             <div style={{
-                backgroundColor: "rgb(5, 141, 150)",
+                backgroundColor: primaryBackground,
                 color: "white",
                 height: "30px",
                 minHeight: "40px",

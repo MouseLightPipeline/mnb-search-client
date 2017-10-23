@@ -7,7 +7,8 @@ import {SystemMessageQuery} from "../../graphql/systemMessage";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {examples} from "../../examples";
 
-const logoImage = require("file-loader!../../../assets/mouseLight_NB_white.svg");
+const logoImage = require("file-loader!../../../assets/mouseLight_NB_color.svg");
+const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 
 interface ISystemMessageQuery {
     systemMessage: string;
@@ -33,7 +34,7 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
     }
 
     private onSelectExampleQuery(eventKey: any) {
-       this.props.onSetQuery(eventKey);
+        this.props.onSetQuery(eventKey);
     }
 
     private onSelectHelpMenuItem(eventKey) {
@@ -58,13 +59,17 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                 <Navbar.Header>
                     <Navbar.Brand>
                         <Link to="/">
-                            <img src={logoImage}/>
+                            <div style={{display: "flex", flexDirection: "row", marginLeft: "20px"}}>
+                                <img src={hhmiImage} height={52} style={{order: 1}}/>
+                                <img src={logoImage} height={52} style={{order: 2, marginLeft: "30px"}}/>
+                            </div>
                         </Link>
                     </Navbar.Brand>
                 </Navbar.Header>
                 <Navbar.Collapse>
                     <Nav pullRight style={{marginRight: "5px", paddingTop: "8px"}}>
-                        <Modal show={this.state.show} onHide={() => this.onHide()} aria-labelledby="contained-modal-title-sm">
+                        <Modal show={this.state.show} onHide={() => this.onHide()}
+                               aria-labelledby="contained-modal-title-sm">
                             <Modal.Header closeButton>
                                 <Modal.Title id="shortcuts-modal-title-sm">Viewer Shortcuts</Modal.Title>
                             </Modal.Header>
@@ -76,19 +81,27 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 </ul>
                             </Modal.Body>
                         </Modal>
-                        <NavDropdown title="Examples - Try It Now!" key="nav-examples" style={{marginRight: "40px", textDecoration: "underline", fontSize: "14px"}}
-                                        onSelect={(key) => this.onSelectExampleQuery(key)} id="nav-examples">
+                        <NavDropdown title="Examples - Try It Now!" key="nav-examples"
+                                     style={{marginRight: "40px", textDecoration: "underline", fontSize: "14px"}}
+                                     onSelect={(key) => this.onSelectExampleQuery(key)} id="nav-examples">
                             {menuItems}
                         </NavDropdown>
-                        <NavItem href="https://www.janelia.org/project-team/mouselight" target="_blank" style={{marginRight: "40px"}}>
+                        <NavItem href="https://www.janelia.org/project-team/mouselight" target="_blank"
+                                 style={{marginRight: "40px"}}>
                             MouseLight Home
                         </NavItem>
-                        <NavDropdown title="Help" key="nav-help" id="nav-help"  style={{marginRight: "40px"}} onSelect={(key) => this.onSelectHelpMenuItem(key)}>
-                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight/neuronbrowser" target="_blank">About</MenuItem>
+                        <NavDropdown title="Help" key="nav-help" id="nav-help" style={{marginRight: "40px"}}
+                                     onSelect={(key) => this.onSelectHelpMenuItem(key)}>
+                            <MenuItem eventKey={null}
+                                      href="https://www.janelia.org/project-team/mouselight/neuronbrowser"
+                                      target="_blank">About</MenuItem>
                             <MenuItem eventKey={1}>Shortcuts</MenuItem>
-                            <MenuItem eventKey={null} href="mailto:mouselightadmin@janelia.hhmi.org">Report an Issue</MenuItem>
+                            <MenuItem eventKey={null} href="mailto:mouselightadmin@janelia.hhmi.org">Report an
+                                Issue</MenuItem>
                             <MenuItem eventKey={null} href="mailto:mouselightadmin@hhmi.org">Contact Us</MenuItem>
-                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight/neuronbrowser" target="_blank">Terms of Use</MenuItem>
+                            <MenuItem eventKey={null}
+                                      href="https://www.janelia.org/project-team/mouselight/neuronbrowser"
+                                      target="_blank">Terms of Use</MenuItem>
                         </NavDropdown>
                         {PreferencesManager.HavePreferences ?
                             <NavItem onSelect={() => this.props.onSettingsClick()}>

@@ -23,10 +23,8 @@
     margin: 8px;
 }
 .navbar {
-    background: rgb(5, 141, 150); /* For browsers that do not support gradients */
-    background: linear-gradient(90deg, rgb(5, 141, 150), rgb(0, 164, 80)); /* Standard syntax */
+    background: rgb(48, 48, 48);
     border: none;
-    border-bottom: 1px solid rgba(0, 164, 80, 0.5);
 }
 
 .navbar-nav>li>a {
@@ -44,7 +42,7 @@
 }
 
 .dropdown-menu {
-    background-color: rgba(0, 164, 80, 0.95);
+    background-color: rgba(0, 63, 96, 0.95);
 }
 
 .rct-title {

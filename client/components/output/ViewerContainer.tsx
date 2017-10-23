@@ -3,6 +3,7 @@ import {Glyphicon, OverlayTrigger, Tooltip} from "react-bootstrap";
 
 import {ITracingViewerProps, TracingViewer} from "./TracingViewer";
 import {FetchState} from "./MainView";
+import {primaryBackground} from "../../util/styles";
 
 interface IViewerProps extends ITracingViewerProps {
     isQueryCollapsed: boolean;
@@ -133,7 +134,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
         const progressMarginLeft = isLeftGlyphVisible ? "20px" : "0px";
         return (
             <div style={{
-                backgroundColor: "rgb(5, 141, 150)",
+                backgroundColor: primaryBackground,
                 color: "white",
                 height: "40px",
                 minHeight: "40px",

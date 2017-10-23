@@ -776,7 +776,7 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
 
         const is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
         // Navbar @ 52, fixed query header @ 40, and if expanded, query area at 300
-        let offset = this.props.isQueryCollapsed ? 93 : 393;
+        let offset = this.props.isQueryCollapsed ? 92 : 392;
 
         if (is_chrome) {
             offset -= 0;

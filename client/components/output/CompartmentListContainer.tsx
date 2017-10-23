@@ -4,6 +4,7 @@ import {Glyphicon} from "react-bootstrap";
 import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "./MainView";
+import {primaryBackground, secondaryyBackground} from "../../util/styles";
 
 
 interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrainAreaGeometryProps {
@@ -35,7 +36,7 @@ export class CompartmentListContainer extends React.Component<ICompartmentListCo
     private renderHeader() {
         return (
             <div style={{
-                backgroundColor: "rgb(5, 141, 150)",
+                backgroundColor: primaryBackground,
                 color: "white",
                 height: "40px",
                 minHeight: "40px",
@@ -55,7 +56,7 @@ export class CompartmentListContainer extends React.Component<ICompartmentListCo
     }
 
     public render() {
-        const color = "rgb(0, 164, 80)";
+        const color = secondaryyBackground;
 
         return (
             <div style={{
