@@ -84,11 +84,11 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                             MouseLight Home
                         </NavItem>
                         <NavDropdown title="Help" key="nav-help" id="nav-help"  style={{marginRight: "40px"}} onSelect={(key) => this.onSelectHelpMenuItem(key)}>
-                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight" target="_blank">About</MenuItem>
+                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight/neuronbrowser" target="_blank">About</MenuItem>
                             <MenuItem eventKey={1}>Shortcuts</MenuItem>
                             <MenuItem eventKey={null} href="mailto:mouselightadmin@janelia.hhmi.org">Report an Issue</MenuItem>
                             <MenuItem eventKey={null} href="mailto:mouselightadmin@hhmi.org">Contact Us</MenuItem>
-                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight" target="_blank">Terms of Use</MenuItem>
+                            <MenuItem eventKey={null} href="https://www.janelia.org/project-team/mouselight/neuronbrowser" target="_blank">Terms of Use</MenuItem>
                         </NavDropdown>
                         {PreferencesManager.HavePreferences ?
                             <NavItem onSelect={() => this.props.onSettingsClick()}>
