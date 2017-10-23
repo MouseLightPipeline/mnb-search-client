@@ -1,0 +1,113 @@
+.panel-body {
+    padding: 0;
+    background-color: transparent;
+}
+
+.panel {
+    border: none;
+}
+
+.panel-footer {
+    padding: 0
+}
+
+.control-label {
+    font-weight: normal;
+}
+
+.rct-title {
+    font-size: 12px;
+}
+
+.navbar-text {
+    margin: 8px;
+}
+.navbar {
+    background: rgb(5, 141, 150); /* For browsers that do not support gradients */
+    background: linear-gradient(90deg, rgb(5, 141, 150), rgb(0, 164, 80)); /* Standard syntax */
+    border: none;
+    border-bottom: 1px solid rgba(0, 164, 80, 0.5);
+}
+
+.navbar-nav>li>a {
+    padding: 10px;
+}
+
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:focus, .navbar-default .navbar-nav>.open>a:hover {
+    background-color: transparent;
+    color: white;
+}
+
+.dropdown-menu>li>a {
+    font-weight: normal;
+    color: #eee;
+}
+
+.dropdown-menu {
+    background-color: rgba(0, 164, 80, 0.95);
+}
+
+.rct-title {
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.rct-icon {
+    font-size: 13px;
+    font-weight: normal;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    background-color: white;
+    height: 100%;
+}
+
+.navbar-header {
+    background-color: transparent;
+}
+
+.navbar-brand {
+    padding: 0;
+    height: 52px;
+    background-color: transparent;
+}
+
+.footer {
+    height: 40px;
+    padding: 8px 4px 4px 10px;
+}
+
+#root {
+    height: 100%;
+}
+
+[data-reactroot] {
+    height: 100%;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg) scale(1)
+    }
+    50% {
+        transform: rotate(180deg) scale(0.8)
+    }
+    100% {
+        transform: rotate(360deg) scale(1)
+    }
+}
+
+.no-select {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}

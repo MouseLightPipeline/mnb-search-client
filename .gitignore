@@ -1,0 +1,16 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+
+.idea
+
+*.js
+*.js.map
+*.jsx
+
+# Generated output
+public/*.html
+public/*.png

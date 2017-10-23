@@ -1,0 +1,939 @@
+import * as React from "react";
+import {Button, Glyphicon} from "react-bootstrap";
+import {gql, graphql} from "react-apollo";
+import * as _ from "lodash";
+
+import {ExportFormat, ITracing} from "../../models/tracing";
+import {HighlightSelectionMode, ITiming} from "./TracingViewer";
+
+import "../../util/override.css";
+import {INeuron} from "../../models/neuron";
+import {TracingViewModel} from "../../viewmodel/tracingViewModel";
+import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
+import {jet} from "../../util/colors";
+import {NEURON_VIEW_MODE_SOMA, NeuronViewMode} from "../../viewmodel/neuronViewMode";
+import {TracingStructure, TracingStructures} from "../../models/tracingStructure";
+import {BrainCompartmentViewModel} from "../../viewmodel/brainCompartmentViewModel";
+import {NdbConstants} from "../../models/constants";
+import {IPositionInput} from "../../models/queryFilter";
+import {NeuronListContainer} from "./NeuronListContainer";
+import {ViewerContainer} from "./ViewerContainer";
+import {CompartmentListContainer} from "./CompartmentListContainer";
+import {PreferencesManager} from "../../util/preferencesManager";
+import {fullRowStyle} from "../../util/styles";
+import {isNullOrUndefined} from "util";
+import {QueryStatus} from "../query/QueryHeader";
+import {displayBrainArea, IBrainArea} from "../../models/brainArea";
+import {examples} from "../../examples";
+
+
+const neuronViewModelMap = new Map<string, NeuronViewModel>();
+
+const tracingNeuronMap = new Map<string, string>();
+
+const tracingViewModelMap2 = new Map<string, TracingViewModel>();
+
+export enum DrawerState {
+    Hidden,
+    Float,
+    Dock
+}
+
+export enum FetchState {
+    Running = 1,
+    Paused
+}
+
+
+interface FetchCalc {
+    knownTracings: TracingViewModel[];
+    hadQuery: boolean;
+}
+
+interface NeuronCalc {
+    neurons: NeuronViewModel[];
+    fetchCalc: FetchCalc;
+}
+
+interface IOutputContainerProps {
+    isQueryCollapsed: boolean;
+    queryStatus: QueryStatus;
+    isLoading: boolean;
+    neurons: INeuron[];
+    brainAreas: BrainCompartmentViewModel[];
+    constants: NdbConstants;
+    nonce: string;
+
+    requestExport?(tracingIds: string[], format: ExportFormat): any;
+    onCompletedFetch(): void;
+    populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
+    onToggleBrainArea(id: string): void;
+    onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel): void;
+    onMutateBrainAreas(added: string[], removed: string[]): void;
+    onToggleQueryCollapsed(): void;
+}
+
+interface IOutputContainerState {
+    defaultStructureSelection?: NeuronViewMode;
+    neuronViewModels?: NeuronViewModel[];
+    tracingsToDisplay?: TracingViewModel[];
+    brainAreaExpanded?: string[];
+    displayHighlightedOnly?: boolean;
+    wasDisplayHighlightedOnly?: boolean;
+    cycleFocusNeuronId?: string;
+    highlightSelectionMode?: HighlightSelectionMode;
+    latestTiming?: ITiming;
+    fetchState?: FetchState;
+    fetchCount?: number;
+    isRendering?: boolean;
+    isNeuronListOpen?: boolean;
+    isNeuronListDocked?: boolean;
+    isCompartmentListOpen?: boolean;
+    isCompartmentListDocked?: boolean;
+}
+
+const RequestExportMutation = gql`
+  mutation requestExport($tracingIds: [String!], $format: Int) {
+    requestExport(tracingIds: $tracingIds, format: $format) {
+        filename
+        contents
+    }
+}`;
+
+class OutputContainer extends React.Component<IOutputContainerProps, IOutputContainerState> {
+    private _queuedIds: string[] = [];
+    private _isInQuery: boolean = false;
+    private _colorIndex: number = 0;
+    private _fetchBatchSize = PreferencesManager.Instance.TracingFetchBatchSize;
+
+    private _viewerContainer = null;
+    private _expectingFetch = false;
+
+    public constructor(props: IOutputContainerProps) {
+        super(props);
+
+        const expanded = makeNodes(props.constants.BrainAreasWithGeometry);
+
+        const neuronCalc = this.updateNeuronViewModels(props, false);
+
+        this.state = {
+            defaultStructureSelection: NEURON_VIEW_MODE_SOMA,
+            neuronViewModels: neuronCalc.neurons,
+            tracingsToDisplay: [],
+            brainAreaExpanded: expanded,
+            displayHighlightedOnly: false,
+            highlightSelectionMode: HighlightSelectionMode.Normal,
+            fetchState: FetchState.Running,
+            fetchCount: 0,
+            cycleFocusNeuronId: null,
+            isRendering: false,
+            latestTiming: null,
+            isNeuronListOpen: false,
+            isNeuronListDocked: PreferencesManager.Instance.IsNeuronListDocked,
+            isCompartmentListDocked: PreferencesManager.Instance.IsCompartmentListDocked
+        };
+    }
+
+    public get ViewerContainer() {
+        return this._viewerContainer;
+    }
+
+    private onSetFetchState(fetchState: FetchState) {
+        this.setState({fetchState}, () => this.fetchTracings());
+    }
+
+    public onCancelFetch() {
+        this._queuedIds = [];
+
+        const neuronViewModels = this.state.neuronViewModels.map(n => {
+            n.cancelRequestedViewMode();
+            return n;
+        });
+
+        this.updateNeuronViewModels(this.props, true);
+
+        this.setState({fetchState: FetchState.Running, fetchCount: 0, neuronViewModels: neuronViewModels.slice()});
+    }
+
+    private completeFetch() {
+        this._expectingFetch = false;
+        this.props.onCompletedFetch();
+    }
+
+    public resetPage() {
+        this._colorIndex = 0;
+        // Must do before cancelFetch which will update state for this property.
+        this.state.neuronViewModels.map(n => {
+            n.isSelected = n.isSelected || PreferencesManager.Instance.ShouldAlwaysShowSoma
+        });
+        this.onCancelFetch();
+        this.ViewerContainer.TracingViewer.reset();
+        this.setState({displayHighlightedOnly: false});
+    }
+
+    private tracingsIdsForNeurons(): string[] {
+        const neurons = this.state.neuronViewModels.filter(v => v.isSelected);
+
+        return neurons.reduce((tIds: any, n: NeuronViewModel) => {
+            return tIds.concat(n.neuron.tracings.filter(t => {
+                switch (n.CurrentViewMode.structure) {
+                    case TracingStructure.axon:
+                        return t.tracingStructure.value == TracingStructure.axon;
+                    case TracingStructure.dendrite:
+                        return t.tracingStructure.value == TracingStructure.dendrite;
+                    default:
+                        return true;
+                }
+            }).map(t => t.id));
+        }, []);
+    }
+
+    private onNeuronListCloseOrPin(state: DrawerState) {
+        if (state === DrawerState.Hidden) {
+            // Close the docked or drawer
+            PreferencesManager.Instance.IsNeuronListDocked = false;
+            this.setState({isNeuronListDocked: false, isNeuronListOpen: false});
+        } else if (state === DrawerState.Float) {
+            // Pin the float
+            PreferencesManager.Instance.IsNeuronListDocked = false;
+            this.setState({isNeuronListDocked: false, isNeuronListOpen: true});
+        } else {
+            PreferencesManager.Instance.IsNeuronListDocked = true;
+            this.setState({isNeuronListDocked: true, isNeuronListOpen: false});
+        }
+    }
+
+    private onCompartmentListCloseOrPin(state: DrawerState) {
+        if (state === DrawerState.Hidden) {
+            // Close the docked or drawer
+            PreferencesManager.Instance.IsCompartmentListDocked = false;
+            this.setState({isCompartmentListDocked: false, isCompartmentListOpen: false});
+        } else if (state === DrawerState.Float) {
+            // Pin the float
+            PreferencesManager.Instance.IsCompartmentListDocked = false;
+            this.setState({isCompartmentListDocked: false, isCompartmentListOpen: true});
+        } else {
+            PreferencesManager.Instance.IsCompartmentListDocked = true;
+            this.setState({isCompartmentListDocked: true, isCompartmentListOpen: false});
+        }
+    }
+
+    private async onExportSelectedTracings(format: ExportFormat) {
+        try {
+            const tracingIds = this.tracingsIdsForNeurons();
+
+            if (tracingIds.length === 0) {
+                return;
+            }
+
+            const output = await this.props.requestExport(tracingIds, format);
+
+            output.data.requestExport.forEach((request: any) => {
+                let contents = request.contents;
+                let mime = "text/plain;charset=utf-8";
+                if (format === 0) {
+                    contents = dataToBlob(contents);
+                    mime = "application/zip";
+                }
+                saveFile(contents, `${request.filename}`, mime);
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    private onShowNeuronList() {
+        this.setState({isNeuronListOpen: true});
+    }
+
+    private onChangeSelectTracing(id: string, shouldSelect: boolean) {
+        const neuronViewModels2 = this.state.neuronViewModels.slice();
+
+        neuronViewModelMap.get(id).isSelected = shouldSelect;
+
+        const fetchCalc = this.determineTracingFetchState(neuronViewModels2);
+
+        this.setState({neuronViewModels: neuronViewModels2, tracingsToDisplay: fetchCalc.knownTracings});
+    }
+
+    private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
+        neuronViewModel.isInHighlightList = isNullOrUndefined(shouldHighlight) ? !neuronViewModel.isInHighlightList : shouldHighlight;
+
+        const tracingsToDisplay = this.state.tracingsToDisplay.slice();
+
+        this.setState({tracingsToDisplay});
+
+        this.verifyHighlighting();
+    }
+
+    private onChangeHighlightMode() {
+        let nextHighlightMode = this.state.highlightSelectionMode === HighlightSelectionMode.Normal ? HighlightSelectionMode.Cycle : HighlightSelectionMode.Normal;
+
+        let displayHighlightedOnly = this.state.displayHighlightedOnly;
+
+        let cycleFocusNeuronId = null;
+
+        if (nextHighlightMode === HighlightSelectionMode.Cycle) {
+            const active = this.state.neuronViewModels.find(n => n.isInHighlightList);
+
+            if (active) {
+                cycleFocusNeuronId = active.neuron.id;
+            }
+
+            displayHighlightedOnly = true;
+        } else {
+            displayHighlightedOnly = this.state.wasDisplayHighlightedOnly;
+            cycleFocusNeuronId = null;
+        }
+
+        this.setState({
+            displayHighlightedOnly,
+            highlightSelectionMode: nextHighlightMode,
+            wasDisplayHighlightedOnly: this.state.displayHighlightedOnly,
+            cycleFocusNeuronId
+        });
+    }
+
+    private onChangeSelectAllTracings(shouldSelectAll: boolean) {
+        const neuronViewModels = this.state.neuronViewModels.slice();
+
+        neuronViewModelMap.forEach(v => v.isSelected = shouldSelectAll);
+
+        const fetchCalc = this.determineTracingFetchState(neuronViewModels);
+
+        this.setState({neuronViewModels, tracingsToDisplay: fetchCalc.knownTracings});
+    }
+
+    private onChangeNeuronColor(neuron: NeuronViewModel, color: any) {
+        const neuronViewModels = this.state.neuronViewModels.slice();
+
+        neuron.baseColor = color.hex;
+
+        this.setState({neuronViewModels});
+    }
+
+    private onChangeDefaultStructure(mode: NeuronViewMode) {
+        this.setState({defaultStructureSelection: mode});
+
+        this.state.neuronViewModels.map(v => v.requestViewMode(mode.structure));
+
+        const fetchCalc = this.determineTracingFetchState(this.state.neuronViewModels.slice());
+
+        this.setState({tracingsToDisplay: fetchCalc.knownTracings}, null);
+    }
+
+
+    private onChangeIsRendering(isRendering: boolean) {
+        if (isRendering !== this.state.isRendering) {
+            this.setState({isRendering});
+        }
+    }
+
+    private onChangeNeuronViewMode(neuronViewModel: NeuronViewModel, viewMode: NeuronViewMode) {
+        neuronViewModel.requestViewMode(viewMode.structure);
+
+        if (viewMode.structure !== TracingStructure.soma) {
+            neuronViewModel.toggleViewMode = viewMode;
+        }
+
+        this.updateNeuronViewModels(this.props, true);
+
+        this.verifyHighlighting();
+    }
+
+    private onToggleSomaViewMode(neuronViewModel: NeuronViewModel) {
+        if (neuronViewModel.ViewMode.structure !== TracingStructure.soma) {
+            neuronViewModel.toggleViewMode = neuronViewModel.ViewMode;
+            neuronViewModel.requestViewMode(TracingStructure.soma);
+        } else {
+            neuronViewModel.requestViewMode(neuronViewModel.toggleViewMode.structure);
+        }
+
+        this.updateNeuronViewModels(this.props, true);
+
+        this.verifyHighlighting();
+    }
+
+    private onToggleTracing(id: string) {
+        const tracing = tracingViewModelMap2.get(id);
+
+        this.onToggleSomaViewMode(tracing.neuron);
+    }
+
+    private onSetHighlightedNeuron(neuron: NeuronViewModel) {
+        this.setState({cycleFocusNeuronId: neuron.Id});
+    }
+
+    private onCycleHighlightNeuron(direction: number) {
+        const highlighted = this.state.neuronViewModels.filter(n => n.isInHighlightList).map(n => n.neuron.id);
+
+        if (highlighted.length < 2) {
+            return;
+        }
+
+        if (this.state.cycleFocusNeuronId === null) {
+            if (highlighted.length > 0) {
+                this.setState({cycleFocusNeuronId: highlighted[0]});
+            }
+        } else {
+            const index = highlighted.indexOf(this.state.cycleFocusNeuronId);
+
+            if (direction < 0) {
+                if (index > 0) {
+                    this.setState({cycleFocusNeuronId: highlighted[index - 1]});
+                } else {
+                    this.setState({cycleFocusNeuronId: highlighted[length - 1]});
+                }
+            } else {
+                if (index < highlighted.length - 1) {
+                    this.setState({cycleFocusNeuronId: highlighted[index + 1]});
+                } else {
+                    this.setState({cycleFocusNeuronId: highlighted[0]});
+                }
+            }
+        }
+    }
+
+    private verifyHighlighting() {
+        if (this.state.highlightSelectionMode === HighlightSelectionMode.Cycle) {
+            const highlighted = this.state.neuronViewModels.filter(n => n.isInHighlightList).map(n => n.neuron.id);
+
+            if (this.state.cycleFocusNeuronId === null || !highlighted.some(id => id === this.state.cycleFocusNeuronId)) {
+                if (highlighted.length > 0) {
+                    this.setState({cycleFocusNeuronId: highlighted[0]});
+                } else {
+                    this.setState({highlightSelectionMode: HighlightSelectionMode.Normal});
+                }
+            }
+        }
+    }
+
+    public componentWillReceiveProps(props: IOutputContainerProps) {
+        if (props.queryStatus === QueryStatus.Loading) {
+            this._colorIndex = 0;
+            this._expectingFetch = true;
+
+            this.onCancelFetch();
+
+            return;
+        }
+
+        const neuronCalc = this.updateNeuronViewModels(props, true, examples.find(e => e.filters[0].id === props.nonce));
+
+        this.verifyHighlighting();
+
+        if (this._expectingFetch && !neuronCalc.fetchCalc.hadQuery) {
+            this.completeFetch();
+        }
+    }
+
+    private updateNeuronViewModels(props: IOutputContainerProps, setState: boolean, example: any = null): NeuronCalc {
+        let loadedModels: NeuronViewModel[] = [];
+
+        props.neurons.map((neuron, index) => {
+            let viewModel = neuronViewModelMap.get(neuron.id);
+
+            if (!viewModel) {
+                const color = jet[this._colorIndex++ % jet.length];
+
+                viewModel = new NeuronViewModel(neuron, color);
+
+                neuronViewModelMap.set(neuron.id, viewModel);
+
+                neuron.tracings.map(t => {
+                    tracingNeuronMap.set(t.id, neuron.id);
+
+                    const model = new TracingViewModel(t.id, viewModel);
+
+                    model.soma = t.soma;
+                    model.structure = t.tracingStructure;
+
+                    tracingViewModelMap2.set(t.id, model);
+
+                    viewModel.tracings.push(model);
+
+                    if (t.tracingStructure.value === TracingStructure.axon) {
+                        viewModel.hasAxonTracing = true;
+                    }
+
+                    if (t.tracingStructure.value === TracingStructure.dendrite) {
+                        viewModel.hasDendriteTracing = true;
+                    }
+                });
+
+                if (neuron.tracings.length > 0) {
+                    const somaTracingModel = new TracingViewModel(neuron.id, viewModel);
+
+                    // Borrow soma data from one of the tracings.
+                    somaTracingModel.soma = viewModel.neuron.tracings[0].soma;
+
+                    somaTracingModel.structure = TracingStructures.Soma;
+
+                    viewModel.somaOnlyTracing = somaTracingModel;
+
+                    // Store under the neuron id.
+                    tracingViewModelMap2.set(neuron.id, somaTracingModel);
+                }
+
+                if (PreferencesManager.Instance.ShouldAlwaysShowFullTracing) {
+                    viewModel.requestViewMode(TracingStructure.all);
+                    viewModel.isSelected = true;
+                }
+                else if (PreferencesManager.Instance.ShouldAlwaysShowSoma) {
+                    viewModel.requestViewMode(TracingStructure.soma);
+                    viewModel.isSelected = true;
+                } else {
+                    viewModel.requestViewMode(this.state.defaultStructureSelection.structure);
+                    viewModel.isSelected = false;
+                }
+            }
+
+            if (example) {
+                viewModel.requestViewMode(TracingStructure.all);
+
+                if (index < example.colors.length) {
+                    viewModel.baseColor = example.colors[index];
+                }
+            }
+
+            loadedModels.push(viewModel);
+        });
+
+        const fetchCalc = this.determineTracingFetchState(loadedModels);
+
+        if (setState) {
+            this.setState({neuronViewModels: loadedModels, tracingsToDisplay: fetchCalc.knownTracings});
+        }
+
+        return {
+            neurons: loadedModels,
+            fetchCalc
+        };
+    }
+
+    private determineTracingFetchState(knownViewModels: NeuronViewModel[]): FetchCalc {
+        let tracingsToDisplay: TracingViewModel[] = null;
+
+        let hadQuery = false;
+
+        const neuronsToDisplay = knownViewModels.filter(v => v.isSelected);
+
+        if (neuronsToDisplay.length > 0) {
+            const ids = neuronsToDisplay.reduce((prev, n) => {
+                const viewMode = n.ViewMode.structure;
+
+                prev.full = prev.full.concat(n.neuron.tracings.filter(t => {
+                    switch (viewMode) {
+                        case TracingStructure.all:
+                            return true;
+                        case TracingStructure.axon:
+                            return t.tracingStructure.value == TracingStructure.axon;
+                        case TracingStructure.dendrite:
+                            return t.tracingStructure.value == TracingStructure.dendrite;
+                        default:
+                            return false; // soma handled separately - no fetch required.
+                    }
+                }).map(t => t.id));
+
+                if (viewMode === TracingStructure.soma) {
+                    if (n.somaOnlyTracing) {
+                        prev.soma.push(n.neuron.id);
+                        n.requestViewMode(TracingStructure.soma);
+                    }
+                }
+
+                return prev;
+            }, {full: [], soma: []});
+
+            const availableFullIds = Array.from(tracingViewModelMap2.values()).filter(t => t.tracing !== null).map(t => t.id);
+
+            const known = _.intersection(ids.full, availableFullIds);
+
+            const toQuery = _.difference(ids.full, known);
+
+            tracingsToDisplay = known.map(id => {
+                const neuronModel = neuronViewModelMap.get(tracingNeuronMap.get(id));
+
+                if (neuronModel) {
+                    neuronModel.completedViewModeRequest();
+                }
+
+                return tracingViewModelMap2.get(id);
+            });
+
+            tracingsToDisplay = tracingsToDisplay.concat(ids.soma.map(id => tracingViewModelMap2.get(id)));
+
+            if (toQuery.length > 0) {
+                hadQuery = true;
+                this.queueTracings(toQuery);
+            }
+        } else {
+            tracingsToDisplay = [];
+        }
+
+        return {
+            knownTracings: tracingsToDisplay,
+            hadQuery
+        };
+    }
+
+    private queueTracings(ids: string[]) {
+        this._queuedIds = _.uniq(this._queuedIds.concat(ids));
+
+        this.fetchTracings();
+    }
+
+    private fetchTracings() {
+        if (this._isInQuery || this._queuedIds.length === 0 || this.state.fetchState !== FetchState.Running) {
+            return;
+        }
+
+        const ids = this._queuedIds.splice(0, this._fetchBatchSize);
+
+        this._isInQuery = true;
+
+        this.setState({fetchCount: this._queuedIds.length, latestTiming: null});
+
+        let timing: ITiming = null;
+
+        fetch('/tracings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids
+            })
+        }).then(async (data) => {
+            if (data.status === 200) {
+                const arrive = Date.now();
+
+                const tracingsData = await data.json();
+
+                const tracings = tracingsData.tracings;
+
+                let tracingsToDisplay = this.state.tracingsToDisplay;
+
+                tracings.forEach((t: ITracing) => {
+                    const model = tracingViewModelMap2.get(t.id);
+                    model.tracing = t;
+                    tracingsToDisplay.push(model);
+
+                    const neuronModel = neuronViewModelMap.get(tracingNeuronMap.get(t.id));
+
+                    if (neuronModel) {
+                        neuronModel.completedViewModeRequest();
+                    }
+                });
+
+                timing = Object.assign({}, tracingsData.timing, {transfer: (arrive.valueOf() - tracingsData.timing.sent) / 1000});
+
+                this.setState({fetchCount: this._queuedIds.length, tracingsToDisplay, latestTiming: timing});
+
+                this._isInQuery = false;
+            } else {
+                console.log(data);
+
+                ids.forEach(id => {
+                    const v = neuronViewModelMap.get(tracingNeuronMap.get(id));
+                    v.isSelected = false;
+                    v.cancelRequestedViewMode();
+                });
+
+                this.setState({
+                    neuronViewModels: this.state.neuronViewModels.slice(),
+                    fetchCount: this._queuedIds.length,
+                    latestTiming: null
+                });
+
+                this._isInQuery = false;
+            }
+
+            if (this._queuedIds.length === 0) {
+                this.completeFetch();
+            }
+
+            setTimeout(() => this.fetchTracings(), 0);
+        }).catch((err) => {
+            ids.forEach(id => {
+                const v = neuronViewModelMap.get(tracingNeuronMap.get(id));
+                v.cancelRequestedViewMode();
+                v.isSelected = false;
+            });
+
+            this.setState({
+                neuronViewModels: this.state.neuronViewModels.slice(),
+                fetchCount: this._queuedIds.length,
+                latestTiming: null
+            });
+
+            console.log(err);
+
+            this._isInQuery = false;
+
+            setTimeout(() => this.fetchTracings(), 0);
+        });
+    }
+
+    private renderHeader() {
+        const haveTracings = this.state.neuronViewModels.some((v) => v.isSelected);
+
+        const tooManyTracings = this.state.neuronViewModels.filter(v => v.isSelected).length > 10;
+
+        const disableExport = !haveTracings || tooManyTracings;
+
+        return (
+            <div className="panel-high-heading">
+                <table style={{width: "100%"}}>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <Button bsSize="sm" bsStyle="success"
+                                    onClick={() => this.onShowNeuronList()}
+                                    style={{marginRight: "10px"}}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Neurons
+                            </Button></td>
+                        <td style={{width: "100%"}} className="text-right">
+                            <Button bsSize="sm" bsStyle={disableExport ? "default" : "success"} disabled={disableExport}
+                                    onClick={() => this.onExportSelectedTracings(ExportFormat.SWC)}
+                                    style={{marginRight: "10px"}}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Export SWC
+                            </Button>
+                            <Button bsSize="sm" bsStyle={disableExport ? "default" : "success"} disabled={disableExport}
+                                    onClick={() => this.onExportSelectedTracings(ExportFormat.JSON)}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Export JSON
+                            </Button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    public render() {
+        const isAllTracingsSelected = !this.state.neuronViewModels.some(v => !v.isSelected);
+
+        const tableProps = {
+            isDocked: this.state.isNeuronListDocked,
+            queryStatus: this.props.queryStatus,
+            isAllTracingsSelected,
+            defaultStructureSelection: this.state.defaultStructureSelection,
+            neuronViewModels: this.state.neuronViewModels,
+            onChangeSelectTracing: (id: string, b: boolean) => this.onChangeSelectTracing(id, b),
+            onChangeNeuronColor: (n: NeuronViewModel, c: any) => this.onChangeNeuronColor(n, c),
+            onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
+            onChangeSelectAllTracings: (b: boolean) => this.onChangeSelectAllTracings(b),
+            onChangeDefaultStructure: (mode: NeuronViewMode) => this.onChangeDefaultStructure(mode),
+            onClickCloseOrPin: (s: DrawerState) => this.onNeuronListCloseOrPin(s)
+        };
+
+        const viewerProps = {
+            isNeuronListDocked: this.state.isNeuronListDocked,
+            isCompartmentListDocked: this.state.isCompartmentListDocked,
+            isNeuronListOpen: this.state.isNeuronListOpen,
+            isCompartmentListOpen: this.state.isCompartmentListOpen,
+            constants: this.props.constants,
+            isLoading: this.props.isLoading,
+            tracings: this.state.tracingsToDisplay,
+            compartments: this.props.brainAreas,
+            highlightedTracings: [],
+            isRendering: this.state.isRendering,
+            fetchCount: this.state.fetchCount,
+            fixedAspectRatio: null,
+            highlightSelectionMode: this.state.highlightSelectionMode,
+            cycleFocusNeuronId: this.state.cycleFocusNeuronId,
+            isQueryCollapsed: this.props.isQueryCollapsed,
+            fetchState: this.state.fetchState,
+            onSetFetchState: (s) => this.onSetFetchState(s),
+            onCancelFetch: () => this.onCancelFetch(),
+            onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
+            onToggleQueryCollapsed: this.props.onToggleQueryCollapsed,
+            onChangeIsRendering: (b: boolean) => this.onChangeIsRendering(b),
+            onHighlightTracing: (n: NeuronViewModel, b: boolean) => this.onChangeHighlightTracing(n, b),
+            onToggleTracing: (id: string) => this.onToggleTracing(id),
+            onToggleCompartment: this.props.onToggleBrainArea,
+            onSetHighlightedNeuron: (n: NeuronViewModel) => this.onSetHighlightedNeuron(n),
+            onCycleHighlightNeuron: (d: number) => this.onCycleHighlightNeuron(d),
+            onChangeHighlightMode: () => this.onChangeHighlightMode(),
+            populateCustomPredicate: (p: IPositionInput, b: boolean) => this.props.populateCustomPredicate(p, b),
+            onFloatNeuronList: () => this.onNeuronListCloseOrPin(DrawerState.Float),
+            onFloatCompartmentList: () => this.onCompartmentListCloseOrPin(DrawerState.Float)
+        };
+
+        const treeProps = {
+            isDocked: this.state.isCompartmentListDocked,
+            constants: this.props.constants,
+            onChangeLoadedGeometry: this.props.onMutateBrainAreas,
+            brainAreaViewModels: this.props.brainAreas,
+            nodes: nodes,
+            expanded: this.state.brainAreaExpanded,
+            onToggleCompartmentSelected: this.props.onToggleBrainArea,
+            onRemoveFromHistory: this.props.onRemoveBrainAreaFromHistory,
+            onChangeBrainAreaExpanded: (e: string[]) => this.setState({brainAreaExpanded: e}),
+            onClickCloseOrPin: (s: DrawerState) => this.onCompartmentListCloseOrPin(s)
+        };
+
+        const is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+        // Navbar @ 52, fixed query header @ 40, and if expanded, query area at 300
+        let offset = this.props.isQueryCollapsed ? 93 : 393;
+
+        if (is_chrome) {
+            offset -= 0;
+        }
+
+        const baseStyle = {
+            position: "fixed" as "fixed",
+            zIndex: 2,
+            top: offset + "px",
+            height: "calc(100% - " + offset + "px)",
+            backgroundColor: "#ffffffdd"
+        };
+
+        const neuronList = (<NeuronListContainer {...tableProps}/>);
+
+        const neuronListFloat = this.state.isNeuronListOpen ? ( <div style={baseStyle}>  {neuronList}</div>) : null;
+
+        const compartmentListFloat = this.state.isCompartmentListOpen ? (
+            <div style={Object.assign({left: "calc(100% - 400px)"}, baseStyle)}>
+                <CompartmentListContainer {...treeProps}/>
+            </div>) : null;
+
+        const compartmentListDock = this.state.isCompartmentListDocked ? (
+            <CompartmentListContainer {...treeProps}/>) : null;
+
+        const overlay = neuronListFloat !== null || compartmentListFloat !== null ? (
+            <div style={{
+                width: "100%",
+                position: "fixed",
+                top: offset + "px",
+                zIndex: 1,
+                height: "calc(100% - " + offset + "px)",
+                backgroundColor: "#000000",
+                opacity: 0.1
+            }} onClick={() => this.setState({isNeuronListOpen: false, isCompartmentListOpen: false})}/>) : null;
+
+        const style = {width: "100%", height: "100%"};
+
+        return (
+            <div style={style}>
+                {neuronListFloat}
+                {compartmentListFloat}
+                {overlay}
+                <div style={fullRowStyle}>
+                    {this.state.isNeuronListDocked ? neuronList : null}
+                    <ViewerContainer {...viewerProps} ref={(v) => this._viewerContainer = v}/>
+                    {compartmentListDock}
+                </div>
+            </div>
+        );
+    }
+}
+
+export const MainViewWithData = graphql<IOutputContainerProps, IOutputContainerProps>(RequestExportMutation, {
+    withRef: true,
+    props: ({ownProps, mutate}) => ({
+        requestExport: (tracingIds: string[], format: ExportFormat) => mutate({
+            variables: {tracingIds, format},
+        }),
+    }),
+})(OutputContainer);
+
+function saveFile(data: any, filename: string, mime: string = null) {
+    const blob = new Blob([data], {type: mime || "text/plain;charset=utf-8"});
+
+    if (typeof window.navigator.msSaveBlob !== "undefined") {
+        // IE workaround for "HTML7007: One or more blob URLs were
+        // revoked by closing the blob for which they were created.
+        // These URLs will no longer resolve as the data backing
+        // the URL has been freed."
+        window.navigator.msSaveBlob(blob, filename);
+    }
+    else {
+        const blobURL = window.URL.createObjectURL(blob);
+        const tempLink = document.createElement("a");
+        tempLink.href = blobURL;
+        tempLink.setAttribute("download", filename);
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+    }
+}
+
+function dataToBlob(encoded) {
+    const byteString = atob(encoded);
+
+    const ab = new ArrayBuffer(byteString.length);
+
+    const ia = new Uint8Array(ab);
+
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return ab;
+}
+
+let nodes: any[] = [{
+    value: "Loading",
+    label: "Loading...",
+    children: []
+}];
+const nodeMap = new Map<number, any>();
+const idMap = new Map<string, IBrainArea>();
+
+
+// A couple of hard-coded exceptions.  If this grows, should have a db column.
+const RETINA = 304325711;
+const GROOVES = 1024;
+
+function makeNodes(brainAreas: IBrainArea[]) {
+
+    let rootIds: string[] = null;
+
+    if (nodeMap.size > 0 || isNullOrUndefined(brainAreas)) {
+        return;
+    }
+
+    let mutable = brainAreas.map(b => {
+        idMap.set(b.id, b);
+        return b;
+    });
+
+    mutable.sort((a, b) => {
+        return a.depth - b.depth;
+    });
+
+    nodes = [];
+
+    mutable.forEach(b => {
+        if (b.structureId === RETINA || b.structureId === GROOVES) {
+            return;
+        }
+
+        const node: any = {
+            value: b.id,
+            label: displayBrainArea(b),
+            optimisticToggle: false,
+            children: []
+        };
+
+        if (b.depth === 0) {
+            nodes.push(node);
+            rootIds = [b.id]
+        } else {
+            const parent = nodeMap.get(b.parentStructureId);
+
+            // The parent is not included - skip
+            if (parent === undefined) {
+                return;
+            }
+
+            parent.children.push(node);
+        }
+
+        nodeMap.set(b.structureId, node);
+    });
+
+    return rootIds;
+}
