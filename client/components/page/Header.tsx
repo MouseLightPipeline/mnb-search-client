@@ -59,9 +59,14 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                 <Navbar.Header>
                     <Navbar.Brand>
                         <Link to="/">
-                            <div style={{display: "flex", flexDirection: "row", marginLeft: "20px"}}>
-                                <img src={hhmiImage} height={52} style={{order: 1}}/>
-                                <img src={logoImage} height={52} style={{order: 2, marginLeft: "30px"}}/>
+                            <div style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginLeft: "0px"
+                            }}>
+                                <img src={logoImage} height={52} style={{order: 1}}/>
+                                <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
                             </div>
                         </Link>
                     </Navbar.Brand>
@@ -81,6 +86,15 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 </ul>
                             </Modal.Body>
                         </Modal>
+                        <NavItem href="https://www.janelia.org/project-team/mouselight" target="_blank"
+                                 style={{
+                                     marginRight: "80px",
+                                     textDecoration: "underline",
+                                     fontSize: "14px",
+                                     textAlign: "center"
+                                 }}>
+                            Tutorial Video
+                        </NavItem>
                         <NavDropdown title="Examples - Try It Now!" key="nav-examples"
                                      style={{marginRight: "40px", textDecoration: "underline", fontSize: "14px"}}
                                      onSelect={(key) => this.onSelectExampleQuery(key)} id="nav-examples">

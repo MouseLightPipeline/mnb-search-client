@@ -1,6 +1,6 @@
 {
   "name": "search-client",
-  "version": "1.0.5",
+  "version": "1.0.9",
   "main": "server/transformSearch.js",
   "repository": "https://github.com/MouseLightPipeline/search-client.git",
   "author": "Patrick Edson <pedson@leapscientific.com>",

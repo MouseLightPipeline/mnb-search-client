@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Glyphicon, OverlayTrigger, Tooltip} from "react-bootstrap";
+import {Glyphicon} from "react-bootstrap";
 
 import {ITracingViewerProps, TracingViewer} from "./TracingViewer";
 import {FetchState} from "./MainView";
@@ -42,8 +42,13 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
 
     private renderFloatNeuronListGlyph() {
         if (!this.props.isNeuronListDocked && !this.props.isNeuronListOpen) {
-            return (<Glyphicon glyph="chevron-right" style={{height: "100%", top: "0", marginTop: "12px"}}
-                               onClick={() => this.props.onFloatNeuronList()}/>)
+            return (
+                <div style={{display: "flex", alignItems: "center", marginTop: "3px"}}>
+                    <h5 style={{color: "white", fontWeight: "lighter", marginLeft: "10px", marginRight: "6px"}}>
+                        Neurons</h5>
+                    <Glyphicon glyph="chevron-right" style={{height: "100%", top: -1, order: 2}}
+                               onClick={() => this.props.onFloatNeuronList()}/>
+                </div>);
         } else {
             return null;
         }
@@ -51,8 +56,13 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
 
     private renderFloatCompartmentListGlyph() {
         if (!this.props.isCompartmentListDocked && !this.props.isCompartmentListOpen) {
-            return (<Glyphicon glyph="chevron-left" style={{height: "100%", top: "0", marginTop: "12px"}}
-                               onClick={() => this.props.onFloatCompartmentList()}/>)
+            return (
+                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "3px"}}>
+                    <Glyphicon glyph="chevron-left" style={{height: "100%", order: 1, top: -1}}
+                               onClick={() => this.props.onFloatCompartmentList()}/>
+                    <h5 style={{color: "white", fontWeight: "lighter", marginLeft: "6px", marginRight: "10px", order: 2}}>
+                        Compartments</h5>
+                </div>);
         } else {
             return null;
         }
@@ -99,7 +109,8 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             border: "1px solid #ccc",
                             padding: "0px 10px"
                         }}>
-                            <Glyphicon glyph={glyph} style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft:"1px"}}
+                            <Glyphicon glyph={glyph}
+                                       style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
                                        onClick={() => this.props.onSetFetchState(isPaused ? FetchState.Running : FetchState.Paused)}/>
                         </div>
                         <div style={{
@@ -109,7 +120,8 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             border: "1px solid #ccc", marginLeft: "10px",
                             padding: "0px 10px"
                         }}>
-                            <Glyphicon glyph="remove" style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft:"1px"}}
+                            <Glyphicon glyph="remove"
+                                       style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
                                        onClick={() => this.props.onCancelFetch()}/>
                         </div>
                     </div>
@@ -146,7 +158,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                 flexDirection: "row"
             }}>
                 <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
-                    <div style={{flex: "0 0 auto", order: 1, width: "20px"}}>
+                    <div style={{flex: "0 0 auto", order: 1, width: "auto"}}>
                         {this.renderFloatNeuronListGlyph()}
                     </div>
                     <div style={{display: "flex", flexDirection: "column", flex: "1 1 auto", order: 2, width: "100%"}}>
@@ -167,7 +179,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             </div>
                         </div>
                     </div>
-                    <div style={{flex: "0 0 auto", order: 3, width: "20px"}}>
+                    <div style={{flex: "0 0 auto", order: 3, width: "auto"}}>
                         {this.renderFloatCompartmentListGlyph()}
                     </div>
                 </div>
