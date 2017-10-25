@@ -6,6 +6,7 @@ import {graphql, QueryProps} from "react-apollo";
 import {SystemMessageQuery} from "../../graphql/systemMessage";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {examples} from "../../examples";
+import {TutorialDialog} from "./Tutorial";
 
 const logoImage = require("file-loader!../../../assets/mouseLight_NB_color.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
@@ -21,7 +22,8 @@ interface IHeadingProps {
 }
 
 interface IHeadingState {
-    show?: boolean;
+    showSettings?: boolean;
+    showTutorial?: boolean;
 }
 
 class Heading extends React.Component<IHeadingProps, IHeadingState> {
@@ -29,7 +31,8 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
         super(props);
 
         this.state = {
-            show: false
+            showSettings: false,
+            showTutorial: false
         }
     }
 
@@ -42,11 +45,15 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
             return;
         }
 
-        this.setState({show: true});
+        this.setState({showSettings: true});
     }
 
-    private onHide() {
-        this.setState({show: false});
+    private onHideSettings() {
+        this.setState({showSettings: false});
+    }
+
+    private onHideTutorial() {
+        this.setState({showTutorial: false});
     }
 
     public render() {
@@ -55,7 +62,7 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
         });
 
         return (
-            <Navbar fluid style={{borderRadius: 0, marginBottom: 0}}>
+            <Navbar fluid style={{borderRadius: 0, marginBottom: 0, height: 79}}>
                 <Navbar.Header>
                     <Navbar.Brand>
                         <Link to="/">
@@ -63,7 +70,8 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 display: "flex",
                                 flexDirection: "row",
                                 alignItems: "center",
-                                marginLeft: "0px"
+                                marginLeft: "0px",
+                                height: "100%"
                             }}>
                                 <img src={logoImage} height={52} style={{order: 1}}/>
                                 <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
@@ -72,8 +80,10 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                     </Navbar.Brand>
                 </Navbar.Header>
                 <Navbar.Collapse>
-                    <Nav pullRight style={{marginRight: "5px", paddingTop: "8px"}}>
-                        <Modal show={this.state.show} onHide={() => this.onHide()}
+                    <Nav pullRight style={{marginRight: "5px", paddingTop: "18px"}}>
+                        {this.state.showTutorial ? <TutorialDialog show={this.state.showTutorial}
+                                                                   onHide={() => this.onHideTutorial()}/> : null}
+                        <Modal show={this.state.showSettings} onHide={() => this.onHideSettings()}
                                aria-labelledby="contained-modal-title-sm">
                             <Modal.Header closeButton>
                                 <Modal.Title id="shortcuts-modal-title-sm">Viewer Shortcuts</Modal.Title>
@@ -86,7 +96,7 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 </ul>
                             </Modal.Body>
                         </Modal>
-                        <NavItem href="https://www.janelia.org/project-team/mouselight" target="_blank"
+                        <NavItem onClick={() => this.setState({showTutorial: true})}
                                  style={{
                                      marginRight: "80px",
                                      textDecoration: "underline",

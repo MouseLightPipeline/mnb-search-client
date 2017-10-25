@@ -87,7 +87,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
         };
 
         return (
-            <Modal show={this.props.show} onHide={this.props.onHide} aria-labelledby="contained-modal-title-sm">
+            <Modal show={this.props.show} onHide={this.props.onHide} aria-labelledby="contained-modal-title-sm" bsSize="large">
                 <Modal.Header closeButton>
                     <Modal.Title id="contained-modal-title-sm">Settings</Modal.Title>
                 </Modal.Header>

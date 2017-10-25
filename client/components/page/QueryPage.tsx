@@ -5,7 +5,7 @@ import {INeuron} from "../../models/neuron";
 import {NdbConstants} from "../../models/constants";
 import {IFilterInput, IPositionInput} from "../../models/queryFilter";
 import {QueryFilterContainer} from "../query/QueryFilterContainer";
-import {MainViewWithData} from "../output/MainView";
+import {MainView} from "../output/MainView";
 import {QueryStatus} from "../query/QueryHeader";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {VisibleBrainAreas} from "../../viewmodel/VisibleBrainAreas";
@@ -129,7 +129,7 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
                 });
 
                 if (specialHandling && specialHandling.viewOrientation && this._mainView) {
-                    this._mainView.getWrappedInstance().ViewerContainer.TracingViewer.resetView(specialHandling.viewOrientation.r1, specialHandling.viewOrientation.r2);
+                    this._mainView.ViewerContainer.TracingViewer.resetView(specialHandling.viewOrientation.r1, specialHandling.viewOrientation.r2);
                 }
             }
         };
@@ -143,7 +143,7 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
         this._visibleBrainAreas.clear();
         this._queryDuration = 0;
         this._neuronSystemCount = 0;
-        this._mainView.getWrappedInstance().resetPage();
+        this._mainView.resetPage();
 
         this.setState({neurons: [], visibleBrainAreas: this._visibleBrainAreas.BrainAreas, isQueryCollapsed: false});
     }
@@ -236,7 +236,7 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
                     <QueryFilterContainer {...queryProps}/>
                 </div>
                 <div style={{height: "100px", width: "100%", flexGrow: 1, flexShrink: 1, order: 2}}>
-                    <MainViewWithData {...viewerProps}/>
+                    <MainView{...viewerProps}/>
                 </div>
             </div>
         );

@@ -15,7 +15,7 @@ const styles = {
         marginTop: "0px",
         marginBottom: "40px",
         overflow: "hidden" as "hidden",
-        height: "calc(100% - 92px)"
+        height: "calc(100% - 119px)"
     }
 };
 
