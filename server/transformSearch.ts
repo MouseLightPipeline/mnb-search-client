@@ -102,6 +102,12 @@ function devServer() {
             },
             "/tracings": {
                 target: apiUri
+            },
+            "/swc": {
+                target: "http://localhost:9691"
+            },
+            "/json": {
+                target: "http://localhost:9691"
             }
         },
         setup: (app) => {

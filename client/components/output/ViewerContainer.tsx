@@ -43,11 +43,12 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
     private renderFloatNeuronListGlyph() {
         if (!this.props.isNeuronListDocked && !this.props.isNeuronListOpen) {
             return (
-                <div style={{display: "flex", alignItems: "center", marginTop: "3px"}}>
+                <div style={{display: "flex", alignItems: "center", marginTop: "3px"}}
+                     onClick={() => this.props.onFloatNeuronList()}>
                     <h5 style={{color: "white", fontWeight: "lighter", marginLeft: "10px", marginRight: "6px"}}>
                         Neurons</h5>
                     <Glyphicon glyph="chevron-right" style={{height: "100%", top: -1, order: 2}}
-                               onClick={() => this.props.onFloatNeuronList()}/>
+                    />
                 </div>);
         } else {
             return null;
@@ -57,10 +58,16 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
     private renderFloatCompartmentListGlyph() {
         if (!this.props.isCompartmentListDocked && !this.props.isCompartmentListOpen) {
             return (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "3px"}}>
-                    <Glyphicon glyph="chevron-left" style={{height: "100%", order: 1, top: -1}}
-                               onClick={() => this.props.onFloatCompartmentList()}/>
-                    <h5 style={{color: "white", fontWeight: "lighter", marginLeft: "6px", marginRight: "10px", order: 2}}>
+                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "3px"}}
+                     onClick={() => this.props.onFloatCompartmentList()}>
+                    <Glyphicon glyph="chevron-left" style={{height: "100%", order: 1, top: -1}}/>
+                    <h5 style={{
+                        color: "white",
+                        fontWeight: "lighter",
+                        marginLeft: "6px",
+                        marginRight: "10px",
+                        order: 2
+                    }}>
                         Compartments</h5>
                 </div>);
         } else {
@@ -70,7 +77,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
 
     private renderCollapseQueryGlyph() {
         return (<Glyphicon glyph={this.props.isQueryCollapsed ? "chevron-down" : "chevron-up"}
-                           style={{margin: "auto", marginRight: "10px", order: 3}}
+                           style={{margin: "auto", order: 3}}
                            onClick={() => this.props.onToggleQueryCollapsed()}/>)
     }
 
@@ -177,6 +184,12 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             <div style={{flex: "1 1 auto", margin: "auto", order: 2, textAlign: "left"}}>
                                 {this.renderMessage()}
                             </div>
+                        </div>
+                        <div style={{flex: "1 1 auto", order: 2, textAlign: "center", width: "100%"}}>
+                            {this.props.isQueryCollapsed ?
+                                <span onClick={() => this.props.onToggleQueryCollapsed()}>
+                                    Show Search
+                                </span> : null}
                         </div>
                     </div>
                     <div style={{flex: "0 0 auto", order: 3, width: "auto"}}>

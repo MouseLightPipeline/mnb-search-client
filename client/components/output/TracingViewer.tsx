@@ -1,9 +1,6 @@
 import * as React from "react";
-import {QueryProps} from "react-apollo";
 import * as _ from "lodash";
 
-
-import {ITracingPage} from "../../models/tracing";
 import {ITracingNode} from "../../models/tracingNode";
 import {TracingViewModel} from "../../viewmodel/tracingViewModel";
 import {NdbConstants} from "../../models/constants";
@@ -28,10 +25,6 @@ export interface ITiming {
     transfer: number;
 }
 
-interface ITracingsGraphQLProps {
-    tracings: ITracingPage;
-}
-
 export interface ITracingViewerProps {
     constants: NdbConstants;
     compartments: BrainCompartmentViewModel[];
@@ -39,16 +32,16 @@ export interface ITracingViewerProps {
     isLoading: boolean;
     isRendering: boolean;
     fixedAspectRatio?: number;
+    displayHighlightedOnly: boolean;
     highlightSelectionMode: HighlightSelectionMode;
     cycleFocusNeuronId: string;
-
-    data?: QueryProps & ITracingsGraphQLProps
 
     onChangeIsRendering?(isRendering: boolean): void;
     onHighlightTracing(neuron: NeuronViewModel, highlight?: boolean): void;
     onSelectNode?(tracing: TracingViewModel, node: ITracingNode): void;
     onToggleTracing(id: string): void;
     onToggleCompartment(id: string): void;
+    onToggleDisplayHighlighted(): void;
     onChangeHighlightMode(): void;
     onSetHighlightedNeuron(neuron: NeuronViewModel): void;
     onCycleHighlightNeuron(direction: number): void;
@@ -75,12 +68,9 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private _neuronColors = new Map<string, string>();
 
-    private _displayHighlightedOnly: boolean;
 
     public constructor(props: ITracingViewerProps) {
         super(props);
-
-        this._displayHighlightedOnly = false;
 
         this.state = {
             renderWidth: 0,
@@ -138,9 +128,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     }
 
     private onToggleDisplayHighlighted() {
-        this._displayHighlightedOnly = !this._displayHighlightedOnly;
+        //this._displayHighlightedOnly = !this._displayHighlightedOnly;
 
-        this.prepareAndRenderTracings(this.props);
+        //this.prepareAndRenderTracings(this.props);
+        this.props.onToggleDisplayHighlighted();
     }
 
     private createViewer(width: number, height: number) {
@@ -333,7 +324,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private setOpacity(tracing: TracingViewModel, fadedOpacity: number) {
         if (this.props.highlightSelectionMode === HighlightSelectionMode.Normal) {
-            this._viewer.setNeuronDisplayLevel(tracing.id, !this._displayHighlightedOnly || tracing.IsHighlighted ? 1.0 : fadedOpacity);
+            this._viewer.setNeuronDisplayLevel(tracing.id, !this.props.displayHighlightedOnly || tracing.IsHighlighted ? 1.0 : fadedOpacity);
         } else {
             if (tracing.NeuronId === this.props.cycleFocusNeuronId) {
                 this._viewer.setNeuronDisplayLevel(tracing.id, 1.0);
@@ -453,7 +444,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 <ViewerSelection constants={this.props.constants}
                                  selectedNode={this.state.selectedNode}
                                  selectedTracing={this.state.selectedTracing}
-                                 displayHighlightedOnly={this._displayHighlightedOnly}
+                                 displayHighlightedOnly={this.props.displayHighlightedOnly}
                                  highlightSelectionMode={this.props.highlightSelectionMode}
                                  cycleFocusNeuronId={this.props.cycleFocusNeuronId}
                                  activeNeurons={activeNeurons}

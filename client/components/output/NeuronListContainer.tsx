@@ -1,16 +1,18 @@
 import * as React from "react";
-import {Glyphicon} from "react-bootstrap";
+import {Glyphicon, Dropdown, MenuItem} from "react-bootstrap";
 
 import {INeuronTableProps, NeuronTable} from "./NeuronTable";
 import {DrawerState} from "./MainView";
 import {QueryStatus} from "../query/QueryHeader";
 import {primaryBackground} from "../../util/styles";
+import {ExportFormat} from "../../models/tracing";
 
 interface INeuronListContainerProps extends INeuronTableProps {
     isDocked: boolean;
     queryStatus: QueryStatus;
 
     onClickCloseOrPin(state: DrawerState): void;
+    onRequestExport(format: ExportFormat): void;
 }
 
 interface INeuronListContainerState {
@@ -23,14 +25,45 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
         this.state = {}
     }
 
+    private performExport(format: ExportFormat) {
+
+    }
+
     private renderCloseGlyph() {
         const transform = this.props.isDocked ? "rotate(-45deg)" : "";
         const state = this.props.isDocked ? DrawerState.Float : DrawerState.Dock;
 
         return (
-            <Glyphicon glyph="pushpin" style={{margin: "auto", order: 2, marginRight: "10px", transform: transform}}
+            <Glyphicon glyph="pushpin" style={{margin: "auto", order: 3, marginRight: "10px", transform: transform}}
                        onClick={() => this.props.onClickCloseOrPin(state)}/>
         );
+    }
+
+    private renderExport() {
+        /*
+        const count = this.props.neuronViewModels.reduce((c, n) => {return n.isSelected ? c + 1 : c}, 0);
+
+        let menus = [];
+
+        if (count <= 20) {
+            menus[0] = (<MenuItem key="1" eventKey={ExportFormat.SWC}>Export SWC</MenuItem>);
+            menus[1] = (<MenuItem key="2" eventKey={ExportFormat.JSON}>Export JSON</MenuItem>);
+        } else {
+            menus[0] = (<MenuItem disabled={true}>Please select 20 or fewer tracings to export</MenuItem>);
+        }
+
+        return (
+            <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}} disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
+                <Dropdown.Toggle style={{backgroundColor: "transparent", border: "none", color: "white"}}>
+                    <Glyphicon glyph="save"/>
+                </Dropdown.Toggle>
+                <Dropdown.Menu style={{fontSize: "11px", fontWeight: "normal"}}>
+                    {menus}
+                </Dropdown.Menu>
+            </Dropdown>
+        );
+        */
+        return null;
     }
 
     private renderHeader() {
@@ -47,16 +80,18 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                 order: 1,
                 flexDirection: "row"
             }}>
+                {this.props.isDocked ? this.renderExport() : null}
                 <h4 style={{
                     color: "white",
                     fontWeight: "lighter",
                     margin: "auto",
                     marginLeft: "33px",
                     textAlign: "center",
-                    flexGrow: 1
+                    flexGrow: 1,
+                    order: 2
                 }}>Neurons</h4>
                 {this.renderCloseGlyph()}
-                <Glyphicon glyph="chevron-left" style={{margin: "auto", order: 2}}
+                <Glyphicon glyph="chevron-left" style={{margin: "auto", order: 4}}
                            onClick={() => this.props.onClickCloseOrPin(DrawerState.Hidden)}/>
             </div>
         );

@@ -26,7 +26,6 @@ import {QueryStatus} from "../query/QueryHeader";
 import {displayBrainArea, IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
 
-
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
 const tracingNeuronMap = new Map<string, string>();
@@ -92,15 +91,7 @@ interface IOutputContainerState {
     isCompartmentListDocked?: boolean;
 }
 
-const RequestExportMutation = gql`
-  mutation requestExport($tracingIds: [String!], $format: Int) {
-    requestExport(tracingIds: $tracingIds, format: $format) {
-        filename
-        contents
-    }
-}`;
-
-class OutputContainer extends React.Component<IOutputContainerProps, IOutputContainerState> {
+export class MainView extends React.Component<IOutputContainerProps, IOutputContainerState> {
     private _queuedIds: string[] = [];
     private _isInQuery: boolean = false;
     private _colorIndex: number = 0;
@@ -168,24 +159,13 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
         });
         this.onCancelFetch();
         this.ViewerContainer.TracingViewer.reset();
-        this.setState({displayHighlightedOnly: false});
+        this.setState({displayHighlightedOnly: false, highlightSelectionMode: HighlightSelectionMode.Normal});
     }
 
-    private tracingsIdsForNeurons(): string[] {
+    private neuronIdsForExport(): string[] {
         const neurons = this.state.neuronViewModels.filter(v => v.isSelected);
 
-        return neurons.reduce((tIds: any, n: NeuronViewModel) => {
-            return tIds.concat(n.neuron.tracings.filter(t => {
-                switch (n.CurrentViewMode.structure) {
-                    case TracingStructure.axon:
-                        return t.tracingStructure.value == TracingStructure.axon;
-                    case TracingStructure.dendrite:
-                        return t.tracingStructure.value == TracingStructure.dendrite;
-                    default:
-                        return true;
-                }
-            }).map(t => t.id));
-        }, []);
+        return neurons.map(n => n.neuron.idString);
     }
 
     private onNeuronListCloseOrPin(state: DrawerState) {
@@ -220,6 +200,14 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
 
     private async onExportSelectedTracings(format: ExportFormat) {
         try {
+            const ids = this.neuronIdsForExport();
+
+            if (ids.length === 0) {
+                return;
+            }
+
+            const location = format === ExportFormat.JSON ? "/json" : "/swc";
+            /*
             const tracingIds = this.tracingsIdsForNeurons();
 
             if (tracingIds.length === 0) {
@@ -236,6 +224,30 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
                     mime = "application/zip";
                 }
                 saveFile(contents, `${request.filename}`, mime);
+            });*/
+            fetch(location, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ids
+                })
+            }).then(async (response) => {
+                const data: any = await response.json();
+
+                let contents = data.contents;
+
+                let mime = "text/plain;charset=utf-8";
+
+                if (format === 0) {
+                    contents = dataToBlob(contents);
+
+                    if (ids.length > 1) {
+                        mime = "application/zip";
+                    }
+                }
+                saveFile(contents, `${data.filename}`, mime);
             });
         } catch (error) {
             console.log(error);
@@ -246,14 +258,8 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
         this.setState({isNeuronListOpen: true});
     }
 
-    private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
-        neuronViewModel.isInHighlightList = isNullOrUndefined(shouldHighlight) ? !neuronViewModel.isInHighlightList : shouldHighlight;
-
-        const tracingsToDisplay = this.state.tracingsToDisplay.slice();
-
-        this.setState({tracingsToDisplay});
-
-        this.verifyHighlighting();
+    private onToggleDisplayHighlighted() {
+        this.setState({displayHighlightedOnly: !this.state.displayHighlightedOnly});
     }
 
     private onChangeHighlightMode() {
@@ -282,6 +288,16 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
             wasDisplayHighlightedOnly: this.state.displayHighlightedOnly,
             cycleFocusNeuronId
         });
+    }
+
+    private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
+        neuronViewModel.isInHighlightList = isNullOrUndefined(shouldHighlight) ? !neuronViewModel.isInHighlightList : shouldHighlight;
+
+        const tracingsToDisplay = this.state.tracingsToDisplay.slice();
+
+        this.setState({tracingsToDisplay});
+
+        this.verifyHighlighting();
     }
 
     private onChangeSelectTracing(id: string, shouldSelect: boolean) {
@@ -720,6 +736,7 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
             isAllTracingsSelected,
             defaultStructureSelection: this.state.defaultStructureSelection,
             neuronViewModels: this.state.neuronViewModels,
+            onRequestExport: (f) => this.onExportSelectedTracings(f),
             onChangeSelectTracing: (id: string, b: boolean) => this.onChangeSelectTracing(id, b),
             onChangeNeuronColor: (n: NeuronViewModel, c: any) => this.onChangeNeuronColor(n, c),
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
@@ -741,6 +758,7 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
             isRendering: this.state.isRendering,
             fetchCount: this.state.fetchCount,
             fixedAspectRatio: null,
+            displayHighlightedOnly: this.state.displayHighlightedOnly,
             highlightSelectionMode: this.state.highlightSelectionMode,
             cycleFocusNeuronId: this.state.cycleFocusNeuronId,
             isQueryCollapsed: this.props.isQueryCollapsed,
@@ -750,6 +768,7 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
             onToggleQueryCollapsed: this.props.onToggleQueryCollapsed,
             onChangeIsRendering: (b: boolean) => this.onChangeIsRendering(b),
+            onToggleDisplayHighlighted: () => this.onToggleDisplayHighlighted(),
             onHighlightTracing: (n: NeuronViewModel, b: boolean) => this.onChangeHighlightTracing(n, b),
             onToggleTracing: (id: string) => this.onToggleTracing(id),
             onToggleCompartment: this.props.onToggleBrainArea,
@@ -775,8 +794,8 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
         };
 
         const is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-        // Navbar @ 52, fixed query header @ 40, and if expanded, query area at 300
-        let offset = this.props.isQueryCollapsed ? 92 : 392;
+        // Navbar @ 79, fixed query header @ 40, and if expanded, query area at 300 => 119 or 419
+        let offset = this.props.isQueryCollapsed ? 119 : 419;
 
         if (is_chrome) {
             offset -= 0;
@@ -829,15 +848,6 @@ class OutputContainer extends React.Component<IOutputContainerProps, IOutputCont
         );
     }
 }
-
-export const MainViewWithData = graphql<IOutputContainerProps, IOutputContainerProps>(RequestExportMutation, {
-    withRef: true,
-    props: ({ownProps, mutate}) => ({
-        requestExport: (tracingIds: string[], format: ExportFormat) => mutate({
-            variables: {tracingIds, format},
-        }),
-    }),
-})(OutputContainer);
 
 function saveFile(data: any, filename: string, mime: string = null) {
     const blob = new Blob([data], {type: mime || "text/plain;charset=utf-8"});
