@@ -69,19 +69,7 @@ if (process.env.NODE_ENV !== "production") {
     app.use(express.static(rootPath));
 
     app.use("/", (req, res) => {
-        let url = null;
-        switch (req.url) {
-            case "/graphql":
-                url = apiUri + req.url;
-                req.pipe(request(url)).pipe(res);
-                break;
-            case "/tracings":
-                url = apiUri + req.url;
-                req.pipe(request(url)).pipe(res);
-                break;
-            default:
-                res.sendFile(path.join(rootPath, "index.html"));
-        }
+        res.sendFile(path.join(rootPath, "index.html"));
     });
 }
 
@@ -112,7 +100,7 @@ function devServer() {
         },
         setup: (app) => {
             app.use("/system", (req, res) => {
-               res.json({version});
+                res.json({version});
             });
         },
         contentBase: path.resolve(path.join(__dirname, "..", "public")),
