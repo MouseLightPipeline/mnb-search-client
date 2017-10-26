@@ -65,18 +65,18 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
             <Navbar fluid style={{borderRadius: 0, marginBottom: 0, height: 79}}>
                 <Navbar.Header>
                     <Navbar.Brand>
-                        <Link to="/">
-                            <div style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                marginLeft: "0px",
-                                height: "100%"
-                            }}>
-                                <img src={logoImage} height={52} style={{order: 1}}/>
-                                <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
-                            </div>
-                        </Link>
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginLeft: "0px",
+                            height: "100%"
+                        }}>
+                            <a href="https://www.janelia.org/project-team/mouselight/neuronbrowser">
+                                <img src={logoImage} height={52} style={{order: 1}}/></a>
+                            <a href="https://www.janelia.org">
+                                <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/></a>
+                        </div>
                     </Navbar.Brand>
                 </Navbar.Header>
                 <Navbar.Collapse>
