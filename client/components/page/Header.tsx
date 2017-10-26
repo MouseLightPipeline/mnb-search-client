@@ -110,7 +110,7 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                      onSelect={(key) => this.onSelectExampleQuery(key)} id="nav-examples">
                             {menuItems}
                         </NavDropdown>
-                        <NavItem href="https://www.janelia.org/project-team/mouselight" target="_blank"
+                        <NavItem href="https://mouselight.janelia.org" target="_blank"
                                  style={{marginRight: "40px"}}>
                             MouseLight Home
                         </NavItem>
