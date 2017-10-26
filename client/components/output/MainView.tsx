@@ -207,24 +207,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             }
 
             const location = format === ExportFormat.JSON ? "/json" : "/swc";
-            /*
-            const tracingIds = this.tracingsIdsForNeurons();
 
-            if (tracingIds.length === 0) {
-                return;
-            }
-
-            const output = await this.props.requestExport(tracingIds, format);
-
-            output.data.requestExport.forEach((request: any) => {
-                let contents = request.contents;
-                let mime = "text/plain;charset=utf-8";
-                if (format === 0) {
-                    contents = dataToBlob(contents);
-                    mime = "application/zip";
-                }
-                saveFile(contents, `${request.filename}`, mime);
-            });*/
             fetch(location, {
                 method: 'POST',
                 headers: {
@@ -240,13 +223,17 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
                 let mime = "text/plain;charset=utf-8";
 
-                if (format === 0) {
+                if (format === ExportFormat.SWC) {
                     contents = dataToBlob(contents);
 
                     if (ids.length > 1) {
                         mime = "application/zip";
                     }
+                } else {
+                    contents = JSON.stringify(contents, null, 2);
                 }
+
+
                 saveFile(contents, `${data.filename}`, mime);
             });
         } catch (error) {

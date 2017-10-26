@@ -18,4 +18,4 @@ ADD ./server/*.js ./server/
 
 CMD ["node", "server/transformSearch.js"]
 
-EXPOSE  9664
+EXPOSE  9683

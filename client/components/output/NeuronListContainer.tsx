@@ -40,8 +40,9 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
     }
 
     private renderExport() {
-        /*
-        const count = this.props.neuronViewModels.reduce((c, n) => {return n.isSelected ? c + 1 : c}, 0);
+        const count = this.props.neuronViewModels.reduce((c, n) => {
+            return n.isSelected ? c + 1 : c
+        }, 0);
 
         let menus = [];
 
@@ -53,7 +54,8 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
         }
 
         return (
-            <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}} disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
+            <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}}
+                      disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
                 <Dropdown.Toggle style={{backgroundColor: "transparent", border: "none", color: "white"}}>
                     <Glyphicon glyph="save"/>
                 </Dropdown.Toggle>
@@ -62,8 +64,6 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                 </Dropdown.Menu>
             </Dropdown>
         );
-        */
-        return null;
     }
 
     private renderHeader() {
