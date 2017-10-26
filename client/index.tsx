@@ -7,7 +7,6 @@ import {ApolloApp} from "./components/ApolloApp";
 import "react-checkbox-tree/lib/react-checkbox-tree.css"
 
 require("file-loader?name=index.html!../index.html");
-require("file-loader?name=loaderio-f4526f07878006c156337d647699d36c.txt!../loaderio-f4526f07878006c156337d647699d36c.txt");
 
 const rootEl = document.getElementById("root");
 

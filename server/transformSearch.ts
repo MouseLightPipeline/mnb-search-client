@@ -1,5 +1,4 @@
 import * as path from "path";
-import * as request from "request";
 
 const express = require("express");
 const passport = require("passport");
@@ -23,9 +22,6 @@ if (process.env.NODE_ENV !== "production") {
 
 import {ServerConfiguration} from "./serverConfig";
 import * as fs from "fs";
-
-const localUri = `http://localhost:${ServerConfiguration.port}`;
-const apiUri = `http://${ServerConfiguration.graphQlHostname}:${ServerConfiguration.graphQlPort}`;
 
 const rootPath = path.resolve(path.join(__dirname, "..", "public"));
 
@@ -74,12 +70,15 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.listen(ServerConfiguration.port, "0.0.0.0", () => {
-    console.log(`Listening at ${localUri}/`);
-    console.log(`\t with graphQL proxy to ${apiUri}`)
+    if (process.env.NODE_ENV !== "production") {
+        console.log(`Listening at http://localhost:${ServerConfiguration.port}/`);
+    }
 });
 
 
 function devServer() {
+    const apiUri = `http://${ServerConfiguration.graphQlHostname}:${ServerConfiguration.graphQlPort}`;
+
     return new webpackDevServer(compiler, {
         stats: {
             colors: true
