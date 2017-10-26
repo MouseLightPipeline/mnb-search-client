@@ -20,6 +20,8 @@ if (process.env.NODE_ENV !== "production") {
     compiler = Webpack(webpackConfig);
 }
 
+const serveClear = process.env.NB_OMIT_PASSWORD === "omit";
+
 import {ServerConfiguration} from "./serverConfig";
 import * as fs from "fs";
 
@@ -56,11 +58,13 @@ if (process.env.NODE_ENV !== "production") {
 } else {
     app = express();
 
-    app.use(passport.initialize());
+    if (!serveClear) {
+        app.use(passport.initialize());
 
-    app.get("/", passport.authenticate('digest', {session: false}), (request: any, response: any, next: any) => {
-        next();
-    });
+        app.get("/", passport.authenticate('digest', {session: false}), (request: any, response: any, next: any) => {
+            next();
+        });
+    }
 
     app.use(express.static(rootPath));
 
