@@ -309,7 +309,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
 
         return (
             <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0}}>
-                <Col xs={3} sm={3} md={3} lg={2}>
+                <Col xs={12} sm={3} md={3} lg={2}>
                     <ControlLabel>Query Type</ControlLabel>
                     <BrainAreaFilterTypeSelect idName="filter-mode"
                                                options={BRAIN_AREA_FILTER_TYPES}
@@ -320,7 +320,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
                                                onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
 
                 </Col>
-                <Col xs={9} sm={9} md={9} lg={5}>
+                <Col xs={12} sm={9} md={9} lg={5}>
                     <ControlLabel>Source or Target Locations</ControlLabel>
                     <BrainAreaSelect idName="brain-area"
                                      options={this.props.constants.BrainAreasWithGeometry}

@@ -8,7 +8,8 @@ import {PreferencesManager} from "../../util/preferencesManager";
 import {examples} from "../../examples";
 import {TutorialDialog} from "./Tutorial";
 
-const logoImage = require("file-loader!../../../assets/mouseLight_NB_color.svg");
+const logoImagelg = require("file-loader!../../../assets/mouseLight_NB_color.svg");
+const logoImagesm = require("file-loader!../../../assets/mouseLight_nb_small.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 
 interface ISystemMessageQuery {
@@ -62,25 +63,21 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
         });
 
         return (
-            <Navbar fluid style={{borderRadius: 0, marginBottom: 0, height: 79}}>
+            <Navbar fluid style={{borderRadius: 0, marginBottom: 0}}>
                 <Navbar.Header>
-                    <Navbar.Brand>
-                        <div style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginLeft: "0px",
-                            height: "100%"
-                        }}>
-                            <a href="https://www.janelia.org/project-team/mouselight/neuronbrowser">
-                                <img src={logoImage} height={52} style={{order: 1}}/></a>
-                            <a href="https://www.janelia.org">
-                                <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/></a>
-                        </div>
+                    <Navbar.Brand id="brand">
+                        <a href="https://www.janelia.org/project-team/mouselight/neuronbrowser">
+                            <img id="logolg" src={logoImagelg} height={52}/></a>
                     </Navbar.Brand>
+                    <Navbar.Toggle/>
                 </Navbar.Header>
                 <Navbar.Collapse>
-                    <Nav pullRight style={{marginRight: "5px", paddingTop: "18px"}}>
+                    <Nav id="janelia">
+                        <NavItem href="http://www.janelia.org" target="_blank">
+                            <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
+                        </NavItem>
+                    </Nav>
+                    <Nav pullRight style={{paddingTop: "18px"}}>
                         {this.state.showTutorial ? <TutorialDialog show={this.state.showTutorial}
                                                                    onHide={() => this.onHideTutorial()}/> : null}
                         <Modal show={this.state.showSettings} onHide={() => this.onHideSettings()}
@@ -96,25 +93,19 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 </ul>
                             </Modal.Body>
                         </Modal>
-                        <NavItem onClick={() => this.setState({showTutorial: true})}
-                                 style={{
-                                     marginRight: "80px",
-                                     textDecoration: "underline",
-                                     fontSize: "14px",
-                                     textAlign: "center"
-                                 }}>
+                        <NavItem onClick={() => this.setState({showTutorial: true})} id="tutorial-nav"
+                                 style={{textDecoration: "underline", fontSize: "14px"}}>
                             Tutorial Video
                         </NavItem>
                         <NavDropdown title="Examples - Try It Now!" key="nav-examples"
-                                     style={{marginRight: "40px", textDecoration: "underline", fontSize: "14px"}}
+                                     style={{textDecoration: "underline", fontSize: "14px"}}
                                      onSelect={(key) => this.onSelectExampleQuery(key)} id="nav-examples">
                             {menuItems}
                         </NavDropdown>
-                        <NavItem href="https://mouselight.janelia.org" target="_blank"
-                                 style={{marginRight: "40px"}}>
+                        <NavItem href="http://mouselight.janelia.org" target="_blank">
                             MouseLight Home
                         </NavItem>
-                        <NavDropdown title="Help" key="nav-help" id="nav-help" style={{marginRight: "40px"}}
+                        <NavDropdown title="Help" key="nav-help" id="nav-help"
                                      onSelect={(key) => this.onSelectHelpMenuItem(key)}>
                             <MenuItem eventKey={null}
                                       href="https://www.janelia.org/project-team/mouselight/neuronbrowser"
@@ -132,7 +123,6 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                                 <Glyphicon glyph="cog"/>
                             </NavItem> : null}
                     </Nav>
-                    <Navbar.Text pullRight><Badge>{this.props.data.systemMessage}</Badge></Navbar.Text>
                 </Navbar.Collapse>
             </Navbar>);
     }

@@ -18,7 +18,7 @@ export class TutorialDialog extends React.Component<ITutorialProps, ITutorialSta
             <Modal show={this.props.show} onHide={this.props.onHide}  id="tutorial_modal" aria-labelledby="contained-modal-title-sm"
                    bsSize="large">
                 <Modal.Body>
-                    <video controls>
+                    <video id="tutorial" controls>
                         <source
                             src={movie}
                             type="video/mp4"/>
