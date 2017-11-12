@@ -781,8 +781,9 @@ export class SharkViewer {
                 }
             } else {
                 if (!event.shiftKey && !event.altKey && !event.ctrlKey) {
-                    //this.trackControls.target = points[0].point;
+                    this.trackControls.target = points[0].point;
 
+                    /*
                     const v1 = points[0].point.clone().project(this.camera);
                     const v2 = this.trackControls.target.clone().project(this.camera);
 
@@ -799,6 +800,7 @@ export class SharkViewer {
                     const yt = yy * this.HEIGHT;
 
                     this.trackControls.pan(yl - wl, yt - wt);
+                    */
                 }
 
                 if (this.on_select_node) {
