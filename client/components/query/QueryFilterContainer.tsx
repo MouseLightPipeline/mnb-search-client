@@ -170,9 +170,10 @@ export class QueryFilterContainer extends React.Component<IQueryFilterContainerP
             const operatorId = n && n.IsSoma ? null : (f.filter.operator ? f.filter.operator.id : null);
 
             return {
+                tracingIdOrDoi: f.filter.tracingIdOrDoi,
                 tracingStructureIds: tracingStructureId ? [tracingStructureId] : [],
                 nodeStructureIds: nodeStructureId ? [nodeStructureId] : [],
-                operatorId: operatorId,
+                operatorId,
                 amount: isNaN(amount) ? null : amount,
                 brainAreaIds: f.filter.brainAreas.map(b => b.id),
                 arbCenter: createPositionInput(f.brainAreaFilterType.IsCompartmentQuery, f.filter.arbCenter),
