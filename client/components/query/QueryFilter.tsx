@@ -14,10 +14,7 @@ import {NeuronalStructureSelect} from "../editors/NeuronalStructureSelect";
 import {isNullOrUndefined} from "util";
 import {NdbConstants} from "../../models/constants";
 import {BrainAreaFilterTypeSelect} from "../editors/BrainAreaFilterTypeSelect";
-import {
-    BRAIN_AREA_FILTER_TYPES, BrainAreaFilterType,
-    BrainAreaFilterTypeOption
-} from "../../models/brainAreaFilterType";
+import {BRAIN_AREA_FILTER_TYPES, BrainAreaFilterType} from "../../models/brainAreaFilterType";
 
 interface IQueryFilterProps {
     constants: NdbConstants;
@@ -85,12 +82,6 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
     private onArbSizeChanged(evt: any) {
         const filter = this.props.queryFilter;
         filter.filter.arbSize = evt.target.value;
-        this.props.onChangeFilter(filter);
-    }
-
-    private onQueryTracingIdChanged(evt: any) {
-        const filter = this.props.queryFilter;
-        filter.filter.tracingIdOrDoi = evt.target.value;
         this.props.onChangeFilter(filter);
     }
 
@@ -268,7 +259,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
         return (
             <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0}}>
                 <Col xs={3} sm={3} md={3} lg={2}>
-                    <ControlLabel>Query Type</ControlLabel>
+                    <ControlLabel>Region Type</ControlLabel>
                     <BrainAreaFilterTypeSelect idName="filter-mode"
                                                options={BRAIN_AREA_FILTER_TYPES}
                                                placeholder="required"
@@ -308,32 +299,6 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
                                          value={this.props.queryFilter.filter.amount}/>
                         </FormGroup>
                         : null}
-                </Col>
-            </Row>
-        );
-    }
-
-    private renderByIdQuery() {
-        const filter = this.props.queryFilter.filter;
-
-        return (
-            <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0}}>
-                <Col xs={12} sm={3} md={3} lg={2}>
-                    <ControlLabel>Query Type</ControlLabel>
-                    <BrainAreaFilterTypeSelect idName="filter-mode"
-                                               options={BRAIN_AREA_FILTER_TYPES}
-                                               placeholder="required"
-                                               clearable={false}
-                                               searchable={false}
-                                               selectedOption={this.props.queryFilter.brainAreaFilterType}
-                                               onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
-
-                </Col>
-                <Col xs={12} sm={9} md={9} lg={10}>
-                    <ControlLabel>Id (UUID or DOI)</ControlLabel>
-                    <FormControl type="text" placeholder="" bsSize="small"
-                                 onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}
-                                 value={this.props.queryFilter.filter.tracingIdOrDoi}/>
                 </Col>
             </Row>
         );
@@ -403,19 +368,6 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
         );
     }
 
-    private chooseFilterRender() {
-        switch (this.props.queryFilter.brainAreaFilterType.option) {
-            case BrainAreaFilterTypeOption.Compartments:
-                return this.renderCompartmentQuery();
-            case BrainAreaFilterTypeOption.Sphere:
-                return this.renderSphereQuery();
-            case BrainAreaFilterTypeOption.Id:
-                return this.renderByIdQuery();
-            default:
-                return null;
-        }
-    }
-
     public render() {
         const isCompartment = this.props.queryFilter.brainAreaFilterType.IsCompartmentQuery;
 
@@ -434,7 +386,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
                     {this.renderComposition()}
                 </div>
                 <Grid fluid style={{flexGrow: 1, order: 1}}>
-                    {this.chooseFilterRender()}
+                    {isCompartment ? this.renderCompartmentQuery() : this.renderSphereQuery()}
                 </Grid>
                 <div style={{
                     minWidth: "40px",

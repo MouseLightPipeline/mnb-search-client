@@ -1,7 +1,6 @@
 export enum BrainAreaFilterTypeOption {
     Compartments = 1,
-    Sphere = 2,
-    Id = 3
+    Sphere = 2
 }
 
 export class BrainAreaFilterType {
@@ -22,7 +21,6 @@ export class BrainAreaFilterType {
 
 export let BRAIN_AREA_FILTER_TYPE_COMPARTMENT: BrainAreaFilterType = null;
 export let BRAIN_AREA_FILTER_TYPE_SPHERE: BrainAreaFilterType = null;
-export let BRAIN_AREA_FILTER_TYPE_ID: BrainAreaFilterType = null;
 
 const brainAreaFilterTypeLookup = new Map<number, BrainAreaFilterType>();
 
@@ -41,9 +39,6 @@ function makeBrainAreaFilterTypes(): BrainAreaFilterType[] {
 
     BRAIN_AREA_FILTER_TYPE_SPHERE = new BrainAreaFilterType("4780c646-f31b-42e6-bdf1-ff381b212e82", "Custom Region", BrainAreaFilterTypeOption.Sphere);
     modes.push(BRAIN_AREA_FILTER_TYPE_SPHERE);
-
-    BRAIN_AREA_FILTER_TYPE_ID = new BrainAreaFilterType("10e81282-b7b9-4deF-b894-797e52780306", "Known Id", BrainAreaFilterTypeOption.Id);
-    modes.push(BRAIN_AREA_FILTER_TYPE_ID);
 
     modes.map(m => {
        brainAreaFilterTypeLookup.set(m.option, m);

@@ -1,4 +1,6 @@
 import * as React from "react";
+import {Button, Glyphicon} from "react-bootstrap";
+import {gql, graphql} from "react-apollo";
 import * as _ from "lodash";
 
 import {ExportFormat, ITracing} from "../../models/tracing";
@@ -674,6 +676,42 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
             setTimeout(() => this.fetchTracings(), 0);
         });
+    }
+
+    private renderHeader() {
+        const haveTracings = this.state.neuronViewModels.some((v) => v.isSelected);
+
+        const tooManyTracings = this.state.neuronViewModels.filter(v => v.isSelected).length > 10;
+
+        const disableExport = !haveTracings || tooManyTracings;
+
+        return (
+            <div className="panel-high-heading">
+                <table style={{width: "100%"}}>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <Button bsSize="sm" bsStyle="success"
+                                    onClick={() => this.onShowNeuronList()}
+                                    style={{marginRight: "10px"}}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Neurons
+                            </Button></td>
+                        <td style={{width: "100%"}} className="text-right">
+                            <Button bsSize="sm" bsStyle={disableExport ? "default" : "success"} disabled={disableExport}
+                                    onClick={() => this.onExportSelectedTracings(ExportFormat.SWC)}
+                                    style={{marginRight: "10px"}}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Export SWC
+                            </Button>
+                            <Button bsSize="sm" bsStyle={disableExport ? "default" : "success"} disabled={disableExport}
+                                    onClick={() => this.onExportSelectedTracings(ExportFormat.JSON)}>
+                                <Glyphicon glyph="export" style={{paddingRight: "8px"}}/>Export JSON
+                            </Button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        );
     }
 
     public render() {
