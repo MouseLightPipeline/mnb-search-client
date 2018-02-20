@@ -50,7 +50,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
             menus[0] = (<MenuItem key="1" eventKey={ExportFormat.SWC}>Export SWC</MenuItem>);
             menus[1] = (<MenuItem key="2" eventKey={ExportFormat.JSON}>Export JSON</MenuItem>);
         } else {
-            menus[0] = (<MenuItem disabled={true}>Please select 20 or fewer tracings to export</MenuItem>);
+            menus[0] = (<MenuItem key="1" disabled={true}>Please select 20 or fewer tracings to export</MenuItem>);
         }
 
         return (

@@ -11,6 +11,7 @@ type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fix
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
 
 interface IOutputTableRowProps {
+    isEnd: boolean;
     neuronViewModel: NeuronViewModel;
 
     onChangeSelectTracing(id: string, b: boolean): void;
@@ -51,18 +52,24 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                 borderRadius: "2px",
                 boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
                 display: "inline-block",
-                cursor: "pointer",
+                cursor: "pointer"
             },
             popover: {
                 position: "absolute" as position,
+                zIndex: "1000" as zIndex
+            },
+            popoverLow: {
+                position: "absolute" as position,
                 zIndex: "1000" as zIndex,
+                top: "-300px",
+                left: "40px"
             },
             cover: {
                 position: "fixed" as position,
                 top: "0px",
                 right: "0px",
                 bottom: "0px",
-                left: "-200px",
+                left: "-200px"
             },
         };
 
@@ -73,7 +80,7 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                 width: "16px",
                 height: "16px",
                 borderRadius: "2px",
-                background: v.baseColor,
+                background: v.baseColor
             }
         };
 
@@ -102,11 +109,15 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                         <div style={styles.swatch} onClick={() => this.handleClick()}>
                             <div style={rowStyles.color}/>
                         </div>
-                        {this.state.displayColorPicker ? <div style={styles.popover}>
-                            <div style={styles.cover} onClick={() => this.handleClose()}/>
-                            <SketchPicker color={v.baseColor}
-                                          onChange={(color: any) => this.props.onChangeNeuronColor(v, color)}/>
-                        </div> : null}
+                        {this.state.displayColorPicker ?
+                            <div style={{position: "relative"}}>
+                                <div style={this.props.isEnd ? styles.popoverLow : styles.popover}>
+                                    <div style={styles.cover} onClick={() => this.handleClose()}/>
+                                    <SketchPicker color={v.baseColor}
+                                                  onChange={(color: any) => this.props.onChangeNeuronColor(v, color)}/>
+                                </div>
+                            </div>
+                            : null}
                     </div>
                 </td>
                 <td style={{verticalAlign: "middle"}}>
@@ -170,8 +181,8 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
             return null;
         }
 
-        const rows: any = this.props.neuronViewModels.map(v => {
-            return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v}
+        const rows: any = this.props.neuronViewModels.map((v, idx) => {
+            return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v} isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
                                     onChangeNeuronColor={this.props.onChangeNeuronColor}
                                     onChangeSelectTracing={this.props.onChangeSelectTracing}
                                     onChangeNeuronViewMode={this.props.onChangeNeuronViewMode}/>)
@@ -195,7 +206,8 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                     <th>
                         <Glyphicon glyph="edit" style={{marginRight: "6px"}}
                                    onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}/>
-                        <a onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})} style={{textDecoration: "underline"}}>
+                        <a onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}
+                           style={{textDecoration: "underline"}}>
                             Structures
                         </a>
                     </th>
