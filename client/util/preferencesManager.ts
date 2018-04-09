@@ -184,12 +184,29 @@ export class PreferencesManager {
         }
     }
 
+
     public set ViewerBackgroundColor(n: string) {
         if (typeof(Storage) !== undefined) {
             localStorage.setItem(prefix + "viewerBackgroundColor", n);
         }
 
         this.notifyListeners("viewerBackgroundColor", n);
+    }
+
+    public get TracingRadiusFactor() {
+        if (typeof(Storage) !== undefined) {
+            return parseInt(localStorage.getItem(prefix + "tracingRadiusFactor"));
+        } else {
+            return 1.0;
+        }
+    }
+
+    public get RootCompartmentColor() {
+        if (typeof(Storage) !== undefined) {
+            return localStorage.getItem(prefix + "rootCompartmentColor");
+        } else {
+            return "FFFFFF";
+        }
     }
 
     private validateDefaultSettings() {
@@ -224,6 +241,14 @@ export class PreferencesManager {
 
             if (!localStorage.getItem(prefix + "viewerBackgroundColor")) {
                 localStorage.setItem(prefix + "viewerBackgroundColor", "#FFFFFF");
+            }
+
+            if (!localStorage.getItem(prefix + "tracingRadiusFactor")) {
+                localStorage.setItem(prefix + "tracingRadiusFactor", "1.0");
+            }
+
+            if (!localStorage.getItem(prefix + "rootCompartmentColor")) {
+                localStorage.setItem(prefix + "rootCompartmentColor", "FFFFFF");
             }
         }
     }

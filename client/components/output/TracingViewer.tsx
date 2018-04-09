@@ -13,6 +13,8 @@ import {INotificationListener, PreferencesManager} from "../../util/preferencesM
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
 
+const ROOT_ID = 997;
+
 export enum HighlightSelectionMode {
     Normal,
     Cycle
@@ -67,6 +69,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     private _knownNeurons = new Set<string>();
 
     private _neuronColors = new Map<string, string>();
+
+    private _tracingRadiusFactor = PreferencesManager.Instance.TracingRadiusFactor;
 
 
     public constructor(props: ITracingViewerProps) {
@@ -213,7 +217,12 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 if (this._knownVolumes.has(v.compartment.id)) {
                     this._viewer.setCompartmentVisible(v.compartment.id, true);
                 } else {
-                    this._viewer.loadCompartment(v.compartment.id, v.compartment.geometryFile, v.compartment.geometryColor);
+                    let geometryColor = v.compartment.geometryColor;
+                    if (v.compartment.structureId === ROOT_ID) {
+                        console.log("Overriding geometryColor");
+                        geometryColor = PreferencesManager.Instance.RootCompartmentColor;
+                    }
+                    this._viewer.loadCompartment(v.compartment.id, v.compartment.geometryFile, geometryColor);
                     this._knownVolumes.add(v.compartment.id);
                 }
             });
@@ -237,6 +246,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                     this._viewer.setCompartmentVisible(id, true);
                 } else {
                     const brainArea = this.lookupBrainArea(id);
+                    if (brainArea.structureId === ROOT_ID) {
+                        console.log("Overriding geometryColor");
+                        brainArea.geometryColor = PreferencesManager.Instance.RootCompartmentColor;
+                    }
                     this._viewer.loadCompartment(id, brainArea.geometryFile, brainArea.geometryColor);
                     this._knownVolumes.add(id);
                 }
@@ -264,7 +277,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 x: node.x,
                 y: node.y,
                 z: node.z,
-                radius: Math.min(40, node.radius * 40),
+                radius: Math.min(40, node.radius * 40) * this._tracingRadiusFactor,
                 parent: node.parentNumber
             };
         } else {
@@ -288,7 +301,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                         x: node.x,
                         y: node.y,
                         z: node.z,
-                        radius: 4,
+                        radius: 4 * this._tracingRadiusFactor,
                         parent: node.parentNumber
                     };
 
