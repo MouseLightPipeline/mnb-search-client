@@ -1,3 +1,5 @@
+import {PreferencesManager} from "../util/preferencesManager";
+
 const MOUSE_MOVE_THRESHOLD = 1;
 
 export class ViewerMouseHandler {
@@ -11,7 +13,20 @@ export class ViewerMouseHandler {
 
     private _nextPreset: number = 0;
 
+    private _presets: any;
+
     public constructor() {
+        this._presets = [
+            [0, 0],
+            [-Math.PI / 2, 0],
+            [-Math.PI / 4, Math.PI / 4]
+        ];
+
+        PreferencesManager.Instance.ViewPresets.map(p => {
+            this._presets = this._presets.concat([[p[0] * Math.PI / 180, p[1] * Math.PI / 180]]);
+        });
+
+        console.log(this._presets);
     }
 
     public addListeners() {
@@ -33,17 +48,11 @@ export class ViewerMouseHandler {
     }
 
     private reset() {
-        if (this._nextPreset === 0) {
-            this.ResetHandler(0, 0);
-        }else if (this._nextPreset === 1) {
-            this.ResetHandler(-Math.PI / 2, 0);
-        } else if (this._nextPreset === 2) {
-            this.ResetHandler(-Math.PI / 4, Math.PI / 4);
-        }
+        this.ResetHandler(this._presets[this._nextPreset][0], this._presets[this._nextPreset][1]);
 
         this._nextPreset++;
 
-        if (this._nextPreset > 2) {
+        if (this._nextPreset >= this._presets.length) {
             this._nextPreset = 0;
         }
     }

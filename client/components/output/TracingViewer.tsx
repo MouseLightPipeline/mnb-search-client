@@ -219,7 +219,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 } else {
                     let geometryColor = v.compartment.geometryColor;
                     if (v.compartment.structureId === ROOT_ID) {
-                        console.log("Overriding geometryColor");
                         geometryColor = PreferencesManager.Instance.RootCompartmentColor;
                     }
                     this._viewer.loadCompartment(v.compartment.id, v.compartment.geometryFile, geometryColor);
@@ -247,7 +246,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 } else {
                     const brainArea = this.lookupBrainArea(id);
                     if (brainArea.structureId === ROOT_ID) {
-                        console.log("Overriding geometryColor");
                         brainArea.geometryColor = PreferencesManager.Instance.RootCompartmentColor;
                     }
                     this._viewer.loadCompartment(id, brainArea.geometryFile, brainArea.geometryColor);

@@ -209,6 +209,14 @@ export class PreferencesManager {
         }
     }
 
+    public get ViewPresets(): any[] {
+        if (typeof(Storage) !== undefined) {
+            return JSON.parse(localStorage.getItem(prefix + "viewPresets"));
+        } else {
+            return [];
+        }
+    }
+
     private validateDefaultSettings() {
         if (typeof(Storage) !== undefined) {
             if (!localStorage.getItem(prefix + "shouldAutoCollapseOnQuery")) {
@@ -249,6 +257,10 @@ export class PreferencesManager {
 
             if (!localStorage.getItem(prefix + "rootCompartmentColor")) {
                 localStorage.setItem(prefix + "rootCompartmentColor", "FFFFFF");
+            }
+
+            if (!localStorage.getItem(prefix + "viewPresets")) {
+                localStorage.setItem(prefix + "viewPresets", JSON.stringify([]));
             }
         }
     }
