@@ -3,6 +3,7 @@ import {IBrainArea} from "./brainArea";
 import {NeuronalStructure} from "./neuronalStructure";
 import {BrainAreaFilterType, BrainAreaFilterTypeOption, findBrainAreaFilterType} from "./brainAreaFilterType";
 import {NdbConstants} from "./constants";
+import {isNullOrUndefined} from "util";
 
 export enum FilterComposition {
     and = 1,
@@ -17,7 +18,8 @@ export interface IPositionInput {
 }
 
 export interface IFilterInput {
-    tracingIdOrDoi: string;
+    tracingIdsOrDOIs: string[];
+    tracingIdsOrDOIsExactMatch: boolean;
     tracingStructureIds: string[];
     nodeStructureIds: string[];
     operatorId: string;
@@ -30,7 +32,6 @@ export interface IFilterInput {
     nonce: string;
 }
 
-
 export interface IPosition {
     x: string;
     y: string;
@@ -40,7 +41,8 @@ export interface IPosition {
 }
 
 export interface IQueryFilter {
-    tracingIdOrDoi: string;
+    tracingIdsOrDOIs: string;
+    tracingIdsOrDOIsExactMatch: boolean;
     neuronalStructure: NeuronalStructure;
     operator: IQueryOperator;
     amount: string;
@@ -83,7 +85,8 @@ export class UIQueryFilter {
 }
 
 export class FilterContents implements IQueryFilter {
-    public tracingIdOrDoi: string;
+    public tracingIdsOrDOIs: string;
+    public tracingIdsOrDOIsExactMatch: boolean;
     public neuronalStructure: NeuronalStructure;
     public operator: IQueryOperator;
     public amount: string;
@@ -95,7 +98,8 @@ export class FilterContents implements IQueryFilter {
     public nonce: string;
 
     public constructor(isDefaultQuery: boolean = false) {
-        this.tracingIdOrDoi = null;
+        this.tracingIdsOrDOIs = null;
+        this.tracingIdsOrDOIsExactMatch = true;
         this.neuronalStructure = null;
         this.operator = null;
         this.amount = "0";
@@ -117,7 +121,8 @@ export class FilterContents implements IQueryFilter {
 
     public serialize() {
         return {
-            tracingIdOrDoi: this.tracingIdOrDoi,
+            tracingIdsOrDOIs: this.tracingIdsOrDOIs,
+            tracingIdsOrDOIsExactMatch: this.tracingIdsOrDOIsExactMatch,
             neuronalStructureId: this.neuronalStructure ? this.neuronalStructure.id : null,
             operatorId: this.operator ? this.operator.id : null,
             amount: this.amount,
@@ -132,7 +137,8 @@ export class FilterContents implements IQueryFilter {
     public static deserialize(data: any, constants: NdbConstants): FilterContents {
         const filter = new FilterContents();
 
-        filter.tracingIdOrDoi = data.tracingIdOrDoi || null;
+        filter.tracingIdsOrDOIs = data.tracingIdsOrDOIs || null;
+        filter.tracingIdsOrDOIsExactMatch = isNullOrUndefined(data.tracingIdsOrDOIsExactMatch) ? true : data.tracingIdsOrDOIsExactMatch;
         filter.neuronalStructure = constants.findNeuronalStructure(data.neuronalStructureId);
         filter.operator = constants.findQueryOperator(data.operatorId);
         filter.amount = data.amount;
@@ -144,5 +150,4 @@ export class FilterContents implements IQueryFilter {
 
         return filter;
     }
-
 }

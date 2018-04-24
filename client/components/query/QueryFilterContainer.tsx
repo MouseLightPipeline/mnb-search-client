@@ -38,17 +38,17 @@ const styles = {
     }
 };
 
-function arbNumberToString(isCompartment: boolean, valueStr: string): number {
+function arbNumberToString(isCustomRegion: boolean, valueStr: string): number {
     const value = valueStr.length === 0 ? 0 : parseFloat(valueStr);
 
-    return isCompartment || isNaN(value) ? null : value;
+    return !isCustomRegion || isNaN(value) ? null : value;
 }
 
-function createPositionInput(isCompartment: boolean, center: IPosition): IPositionInput {
+function createPositionInput(isCustomRegion: boolean, center: IPosition): IPositionInput {
     return {
-        x: arbNumberToString(isCompartment, center.x),
-        y: arbNumberToString(isCompartment, center.y),
-        z: arbNumberToString(isCompartment, center.z),
+        x: arbNumberToString(isCustomRegion, center.x),
+        y: arbNumberToString(isCustomRegion, center.y),
+        z: arbNumberToString(isCustomRegion, center.z),
     }
 }
 
@@ -170,14 +170,15 @@ export class QueryFilterContainer extends React.Component<IQueryFilterContainerP
             const operatorId = n && n.IsSoma ? null : (f.filter.operator ? f.filter.operator.id : null);
 
             return {
-                tracingIdOrDoi: f.filter.tracingIdOrDoi,
+                tracingIdsOrDOIs: f.brainAreaFilterType.IsIdQuery ? [f.filter.tracingIdsOrDOIs.trim()] : [],
+                tracingIdsOrDOIsExactMatch: f.filter.tracingIdsOrDOIsExactMatch,
                 tracingStructureIds: tracingStructureId ? [tracingStructureId] : [],
                 nodeStructureIds: nodeStructureId ? [nodeStructureId] : [],
                 operatorId,
                 amount: isNaN(amount) ? null : amount,
-                brainAreaIds: f.filter.brainAreas.map(b => b.id),
-                arbCenter: createPositionInput(f.brainAreaFilterType.IsCompartmentQuery, f.filter.arbCenter),
-                arbSize: arbNumberToString(f.brainAreaFilterType.IsCompartmentQuery, f.filter.arbSize),
+                brainAreaIds: f.brainAreaFilterType.IsCompartmentQuery ? f.filter.brainAreas.map(b => b.id) : [],
+                arbCenter: createPositionInput(f.brainAreaFilterType.IsCustomRegionQuery, f.filter.arbCenter),
+                arbSize: arbNumberToString(f.brainAreaFilterType.IsCustomRegionQuery, f.filter.arbSize),
                 invert: f.filter.invert,
                 composition: f.filter.composition,
                 nonce: specialHandling ? specialHandling.filters[0].id : cuid()

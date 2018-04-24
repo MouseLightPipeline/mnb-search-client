@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Grid, Row, Col, FormControl, ControlLabel, FormGroup, HelpBlock, Glyphicon} from "react-bootstrap";
+import {Grid, Row, Col, FormControl, ControlLabel, FormGroup, HelpBlock, Glyphicon, Checkbox} from "react-bootstrap";
 import * as ReactSelectClass from "react-select";
 import {Option} from "react-select";
 
@@ -18,6 +18,7 @@ import {
     BRAIN_AREA_FILTER_TYPES, BrainAreaFilterType,
     BrainAreaFilterTypeOption
 } from "../../models/brainAreaFilterType";
+import {PreferencesManager} from "../../util/preferencesManager";
 
 interface IQueryFilterProps {
     constants: NdbConstants;
@@ -90,7 +91,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
 
     private onQueryTracingIdChanged(evt: any) {
         const filter = this.props.queryFilter;
-        filter.filter.tracingIdOrDoi = evt.target.value;
+        filter.filter.tracingIdsOrDOIs = evt.target.value;
         this.props.onChangeFilter(filter);
     }
 
@@ -109,6 +110,13 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
     private onNeuronalStructureChange(neuronalStructures: NeuronalStructure) {
         const filter = this.props.queryFilter;
         filter.filter.neuronalStructure = neuronalStructures;
+        this.props.onChangeFilter(filter);
+    }
+
+
+    private onTracingIdsOrDOIsExactMatch(b: boolean) {
+        const filter = this.props.queryFilter;
+        filter.filter.tracingIdsOrDOIsExactMatch = b;
         this.props.onChangeFilter(filter);
     }
 
@@ -329,11 +337,18 @@ export class QueryFilter extends React.Component<IQueryFilterProps, IQueryFilter
                                                onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
 
                 </Col>
-                <Col xs={12} sm={9} md={9} lg={10}>
-                    <ControlLabel>Id (UUID or DOI)</ControlLabel>
+                <Col xs={12} sm={7} md={7} lg={8}>
+                    <ControlLabel>Id (Id or DOI)</ControlLabel>
                     <FormControl type="text" placeholder="" bsSize="small"
                                  onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}
-                                 value={this.props.queryFilter.filter.tracingIdOrDoi}/>
+                                 value={this.props.queryFilter.filter.tracingIdsOrDOIs}/>
+                </Col>
+                <Col xs={12} sm={2} md={2} lg={2}>
+                    <ControlLabel>&nbsp; </ControlLabel>
+                    <Checkbox checked={this.props.queryFilter.filter.tracingIdsOrDOIsExactMatch}
+                                     onChange={(evt: any) => this.onTracingIdsOrDOIsExactMatch(evt.target.checked)}>
+                        Exact Match
+                    </Checkbox>
                 </Col>
             </Row>
         );

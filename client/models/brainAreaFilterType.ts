@@ -18,6 +18,14 @@ export class BrainAreaFilterType {
     public get IsCompartmentQuery(): boolean {
         return this.option === BrainAreaFilterTypeOption.Compartments;
     }
+
+    public get IsCustomRegionQuery(): boolean {
+        return this.option === BrainAreaFilterTypeOption.Sphere;
+    }
+
+    public get IsIdQuery(): boolean {
+        return this.option === BrainAreaFilterTypeOption.Id;
+    }
 }
 
 export let BRAIN_AREA_FILTER_TYPE_COMPARTMENT: BrainAreaFilterType = null;
@@ -42,7 +50,7 @@ function makeBrainAreaFilterTypes(): BrainAreaFilterType[] {
     BRAIN_AREA_FILTER_TYPE_SPHERE = new BrainAreaFilterType("4780c646-f31b-42e6-bdf1-ff381b212e82", "Custom Region", BrainAreaFilterTypeOption.Sphere);
     modes.push(BRAIN_AREA_FILTER_TYPE_SPHERE);
 
-    BRAIN_AREA_FILTER_TYPE_ID = new BrainAreaFilterType("10e81282-b7b9-4deF-b894-797e52780306", "Known Id", BrainAreaFilterTypeOption.Id);
+    BRAIN_AREA_FILTER_TYPE_ID = new BrainAreaFilterType("10e81282-b7b9-4deF-b894-797e52780306", "Id", BrainAreaFilterTypeOption.Id);
     modes.push(BRAIN_AREA_FILTER_TYPE_ID);
 
     modes.map(m => {
