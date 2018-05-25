@@ -118,10 +118,13 @@ class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>,
             );
         }
 
+
+        const style = Object.assign(styles.content, PreferencesManager.Instance.HideCursorOnPage ? {cursor: "none"} : {});
+
         // Must not load/create unless the constants query has completed and is loaded.  Downstream components assume
         // that valid content exists at NdbConstants.DefaultConstants.
         return (
-            <div style={styles.content}>
+            <div style={style}>
                 <Content shouldUseUpdatedLayout={this.state.shouldUseUpdatedLayout} ref={(r) => this._content = r}/>
             </div>
         )
@@ -134,7 +137,8 @@ class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>,
         return (
             <div>
                 <SettingsDialog show={this.state.isSettingsOpen} apiVersion={apiVersion} clientVersion={clientVersion}
-                                isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease} onHide={() => this.onSettingsClose()}/>
+                                isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease}
+                                onHide={() => this.onSettingsClose()}/>
                 <HeadingWithData onSettingsClick={() => this.onSettingsClick()} onSetQuery={(f) => this.onSetQuery(f)}/>
                 {this.renderContent()}
                 <Footer/>

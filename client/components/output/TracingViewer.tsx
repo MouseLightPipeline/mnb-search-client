@@ -448,10 +448,16 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     }
 
     public render() {
-        const activeNeurons = _.uniqBy(this.props.tracings.map(t => t.neuron).filter(n =>n.isInHighlightList), "Id");
+        const activeNeurons = _.uniqBy(this.props.tracings.map(t => t.neuron).filter(n => n.isInHighlightList), "Id");
+
+        const style = Object.assign({
+            height: "100%",
+            width: "100%",
+            position: relative
+        }, PreferencesManager.Instance.HideCursorInViewer ? {cursor: "none"} : {});
 
         return (
-            <div id="viewer-parent" style={{height: "100%", width: "100%", position: "relative"}}>
+            <div id="viewer-parent" style={style}>
                 <ViewerSelection constants={this.props.constants}
                                  selectedNode={this.state.selectedNode}
                                  selectedTracing={this.state.selectedTracing}
@@ -473,3 +479,5 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         );
     }
 }
+
+const relative: "relative" = "relative";

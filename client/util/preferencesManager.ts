@@ -217,6 +217,22 @@ export class PreferencesManager {
         }
     }
 
+    public get HideCursorInViewer(): boolean {
+        if (typeof(Storage) !== undefined) {
+            return localStorage.getItem(prefix + "hideCursorInViewer") === true.toString();
+        } else {
+            return false;
+        }
+    }
+
+    public get HideCursorOnPage(): boolean {
+        if (typeof(Storage) !== undefined) {
+            return localStorage.getItem(prefix + "hideCursorOnPage") === true.toString();
+        } else {
+            return false;
+        }
+    }
+
     private validateDefaultSettings() {
         if (typeof(Storage) !== undefined) {
             if (!localStorage.getItem(prefix + "shouldAutoCollapseOnQuery")) {
@@ -261,6 +277,14 @@ export class PreferencesManager {
 
             if (!localStorage.getItem(prefix + "viewPresets")) {
                 localStorage.setItem(prefix + "viewPresets", JSON.stringify([]));
+            }
+
+            if (!localStorage.getItem(prefix + "hideCursorInViewer")) {
+                localStorage.setItem(prefix + "hideCursorInViewer", false.toString());
+            }
+
+            if (!localStorage.getItem(prefix + "hideCursorOnPage")) {
+                localStorage.setItem(prefix + "hideCursorOnPage", false.toString());
             }
         }
     }
