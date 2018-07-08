@@ -360,7 +360,7 @@ export class SharkViewer {
                     if (swc_json.hasOwnProperty(node)) {
                         if (swc_json[node].parent !== -1) {
 
-                            const cnode = swc_json[node] ;
+                            const cnode = swc_json[node];
                             const pnode = swc_json[swc_json[node].parent];
 
                             // Paint two triangles to make a cone-imposter quadrilateral
@@ -758,14 +758,14 @@ export class SharkViewer {
 
         const mouse = new THREE.Vector2();
 
-        mouse.x = (( event.clientX - rect.left) / this.WIDTH ) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / this.HEIGHT ) * 2 + 1;
+        mouse.x = ((event.clientX - rect.left) / this.WIDTH) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / this.HEIGHT) * 2 + 1;
 
         this.raycaster.setFromCamera(mouse, this.camera);
 
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
 
-        const points = intersects.filter(o => o.object.type === "Points").sort((a, b) => {
+        const points = intersects.filter(o => o.object.type === "Points").filter(o => o.object.userData.materialShader.uniforms.alpha.value > 0.0).sort((a, b) => {
             return a.distanceToRay === b.distanceToRay ? a.distance - b.distance : a.distanceToRay - b.distanceToRay;
         });
 

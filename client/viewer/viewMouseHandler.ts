@@ -25,8 +25,6 @@ export class ViewerMouseHandler {
         PreferencesManager.Instance.ViewPresets.map(p => {
             this._presets = this._presets.concat([[p[0] * Math.PI / 180, p[1] * Math.PI / 180]]);
         });
-
-        console.log(this._presets);
     }
 
     public addListeners() {
