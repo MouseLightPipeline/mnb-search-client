@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Link} from "react-router";
-import {Navbar, Nav, Glyphicon, Badge, NavItem, NavDropdown, MenuItem, Modal} from "react-bootstrap"
+import {Navbar, Nav, Glyphicon, Popover, NavItem, NavDropdown, MenuItem, Modal, OverlayTrigger} from "react-bootstrap"
 import {graphql, QueryProps} from "react-apollo";
 
 import {SystemMessageQuery} from "../../graphql/systemMessage";
@@ -14,6 +14,10 @@ const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 
 interface ISystemMessageQuery {
     systemMessage: string;
+    systemSettings: {
+        version: string;
+        release: string;
+    }
 }
 
 interface IHeadingProps {
@@ -62,6 +66,28 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
             return (<MenuItem eventKey={s} key={s.name}>{s.name}</MenuItem>);
         });
 
+        let message = null;
+        let popover = null;
+
+        if (this.props.data && this.props.data.systemSettings) {
+            switch (this.props.data.systemSettings.release.toLowerCase()) {
+                case "internal":
+                    popover = (
+                        <Popover id="foo1" title="Data">This instance set includes any tracing marked public or internal
+                            that have been
+                            transitioned to this optimized search instance. This may not include recently transformed
+                            tracings.</Popover>);
+                    message = "INTERNAL INSTANCE (MAY INCLUDE NON-PUBLIC CONTENTS)";
+                    break;
+                case "team":
+                    popover = (
+                        <Popover id="foo2" title="Data">This instance set includes all uploaded tracings. New tracings
+                            are available immediately after the transform completes.</Popover>);
+                    message = "TEAM INSTANCE (NON-PUBLIC/NON-INTERNAL CONTENTS)";
+                    break;
+            }
+        }
+
         return (
             <Navbar fluid style={{borderRadius: 0, marginBottom: 0}}>
                 <Navbar.Header>
@@ -72,11 +98,20 @@ class Heading extends React.Component<IHeadingProps, IHeadingState> {
                     <Navbar.Toggle/>
                 </Navbar.Header>
                 <Navbar.Collapse>
-                    <Nav id="janelia">
-                        <NavItem href="http://www.janelia.org" target="_blank">
-                            <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
-                        </NavItem>
-                    </Nav>
+                    {message === null ?
+                        <Nav id="janelia">
+                            <NavItem href="http://www.janelia.org" target="_blank">
+                                <img src={hhmiImage} height={48} style={{order: 2, marginLeft: "30px"}}/>
+                            </NavItem>
+                        </Nav> : null}
+                    {message !== null ?
+                        <Nav style={{paddingTop: "18px"}}>
+                            <NavItem>
+                                <OverlayTrigger trigger={["hover", "focus"]} placement="right" overlay={popover}>
+                                    <span>{message}</span>
+                                </OverlayTrigger>
+                            </NavItem>
+                        </Nav> : null}
                     <Nav pullRight style={{paddingTop: "18px"}}>
                         {this.state.showTutorial ? <TutorialDialog show={this.state.showTutorial}
                                                                    onHide={() => this.onHideTutorial()}/> : null}

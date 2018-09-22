@@ -38,4 +38,4 @@ export const headerButton = {
 };
 
 export const primaryBackground = "rgb(0, 63, 96)";
-export const secondaryyBackground = "rgb(0, 50, 77)";
+export const secondaryBackground = "rgb(0, 50, 77)";
