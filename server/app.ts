@@ -6,16 +6,12 @@ const DigestStrategy = require("passport-http").DigestStrategy;
 
 let webpackConfig = null;
 let Webpack = null;
-let webpackDevMiddleware = null;
 let webpackDevServer = null;
-let webpackHotMiddleware = null;
 let compiler = null;
 
 if (process.env.NODE_ENV !== "production") {
     webpackConfig = require("../webpack.dev.config.js");
     Webpack = require("webpack");
-    webpackDevMiddleware = require("webpack-dev-middleware");
-    webpackHotMiddleware = require("webpack-hot-middleware");
     webpackDevServer = require("webpack-dev-server");
     compiler = Webpack(webpackConfig);
 }
@@ -34,7 +30,7 @@ let app = null;
 passport.use(new DigestStrategy({qop: 'auth'},
     function (username: any, done: any) {
         if (username === "mouselight") {
-            return done(null, {id: 1, name: username}, "yrotation");
+            return done(null, {id: 1, name: username}, ServerConfiguration.authPassword);
         } else {
             return done("Invalid user", null);
         }
@@ -109,7 +105,6 @@ function devServer() {
         contentBase: path.resolve(path.join(__dirname, "..", "public")),
         disableHostCheck: true,
         publicPath: webpackConfig.output.publicPath,
-        // hot: true,
         historyApiFallback: true,
         noInfo: false,
         quiet: false

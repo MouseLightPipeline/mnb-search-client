@@ -1,14 +1,14 @@
 {
   "name": "search-client",
-  "version": "1.0.35",
-  "main": "server/transformSearch.js",
+  "version": "1.0.36",
+  "main": "server/app.js",
   "repository": "https://github.com/MouseLightPipeline/search-client.git",
   "author": "Patrick Edson <pedson@leapscientific.com>",
   "license": "Janelia",
   "dockerRepository": "mouselightdatabrowser",
   "scripts": {
-    "debug": "DEBUG=ndb* node --trace-warnings $NODE_DEBUG_OPTION server/transformSearch.js",
-    "start": "node server/transformSearch.js",
+    "debug": "DEBUG=ndb* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
+    "start": "node server/app.js",
     "docker-build": "webpack && gulp docker-build",
     "release": "webpack && gulp release"
   },

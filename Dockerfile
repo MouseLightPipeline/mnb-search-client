@@ -16,6 +16,6 @@ ADD ./public/*.* ./public/
 
 ADD ./server/*.js ./server/
 
-CMD ["node", "server/transformSearch.js"]
+CMD ["node", "server/app.js"]
 
 EXPOSE  9683

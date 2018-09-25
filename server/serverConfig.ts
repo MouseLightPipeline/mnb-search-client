@@ -1,15 +1,10 @@
-const configurations: any = {
+const configurations = {
     development: {
         port: 9683,
         graphQlEndpoint: "/graphql",
         graphQlHostname: "localhost",
-        graphQlPort: 9681
-    },
-    test: {
-        port: 9683,
-        graphQlEndpoint: "/graphql",
-        graphQlHostname: "search-api",
-        graphQlPort: 9681
+        graphQlPort: 9681,
+        authPassword: ""
     },
     production: {
         port: 9683,
@@ -22,11 +17,12 @@ const configurations: any = {
 function loadServerConfiguration() {
     let env = process.env.NODE_ENV || "development";
 
-    let config = configurations[env];
+    let config = configurations[env] || configurations.development;
 
-    config.port = process.env.TRANSFORM_CLIENT_PORT || config.port;
-    config.graphQlHostname = process.env.TRANSFORM_API_HOST || config.graphQlHostname;
-    config.graphQlPort = process.env.TRANSFORM_API_PORT || config.graphQlPort;
+    config.port = process.env.SEARCH_CLIENT_PORT || config.port;
+    config.graphQlHostname = process.env.SEARCH_API_HOST || config.graphQlHostname;
+    config.graphQlPort = process.env.SEARCH_API_PORT || config.graphQlPort;
+    config.authPassword = process.env.SEARCH_AUTH_PASS || config.authPassword;
 
     return config;
 }
