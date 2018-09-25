@@ -29,14 +29,14 @@ let app = null;
 
 passport.use(new DigestStrategy({qop: 'auth'},
     function (username: any, done: any) {
-        if (username === "mouselight") {
+        if (username === ServerConfiguration.authUser) {
             return done(null, {id: 1, name: username}, ServerConfiguration.authPassword);
         } else {
             return done("Invalid user", null);
         }
     },
     function (params: any, done: any) {
-        // validate nonces as necessary
+        // validate nonce as necessary
         done(null, true)
     }
 ));
