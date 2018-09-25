@@ -272,7 +272,7 @@ export class PreferencesManager {
             }
 
             if (!localStorage.getItem(prefix + "rootCompartmentColor")) {
-                localStorage.setItem(prefix + "rootCompartmentColor", "FFFFFF");
+                localStorage.setItem(prefix + "rootCompartmentColor", "888888");
             }
 
             if (!localStorage.getItem(prefix + "viewPresets")) {
