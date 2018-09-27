@@ -1,6 +1,5 @@
 import * as path from "path";
 
-const src = path.join(__dirname, "client");
 const dist = path.join(__dirname, "public");
 
 module.exports = {

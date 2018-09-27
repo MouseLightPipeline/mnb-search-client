@@ -2,15 +2,13 @@ FROM node:8.12
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
 ADD ./public/allen/ ./public/allen/
 
 ADD ./package.json .
 
 ADD ./yarn.lock .
 
-RUN yarn install
+RUN yarn install --production=true
 
 ADD ./public/*.* ./public/
 

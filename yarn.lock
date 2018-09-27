@@ -37,9 +37,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/gulp@^4.0.3":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@types/gulp/-/gulp-4.0.3.tgz#6c5a990678bfdbb894ebb9f113ccdf82b1b9d547"
+"@types/gulp@3":
+  version "3.8.36"
+  resolved "https://registry.yarnpkg.com/@types/gulp/-/gulp-3.8.36.tgz#11eaf583bf0534669b4ffa9bfed51557faa00a4c"
   dependencies:
     "@types/node" "*"
     "@types/orchestrator" "*"
