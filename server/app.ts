@@ -44,7 +44,7 @@ passport.serializeUser(function (user: any, done: any) {
 });
 
 passport.deserializeUser(function (id: any, done: any) {
-    done(null, {id: 1, name: "mouselight"});
+    done(null, {id: 1, name: ServerConfiguration.authUser});
 });
 
 if (process.env.NODE_ENV !== "production") {

@@ -5,7 +5,7 @@ const configuration = {
     graphQlPort: 9681,
     authRequired: true,
     authUser: "mouselight",
-    authPassword: "auth_secret" // always override this, but in case env is not set, don't leave completely open
+    authPassword: "auth_secret" // always override this, but in the event env is not set, don't leave completely open
 };
 
 function loadServerConfiguration() {
