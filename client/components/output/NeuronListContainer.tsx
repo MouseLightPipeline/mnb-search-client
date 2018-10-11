@@ -25,10 +25,6 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
         this.state = {}
     }
 
-    private performExport(format: ExportFormat) {
-
-    }
-
     private renderCloseGlyph() {
         const transform = this.props.isDocked ? "rotate(-45deg)" : "";
         const state = this.props.isDocked ? DrawerState.Float : DrawerState.Dock;
@@ -80,7 +76,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                 order: 1,
                 flexDirection: "row"
             }}>
-                {this.props.isDocked ? this.renderExport() : null}
+                {this.renderExport()}
                 <h4 style={{
                     color: "white",
                     fontWeight: "lighter",
