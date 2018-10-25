@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import {DynamicSimpleSelect} from "ndb-react-components";
+import {DynamicSimpleSelect} from "./DynamicSelect";
 import {displayNeuronalStructure, NeuronalStructure} from "../../models/neuronalStructure";
 
 export class NeuronalStructureSelect extends DynamicSimpleSelect<NeuronalStructure> {

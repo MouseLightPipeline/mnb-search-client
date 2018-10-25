@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import {DynamicSimpleSelect} from "ndb-react-components";
+import {DynamicSimpleSelect} from "./DynamicSelect";
 import {displayQueryOperator, IQueryOperator} from "../../models/queryOperator";
 
 export class QueryOperatorSelect extends DynamicSimpleSelect<IQueryOperator> {

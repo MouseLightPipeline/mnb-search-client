@@ -1,6 +1,7 @@
 import * as React from "react";
 
-import {DynamicSimpleMultiSelect} from "ndb-react-components";
+
+import {DynamicSimpleMultiSelect} from "./DynamicSelect";
 import {displayBrainArea, IBrainArea} from "../../models/brainArea";
 
 export class BrainAreaSelect extends DynamicSimpleMultiSelect<IBrainArea> {

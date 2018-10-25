@@ -3381,11 +3381,6 @@ natives@^1.1.0:
   resolved "https://registry.yarnpkg.com/natives/-/natives-1.1.0.tgz#e9ff841418a6b2ec7a495e939984f78f163e6e31"
   integrity sha1-6f+EFBimsux6SV6TmYT3jxY+bjE=
 
-ndb-react-components@^0.1.28:
-  version "0.1.28"
-  resolved "https://registry.yarnpkg.com/ndb-react-components/-/ndb-react-components-0.1.28.tgz#9f1f992e4d2dfe8cc3d807fed26acd6cf13def6c"
-  integrity sha1-nx+ZLk0t/ozD2Af+0mrNbPE972w=
-
 ndb-three-orbit-controls@^82.1.3:
   version "82.1.3"
   resolved "https://registry.yarnpkg.com/ndb-three-orbit-controls/-/ndb-three-orbit-controls-82.1.3.tgz#d709b7ed0e54b9c02f191405fbd0310347cb14db"

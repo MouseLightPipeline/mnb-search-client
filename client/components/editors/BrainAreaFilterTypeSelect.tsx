@@ -1,7 +1,8 @@
 import * as React from "react";
 
-import {DynamicSimpleSelect} from "ndb-react-components";
+import {DynamicSimpleSelect} from "./DynamicSelect";
 import {BrainAreaFilterType} from "../../models/brainAreaFilterType";
+
 
 export class BrainAreaFilterTypeSelect extends DynamicSimpleSelect<BrainAreaFilterType> {
     protected selectLabelForOption(option: BrainAreaFilterType): any {

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import {DynamicSimpleSelect} from "ndb-react-components";
+import {DynamicSimpleSelect} from "./DynamicSelect";
 import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
 
 export class TracingViewModeSelect extends DynamicSimpleSelect<NeuronViewMode> {

@@ -4,7 +4,6 @@ export interface INotificationListener {
     preferenceChanged(name: string, value: any);
 }
 
-
 const prefix = "jne:";
 
 export class PreferencesManager {
