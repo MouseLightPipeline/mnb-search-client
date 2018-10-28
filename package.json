@@ -11,7 +11,7 @@
   "scripts": {
     "debug": "DEBUG=mnb* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
     "docker-build": "webpack && gulp docker-build",
-    "release": "webpack && gulp release"
+    "docker-release": "webpack && gulp release"
   },
   "dependencies": {
     "express": "^4.16.2",
