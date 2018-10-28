@@ -1,8 +1,8 @@
 const configuration = {
-    port: 9683,
+    port: 5000,
     graphQlEndpoint: "/graphql",
     graphQlHostname: "search-api",
-    graphQlPort: 9681,
+    graphQlPort: 5000,
     authRequired: true,
     authUser: "mouselight",
     authPassword: "auth_secret" // always override this, but in the event env is not set, don't leave completely open
