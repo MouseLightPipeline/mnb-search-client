@@ -6,11 +6,15 @@ module.exports = {
     entry: [
         "./client/index"
     ],
+
     output: {
         filename: 'bundle.js',
         path: dist,
         publicPath: '/'
     },
+
+    mode: "development",
+
     module: {
         rules: [
             {
@@ -22,8 +26,10 @@ module.exports = {
             {test: /\.css$/, use: 'css-loader'}
         ]
     },
+
     resolve: {
         extensions: [".tsx", ".ts", ".js"]
     },
+
     devtool: 'inline-source-map'
 };

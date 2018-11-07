@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import {IFilterInput} from "../../models/queryFilter";
-import {QueryPageWithData} from "./QueryPage";
+import {QueryPage} from "./QueryPage";
 
 interface IContentProps {
     shouldUseUpdatedLayout?: boolean;
@@ -41,7 +41,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
         };
 
         return (
-            <QueryPageWithData {...props} ref={(r) => this._queryPage = r}/>
+            <QueryPage {...props} ref={(r) => this._queryPage = r}/>
         );
     }
 }

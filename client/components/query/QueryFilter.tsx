@@ -18,7 +18,6 @@ import {
     BRAIN_AREA_FILTER_TYPES, BrainAreaFilterType,
     BrainAreaFilterTypeOption
 } from "../../models/brainAreaFilterType";
-import {PreferencesManager} from "../../util/preferencesManager";
 
 interface IQueryFilterProps {
     constants: NdbConstants;

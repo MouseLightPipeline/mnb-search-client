@@ -1,30 +1,18 @@
 import * as React from "react";
-import {ApolloProvider, ApolloClient} from "react-apollo";
-import {createNetworkInterface} from "apollo-client";
+import {ApolloClient} from "apollo-client";
+import {InMemoryCache} from "apollo-cache-inmemory";
+import {createHttpLink} from "apollo-link-http";
+import {ApolloProvider} from "react-apollo";
 
-import {AppWithData} from "./page/App";
-
-declare let window: { __APOLLO_STATE__: any, location: any };
-
-const networkInterface = createNetworkInterface({
-    uri: "/graphql"
-});
+import {App} from "./page/App";
 
 const client = new ApolloClient({
-    networkInterface: networkInterface,
-    addTypename: true,
-    dataIdFromObject: (result: any) => {
-        if (result.id) {
-            return result.__typename + result.id;
-        }
-        return null;
-    },
-    initialState: window.__APOLLO_STATE__,
-    connectToDevTools: true
+    link: createHttpLink({uri: "/graphql"}),
+    cache: new InMemoryCache(),
 });
 
 export const ApolloApp = () => (
     <ApolloProvider client={client}>
-        <AppWithData/>
+        <App/>
     </ApolloProvider>
 );

@@ -1,8 +1,8 @@
 import * as React from "react";
 import {Modal, Button, Checkbox, ControlLabel} from "react-bootstrap"
 import {PreferencesManager} from "../../util/preferencesManager";
-import Slider from "rc-slider";
 import {SketchPicker} from 'react-color';
+const Slider = require("rc-slider").default;
 
 interface ISettingsDialogProps {
     show: boolean
@@ -140,22 +140,6 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                                         defaultValue={PreferencesManager.Instance.TracingFetchBatchSize}/>
                             </div>
                         </div> : null}
-                    {/*
-                    <div style={{width: "100%", marginTop: "40px", borderTop: "1px solid"}}>
-                        <ControlLabel>Janelia MouseLight Neuron Explorer</ControlLabel>
-                        <table style={{fontSize: "smaller"}}>
-                            <tbody>
-                            <tr>
-                                <td style={{width: "80px"}}> Api Version:</td>
-                                <td style={{textAlign: "left"}}> {this.props.apiVersion}</td>
-                            </tr>
-                            <tr>
-                                <td style={{width: "80px"}}> Client Version:</td>
-                                <td style={{textAlign: "left"}}>{this.props.clientVersion}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>*/}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button bsSize="small" onClick={this.props.onHide}>Close</Button>

@@ -1,14 +1,13 @@
 import * as React from "react";
-import {graphql, ChildProps} from "react-apollo";
 import {Alert} from "react-bootstrap";
 
 import {Content} from "./Content";
 import {SettingsDialog} from "./Settings";
 import {PreferencesManager} from "../../util/preferencesManager";
-import {ConstantsQuery, ConstantsQueryResponse} from "../../graphql/constants";
-import {HeadingWithData} from "./Header";
 import {Footer} from "./Footer";
 import {NdbConstants} from "../../models/constants";
+import {CONSTANTS_QUERY, ConstantsQuery} from "../../graphql/constants";
+import {PageHeader} from "./Header";
 
 const styles = {
     content: {
@@ -27,7 +26,7 @@ interface IAppState {
     shouldUseUpdatedLayout?: boolean;
 }
 
-class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>, IAppState> {
+export class App extends React.Component<IAppProps, IAppState> {
     private _content = null;
 
     public constructor(props: IAppProps) {
@@ -54,12 +53,6 @@ class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>,
         });
     }
 
-    public componentWillReceiveProps(props: ChildProps<IAppProps, ConstantsQueryResponse>) {
-        if (props.data && !props.data.loading && !props.data.error) {
-            NdbConstants.DefaultConstants.load(props.data)
-        }
-    }
-
     private onSetQuery(eventKey: any) {
         if (this._content) {
             this._content.onSetQuery(eventKey);
@@ -74,9 +67,7 @@ class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>,
         this.setState({isSettingsOpen: false}, null);
     }
 
-    private renderContent() {
-        const {loading, error} = this.props.data;
-
+    private renderContent(loading, error) {
         if (error) {
             console.log(error);
             return (
@@ -131,23 +122,32 @@ class App extends React.Component<ChildProps<IAppProps, ConstantsQueryResponse>,
     }
 
     public render() {
-        const apiVersion = NdbConstants.DefaultConstants.IsLoaded ? ` ${NdbConstants.DefaultConstants.ApiVersion}` : "";
-        const clientVersion = NdbConstants.DefaultConstants.IsLoaded ? ` ${NdbConstants.DefaultConstants.ClientVersion}` : "";
 
         return (
-            <div>
-                <SettingsDialog show={this.state.isSettingsOpen} apiVersion={apiVersion} clientVersion={clientVersion}
-                                isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease}
-                                onHide={() => this.onSettingsClose()}/>
-                <HeadingWithData onSettingsClick={() => this.onSettingsClick()} onSetQuery={(f) => this.onSetQuery(f)}/>
-                {this.renderContent()}
-                <Footer/>
-            </div>
+            <ConstantsQuery query={CONSTANTS_QUERY}>
+                {({loading, error, data}) => {
+                    if (data && !loading && !error) {
+                        NdbConstants.DefaultConstants.load(data);
+                    }
+
+                    const apiVersion = NdbConstants.DefaultConstants.IsLoaded ? ` ${NdbConstants.DefaultConstants.ApiVersion}` : "";
+                    const clientVersion = NdbConstants.DefaultConstants.IsLoaded ? ` ${NdbConstants.DefaultConstants.ClientVersion}` : "";
+
+                    return (
+                        <div>
+                            <SettingsDialog show={this.state.isSettingsOpen} apiVersion={apiVersion}
+                                            clientVersion={clientVersion}
+                                            isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease}
+                                            onHide={() => this.onSettingsClose()}/>
+                            <PageHeader onSettingsClick={() => this.onSettingsClick()}
+                                             onSetQuery={(f) => this.onSetQuery(f)}/>
+                            {this.renderContent(loading, error)}
+                            <Footer/>
+                        </div>
+                    );
+                }}
+            </ConstantsQuery>
         );
     }
 }
-
-export const AppWithData = graphql<ConstantsQueryResponse, IAppProps>(ConstantsQuery, {
-    options: {}
-})(App);
 

@@ -15,3 +15,6 @@ node_modules
 public/*.html
 public/*.png
 public/*.mp4
+
+dist
+

@@ -1,5 +1,4 @@
 import * as React from "react";
-import {graphql, gql, ChildProps} from "react-apollo";
 
 import {INeuron} from "../../models/neuron";
 import {NdbConstants} from "../../models/constants";
@@ -10,19 +9,7 @@ import {QueryStatus} from "../query/QueryHeader";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {VisibleBrainAreas} from "../../viewmodel/VisibleBrainAreas";
 import {BrainCompartmentViewModel} from "../../viewmodel/brainCompartmentViewModel";
-
-interface IQueryDataPage {
-    neurons: INeuron[];
-    totalCount: number;
-    queryTime: number;
-    nonce: string;
-    error: Error;
-}
-
-interface IQueryContainerGraphQLProps {
-    queryData: IQueryDataPage;
-}
-
+import {NEURONS_QUERY, NeuronsQuery} from "../../graphql/neurons";
 
 interface IPageProps {
     queryFilters: IFilterInput[];
@@ -40,48 +27,8 @@ interface IPageState {
     visibleBrainAreas?: BrainCompartmentViewModel[];
 }
 
-const neuronsQuery = gql`query QueryData($filters: [FilterInput!]) {
-  queryData(filters: $filters) {
-    totalCount
-    queryTime
-    nonce
-    error {
-      name
-      message
-    }
-
-    neurons {
-      id
-      idString
-      brainArea {
-        id
-        acronym
-      }
-      tracings {
-        id
-        tracingStructure {
-          id
-          name
-          value
-        }
-        soma {
-          id
-          x
-          y
-          z
-          radius
-          parentNumber
-          sampleNumber
-          brainAreaId
-          structureIdentifierId
-        }
-      }
-    }
-  }
-}`;
-
-export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryContainerGraphQLProps>, IPageState> {
-    private _filterProps: any;
+export class QueryPage extends React.Component<IPageProps, IPageState> {
+    readonly _filterProps: any;
     private _queryFilterContainer;
     private _wasFullTracingLoad;
     private _neuronSystemCount = 0;
@@ -110,9 +57,9 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
             applyFilters: (queryFilters: IFilterInput[], specialHandling: any) => {
                 this._wasFullTracingLoad = PreferencesManager.Instance.ShouldAlwaysShowFullTracing;
 
-               // if (specialHandling) {
-               //     PreferencesManager.Instance.ShouldAlwaysShowFullTracing = true;
-               // }
+                // if (specialHandling) {
+                //     PreferencesManager.Instance.ShouldAlwaysShowFullTracing = true;
+                // }
 
                 this.props.applyFilters(queryFilters);
 
@@ -173,7 +120,7 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
         this._visibleBrainAreas.mutate(added, removed);
         this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas});
     }
-
+/*
     public componentWillReceiveProps(props: ChildProps<IPageProps, IQueryContainerGraphQLProps>) {
         // Cache current so that when going into anything but an instant query, existing rows in table don't drop during
         // this data.loading phase.  Causes flicker as table goes from populated to empty back to populated.
@@ -183,68 +130,75 @@ export class QueryPage extends React.Component<ChildProps<IPageProps, IQueryCont
             this.setState({haveReceivedInitialResults: true, neurons: props.data.queryData.neurons});
         }
     }
-
+*/
     public render() {
-        let neurons: INeuron[] = [];
-
-        if (this.state.haveReceivedInitialResults) {
-            neurons = this.state.neurons;
-        }
-
-        const queryStatus = this.props.data ? (this.props.data.loading ? QueryStatus.Loading : QueryStatus.Loaded) : QueryStatus.NeverQueried;
-
-        const queryProps = Object.assign(this._filterProps, {
-            constants: this._constants,
-            isCollapsed: this.state.isQueryCollapsed,
-            status: queryStatus,
-            neuronSystemCount: this._neuronSystemCount,
-            neuronMatchCount: neurons.length,
-            queryDuration: this._queryDuration,
-            onResetPage: () => this.onResetPage(),
-            onToggleCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
-            ref: (qfc: QueryFilterContainer) => this._queryFilterContainer = qfc
-        });
-
-        const viewerProps = {
-            constants: this._constants,
-            isQueryCollapsed: this.state.isQueryCollapsed,
-            queryStatus: queryStatus,
-            neurons,
-            brainAreas: this.state.visibleBrainAreas,
-            isLoading: this.props.data && this.props.data.loading,
-            nonce: queryStatus === QueryStatus.Loaded ? this.props.data.queryData.nonce : null,
-            ref: (m) => this._mainView = m,
-            onToggleQueryCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
-            onCompletedFetch: () => this.onCompleteFetch(),
-            populateCustomPredicate: (p: IPositionInput, b: boolean) => this.populateCustomPredicate(p, b),
-            onToggleBrainArea: (id: string) => this.onToggleBrainArea(id),
-            onRemoveBrainAreaFromHistory: (id: BrainCompartmentViewModel) => this.onRemoveBrainAreaFromHistory(id),
-            onMutateBrainAreas: (added: string[], removed: string[]) => this.onMutateBrainAreas(added, removed)
-        };
-
         return (
-            <div style={{
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                flexWrap: "nowrap",
-                alignItems: "flex-start",
-                alignContent: "flex-start"
-            }}>
-                <div style={{width: "100%", order: 1, flexBasis: "auto", overflow: "auto"}}>
-                    <QueryFilterContainer {...queryProps}/>
-                </div>
-                <div style={{height: "100px", width: "100%", flexGrow: 1, flexShrink: 1, order: 2}}>
-                    <MainView{...viewerProps}/>
-                </div>
-            </div>
+            <NeuronsQuery query={NEURONS_QUERY} skip={this.props.queryFilters.length === 0} fetchPolicy="cache-and-network">
+                {({loading, error, data}) => {
+
+                    if (data && !loading) {
+                        this._neuronSystemCount = data.queryData.totalCount;
+                        this._queryDuration = data.queryData.queryTime;
+                        this.setState({haveReceivedInitialResults: true, neurons: data.queryData.neurons});
+                    }
+
+                    let neurons: INeuron[] = [];
+
+                    if (this.state.haveReceivedInitialResults) {
+                        neurons = this.state.neurons;
+                    }
+
+                    const queryStatus = data ? (loading ? QueryStatus.Loading : QueryStatus.Loaded) : QueryStatus.NeverQueried;
+
+                    const queryProps = Object.assign(this._filterProps, {
+                        constants: this._constants,
+                        isCollapsed: this.state.isQueryCollapsed,
+                        status: queryStatus,
+                        neuronSystemCount: this._neuronSystemCount,
+                        neuronMatchCount: neurons.length,
+                        queryDuration: this._queryDuration,
+                        onResetPage: () => this.onResetPage(),
+                        onToggleCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
+                        ref: (qfc: QueryFilterContainer) => this._queryFilterContainer = qfc
+                    });
+
+                    const viewerProps = {
+                        constants: this._constants,
+                        isQueryCollapsed: this.state.isQueryCollapsed,
+                        queryStatus: queryStatus,
+                        neurons,
+                        brainAreas: this.state.visibleBrainAreas,
+                        isLoading: loading,
+                        nonce: queryStatus === QueryStatus.Loaded ? data.queryData.nonce : null,
+                        ref: (m) => this._mainView = m,
+                        onToggleQueryCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
+                        onCompletedFetch: () => this.onCompleteFetch(),
+                        populateCustomPredicate: (p: IPositionInput, b: boolean) => this.populateCustomPredicate(p, b),
+                        onToggleBrainArea: (id: string) => this.onToggleBrainArea(id),
+                        onRemoveBrainAreaFromHistory: (id: BrainCompartmentViewModel) => this.onRemoveBrainAreaFromHistory(id),
+                        onMutateBrainAreas: (added: string[], removed: string[]) => this.onMutateBrainAreas(added, removed)
+                    };
+
+                    return (
+                        <div style={{
+                            height: "100%",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            flexWrap: "nowrap",
+                            alignItems: "flex-start",
+                            alignContent: "flex-start"
+                        }}>
+                            <div style={{width: "100%", order: 1, flexBasis: "auto", overflow: "auto"}}>
+                                <QueryFilterContainer {...queryProps}/>
+                            </div>
+                            <div style={{height: "100px", width: "100%", flexGrow: 1, flexShrink: 1, order: 2}}>
+                                <MainView{...viewerProps}/>
+                            </div>
+                        </div>
+                    );
+                }}
+            </NeuronsQuery>
         );
     }
 }
-
-export const QueryPageWithData = graphql<IQueryContainerGraphQLProps, IPageProps>(neuronsQuery, {
-    withRef: true,
-    options: ({queryFilters}) => ({variables: {filters: queryFilters}, fetchPolicy: "cache-and-network"}),
-    skip: (ownProps) => ownProps.queryFilters.length === 0
-})(QueryPage);

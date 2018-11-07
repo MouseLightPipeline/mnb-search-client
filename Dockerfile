@@ -2,18 +2,12 @@ FROM node:8.12
 
 WORKDIR /app
 
-ADD ./public/allen/ ./public/allen/
+COPY dist .
 
-ADD ./package.json .
-
-ADD ./yarn.lock .
+COPY ./public/allen/ ./public/allen/
 
 RUN yarn install --production=true
 
-ADD ./public/*.* ./public/
+CMD ["./docker-entry.sh"]
 
-ADD ./server/*.js ./server/
-
-CMD ["node", "server/app.js"]
-
-EXPOSE  9683
+EXPOSE 5000
