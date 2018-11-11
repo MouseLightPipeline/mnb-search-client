@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 import {Query} from "react-apollo";
 import {INeuron} from "../models/neuron";
-import {IFilterInput} from "../models/queryFilter";
+import {IPositionInput} from "../models/queryFilter";
 
 export const NEURONS_QUERY = gql`query QueryData($filters: [FilterInput!]) {
   queryData(filters: $filters) {
@@ -44,8 +44,23 @@ export const NEURONS_QUERY = gql`query QueryData($filters: [FilterInput!]) {
 }`;
 
 
-interface NeuronsQueryVariables {
-    filters: IFilterInput[];
+export type QueryPredicate = {
+    tracingIdsOrDOIs: string[];
+    tracingIdsOrDOIsExactMatch: boolean;
+    tracingStructureIds: string[];
+    nodeStructureIds: string[];
+    operatorId: string;
+    amount: number;
+    brainAreaIds: string[];
+    arbCenter: IPositionInput;
+    arbSize: number;
+    invert: boolean;
+    composition: number;
+    nonce: string;
+}
+
+type NeuronsQueryVariable = {
+    filters: QueryPredicate[];
 }
 
 export type NeuronsQueryData = {
@@ -60,5 +75,5 @@ type NeuronsQueryResponse = {
     queryData: NeuronsQueryData
 }
 
-export class NeuronsQuery extends Query<NeuronsQueryResponse, NeuronsQueryVariables> {
+export class NeuronsQuery extends Query<NeuronsQueryResponse, NeuronsQueryVariable> {
 }

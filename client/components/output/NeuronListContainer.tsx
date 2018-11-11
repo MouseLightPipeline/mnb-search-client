@@ -6,6 +6,7 @@ import {DrawerState} from "./MainView";
 import {QueryStatus} from "../query/QueryHeader";
 import {primaryBackground} from "../../util/styles";
 import {ExportFormat} from "../../models/tracing";
+import {Icon} from "semantic-ui-react";
 
 interface INeuronListContainerProps extends INeuronTableProps {
     isDocked: boolean;
@@ -87,7 +88,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                     order: 2
                 }}>Neurons</h4>
                 {this.renderCloseGlyph()}
-                <Glyphicon glyph="chevron-left" style={{margin: "auto", order: 4}}
+                <Icon name="chevron left" style={{margin: "auto", order: 4}}
                            onClick={() => this.props.onClickCloseOrPin(DrawerState.Hidden)}/>
             </div>
         );

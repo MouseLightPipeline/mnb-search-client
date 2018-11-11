@@ -16,13 +16,14 @@ import {NdbConstants} from "../../models/constants";
 import {IPositionInput} from "../../models/queryFilter";
 import {NeuronListContainer} from "./NeuronListContainer";
 import {ViewerContainer} from "./ViewerContainer";
-import {CompartmentListContainer} from "./CompartmentListContainer";
+import {CompartmentListContainer} from "./compartments/CompartmentListContainer";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {fullRowStyle} from "../../util/styles";
-import {isNullOrUndefined} from "util";
 import {QueryStatus} from "../query/QueryHeader";
-import {displayBrainArea, IBrainArea} from "../../models/brainArea";
+import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
+import {isNullOrUndefined} from "../../util/nodeUtil";
+import {ICompartmentNode} from "./compartments/CompartmentNode";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
@@ -40,7 +41,6 @@ export enum FetchState {
     Running = 1,
     Paused
 }
-
 
 interface FetchCalc {
     knownTracings: TracingViewModel[];
@@ -60,9 +60,10 @@ interface IOutputContainerProps {
     brainAreas: BrainCompartmentViewModel[];
     constants: NdbConstants;
     nonce: string;
+    shouldAlwaysShowFullTracing: boolean;
+    shouldAlwaysShowSoma: boolean;
 
     requestExport?(tracingIds: string[], format: ExportFormat): any;
-    onCompletedFetch(): void;
     populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
     onToggleBrainArea(id: string): void;
     onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel): void;
@@ -74,7 +75,7 @@ interface IOutputContainerState {
     defaultStructureSelection?: NeuronViewMode;
     neuronViewModels?: NeuronViewModel[];
     tracingsToDisplay?: TracingViewModel[];
-    brainAreaExpanded?: string[];
+    rootNode?: ICompartmentNode;
     displayHighlightedOnly?: boolean;
     wasDisplayHighlightedOnly?: boolean;
     cycleFocusNeuronId?: string;
@@ -101,15 +102,14 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
     public constructor(props: IOutputContainerProps) {
         super(props);
 
-        const expanded = makeNodes(props.constants.BrainAreasWithGeometry);
-
         const neuronCalc = this.updateNeuronViewModels(props, false);
 
         this.state = {
             defaultStructureSelection: NEURON_VIEW_MODE_SOMA,
             neuronViewModels: neuronCalc.neurons,
             tracingsToDisplay: [],
-            brainAreaExpanded: expanded,
+            rootNode: makeCompartmentNodes(props.constants.BrainAreasWithGeometry),
+            // brainAreaExpanded: expanded,
             displayHighlightedOnly: false,
             highlightSelectionMode: HighlightSelectionMode.Normal,
             fetchState: FetchState.Running,
@@ -146,14 +146,13 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
     private completeFetch() {
         this._expectingFetch = false;
-        this.props.onCompletedFetch();
     }
 
     public resetPage() {
         this._colorIndex = 0;
         // Must do before cancelFetch which will update state for this property.
         Array.from(neuronViewModelMap.values()).map(n => {
-            n.isSelected = n.isSelected || PreferencesManager.Instance.ShouldAlwaysShowSoma
+            n.isSelected = n.isSelected || this.props.shouldAlwaysShowSoma
         });
         this.onCancelFetch();
         this.ViewerContainer.TracingViewer.reset();
@@ -320,7 +319,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         const fetchCalc = this.determineTracingFetchState(this.state.neuronViewModels.slice());
 
-        this.setState({tracingsToDisplay: fetchCalc.knownTracings}, null);
+        this.setState({tracingsToDisplay: fetchCalc.knownTracings});
     }
 
 
@@ -476,11 +475,11 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                     tracingViewModelMap2.set(neuron.id, somaTracingModel);
                 }
 
-                if (PreferencesManager.Instance.ShouldAlwaysShowFullTracing) {
+                if (this.props.shouldAlwaysShowFullTracing) {
                     viewModel.requestViewMode(TracingStructure.all);
                     viewModel.isSelected = true;
                 }
-                else if (PreferencesManager.Instance.ShouldAlwaysShowSoma) {
+                else if (this.props.shouldAlwaysShowSoma) {
                     viewModel.requestViewMode(TracingStructure.soma);
                     viewModel.isSelected = true;
                 } else {
@@ -734,11 +733,9 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             constants: this.props.constants,
             onChangeLoadedGeometry: this.props.onMutateBrainAreas,
             brainAreaViewModels: this.props.brainAreas,
-            nodes: nodes,
-            expanded: this.state.brainAreaExpanded,
+            rootNode: this.state.rootNode,
             onToggleCompartmentSelected: this.props.onToggleBrainArea,
             onRemoveFromHistory: this.props.onRemoveBrainAreaFromHistory,
-            onChangeBrainAreaExpanded: (e: string[]) => this.setState({brainAreaExpanded: e}),
             onClickCloseOrPin: (s: DrawerState) => this.onCompartmentListCloseOrPin(s)
         };
 
@@ -760,7 +757,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         const neuronList = (<NeuronListContainer {...tableProps}/>);
 
-        const neuronListFloat = this.state.isNeuronListOpen ? ( <div style={baseStyle}>  {neuronList}</div>) : null;
+        const neuronListFloat = this.state.isNeuronListOpen ? (<div style={baseStyle}>  {neuronList}</div>) : null;
 
         const compartmentListFloat = this.state.isCompartmentListOpen ? (
             <div style={Object.assign({left: "calc(100% - 400px)"}, baseStyle)}>
@@ -833,66 +830,58 @@ function dataToBlob(encoded) {
     return ab;
 }
 
-let nodes: any[] = [{
-    value: "Loading",
-    label: "Loading...",
-    children: []
-}];
-const nodeMap = new Map<number, any>();
-const idMap = new Map<string, IBrainArea>();
-
-
 // A couple of hard-coded exceptions.  If this grows, should have a db column.
+const ROOT = 997;
 const RETINA = 304325711;
 const GROOVES = 1024;
 
-function makeNodes(brainAreas: IBrainArea[]) {
+const compartmentNodeMap = new Map<number, ICompartmentNode>();
 
-    let rootIds: string[] = null;
-
-    if (nodeMap.size > 0 || isNullOrUndefined(brainAreas)) {
-        return;
+function makeCompartmentNodes(brainAreas: IBrainArea[]): ICompartmentNode {
+    if (compartmentNodeMap.size > 0) {
+        return compartmentNodeMap.get(ROOT);
     }
 
-    let mutable = brainAreas.map(b => {
-        idMap.set(b.id, b);
-        return b;
-    });
-
-    mutable.sort((a, b) => {
+    let sorted = brainAreas.slice().sort((a: IBrainArea, b: IBrainArea) => {
         return a.depth - b.depth;
     });
 
-    nodes = [];
+    const root: ICompartmentNode = {
+        name: sorted[0].name,
+        isChecked: true,
+        toggled: true,
+        children: null,
+        compartment: sorted[0]
+    };
 
-    mutable.forEach(b => {
-        if (b.structureId === RETINA || b.structureId === GROOVES) {
+    compartmentNodeMap.set(sorted[0].structureId, root);
+
+    sorted = sorted.slice(1);
+
+    sorted.forEach((c: IBrainArea) => {
+        if (c.structureId === RETINA || c.structureId === GROOVES) {
             return;
         }
 
-        const node: any = {
-            value: b.id,
-            label: displayBrainArea(b),
-            optimisticToggle: false,
-            children: []
+        const node: ICompartmentNode = {
+            name: c.name,
+            isChecked: false,
+            toggled: false,
+            children: null,
+            compartment: c
         };
 
-        if (b.depth === 0) {
-            nodes.push(node);
-            rootIds = [b.id]
-        } else {
-            const parent = nodeMap.get(b.parentStructureId);
+        compartmentNodeMap.set(c.structureId, node);
 
-            // The parent is not included - skip
-            if (parent === undefined) {
-                return;
+        const parent = compartmentNodeMap.get(c.parentStructureId);
+
+        if (parent) {
+            if (!parent.children) {
+                parent.children = [];
             }
-
             parent.children.push(node);
         }
-
-        nodeMap.set(b.structureId, node);
     });
 
-    return rootIds;
+    return root;
 }

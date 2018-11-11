@@ -1,12 +1,51 @@
 import * as React from "react";
-import * as ReactSelectClass from "react-select";
 import {FormGroup, InputGroup, Glyphicon, Button} from "react-bootstrap";
 import {isNullOrUndefined} from "util";
-
-import * as rv from "react-virtualized"; // No react-virtualized-select declaration to pull in - keep
-import VirtualizedSelect from "react-virtualized-select"
-import {Option} from "react-select";
 import {CSSProperties} from "react";
+import Select from "react-select";
+
+// Indicators cause the vertical height to be 38 with default font settings and the default
+// vertical padding of 8.
+
+// The separator was not in the original abd does not match semantic-ui so removing.
+
+// The box shadow on control creates a bad double border on focus.  Need to reduce default min height to allow it to
+// compress after lowering indicator padding.
+
+const customStyles = {
+    dropdownIndicator: (provided) => ({
+        ...provided,
+        padding: "0px 8px"
+    }),
+    clearIndicator: (provided) => ({
+        ...provided,
+        padding: "0px 0px"
+    }),
+    indicatorSeparator: (provided) => ({
+        ...provided,
+        visibility: "hidden"
+    }),
+    control: (provided) => ({
+        ...provided,
+        boxShadow: "none",
+        minHeight: "34px"
+    }),
+    multiValue: (provided) => ({
+        ...provided,
+        color: "rgb(0, 126, 255)",
+        backgroundColor: "rgba(0, 126, 255, 0.0784314)",
+        border: " 1px solid rgba(0, 126, 255, 0.239216)",
+        borderRadius: "2px"
+    }),
+    multiValueLabel: (provided) => ({
+        ...provided,
+        color: "rgb(0, 126, 255)"
+    }),
+    multiValueRemove: (provided) => ({
+        ...provided,
+        borderLeft: " 1px solid rgba(0, 126, 255, 0.239216)",
+    })
+};
 
 export interface IDynamicSelectOption {
     id?: string | number;
@@ -29,8 +68,9 @@ export interface IDynamicSelectProps<T, S, U> {
     style?: CSSProperties,
     userData?: U;
 
-    filterOptions?(options: Option[], filterValue: string, currentValues: Option[]): Option[];
-    filterOption?(option: string, filter: string): boolean;
+    // filterOptions?(options: Option[], filterValue: string, currentValues: Option[]): Option[];
+    // filterOption?(option: string, filter: string): boolean;
+    filterOption?(option: object, filter: string): boolean;
     onSelect(option: S): void;
     onRequestAdd?(): void;
 }
@@ -40,6 +80,7 @@ export interface IDynamicSelectState<T> {
     selectedOption?: T;
     isOpen?: boolean;
 }
+
 // T Defines individual options (e.g., ISample)
 // S Defines selected options (e.g., ISample for single select, ISample[] for multi-select)
 // P Defines expected deliverable on select (Option for single select, Option[] for multi-select)
@@ -125,6 +166,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     protected addToSelection(option: any, selection: any): any {
     }
 
+    /*
     protected filterOptions?(options: Option[], filterValue: string, currentValues: Option[]): Option[] {
         if (this.props.filterOptions) {
             return this.props.filterOptions(options, filterValue, currentValues);
@@ -132,8 +174,9 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
 
         return options;
     }
+*/
 
-    protected filterOption?(option: string, filter: string): boolean {
+    protected filterOption?(option: object, filter: string): boolean {
         if (this.props.filterOption) {
             return this.props.filterOption(option, filter);
         }
@@ -152,7 +195,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
         }
     }
 
-    protected renderSelect(selected: Option, options: Option[], hasLeftInputGroup: boolean, hasRightInputGroup: boolean) {
+    protected renderSelect(selected: any, options: any[], hasLeftInputGroup: boolean, hasRightInputGroup: boolean) {
         let style = this.props.style || {};
 
         if (hasLeftInputGroup && hasRightInputGroup) {
@@ -170,24 +213,17 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
             placeholder: this.props.placeholder || "Select...",
             value: selected,
             options: options,
-            clearable: this.props.clearable,
-            searchable: this.props.searchable !== false,
-            disabled: this.props.disabled,
-            multi: this.props.multiSelect,
-            style: style,
-            filterOption: (option: string, filter: string) => this.filterOption(option, filter),
-            filterOptions: (options: Option[], filterValue: string, currentValues: Option[]) => this.filterOptions(options, filterValue, currentValues),
+            isClearable: this.props.clearable,
+            isSearchable: this.props.searchable !== false,
+            isDisabled: this.props.disabled,
+            isMulti: this.props.multiSelect,
+            styles: customStyles,
+            filterOption: (option: object, filter: string) => this.filterOption(option, filter),
             onChange: (option: P) => this.onSelectChange(option),
-            onInputKeyDown: (event: any) => this.onInputKeyDown(event),
-            onOpen: () => this.setState({isOpen: true}),
-            onClose: () => this.setState({isOpen: false})
+            onKeyDown: (event: any) => this.onInputKeyDown(event)
         };
 
-        return this.props.useVirtualized ? (
-            <VirtualizedSelect {...props}/>
-        ) : (
-            <ReactSelectClass {...props}/>
-        );
+        return <Select {...props}/>;
     }
 
     private renderAddButton() {
@@ -252,8 +288,8 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     }
 }
 
-export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends DynamicSelect<T, T, Option, U> {
-    protected findSelectedObject(option: Option): T {
+export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends DynamicSelect<T, T, any, U> {
+    protected findSelectedObject(option: any): T {
         return option ? this.props.options.filter(s => s.id === option.value)[0] : null;
     }
 
@@ -272,7 +308,7 @@ export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends Dyna
         return object.id === selectedOption.id;
     }
 
-    protected addToSelection(option: Option, selection: Option) {
+    protected addToSelection(option: any, selection: any) {
         return option;
     }
 }
@@ -280,8 +316,8 @@ export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends Dyna
 export class DynamicSimpleSelect<T extends IDynamicSelectOption> extends DynamicSingleSelect<T, any> {
 }
 
-export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends DynamicSelect<T, T[], Option[], U> {
-    protected findSelectedObject(option: Option[]): T[] {
+export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends DynamicSelect<T, T[], any[], U> {
+    protected findSelectedObject(option: any[]): T[] {
         return option.map(o => {
             return this.props.options.find(s => s.id === o.value);
         });
@@ -299,11 +335,13 @@ export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends Dynam
         return (selectedOption.length > 0) && !isNullOrUndefined(selectedOption.find(s => s.id === object.id));
     }
 
-    protected addToSelection(option: Option, selection: Option[]) {
+    protected addToSelection(option: any, selection: any[]) {
         if (selection) {
-            selection.push(option.value);
+            // selection.push(option.value);
+            selection.push(option);
         } else {
-            selection = [option.value]
+            // selection = [option.value]
+            selection = [option];
         }
         return selection;
     }

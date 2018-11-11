@@ -2,17 +2,16 @@ import * as React from "react";
 import {Navbar, Nav, Glyphicon, Popover, NavItem, NavDropdown, MenuItem, Modal, OverlayTrigger} from "react-bootstrap"
 
 import {PreferencesManager} from "../../util/preferencesManager";
-import {examples} from "../../examples";
+import {ExampleDefinition, examples} from "../../examples";
 import {TutorialDialog} from "./Tutorial";
 import {SYSTEM_MESSAGE_QUERY, SystemMessageQuery} from "../../graphql/systemMessage";
 
 const logoImagelg = require("file-loader!../../../assets/mouseLight_NB_color.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 
-
 interface IHeadingProps {
     onSettingsClick(): void;
-    onSetQuery(filterDatA: any): void;
+    onApplyExampleQuery(filterData: ExampleDefinition): void;
 }
 
 interface IHeadingState {
@@ -31,7 +30,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
     }
 
     private onSelectExampleQuery(eventKey: any) {
-        this.props.onSetQuery(eventKey);
+        this.props.onApplyExampleQuery(eventKey);
     }
 
     private onSelectHelpMenuItem(eventKey) {
@@ -81,7 +80,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                     }
 
                     return (
-                        <Navbar fluid style={{borderRadius: 0, marginBottom: 0}}>
+                        <Navbar inverse={true} fluid style={{borderRadius: 0, marginBottom: 0}}>
                             <Navbar.Header>
                                 <Navbar.Brand id="brand">
                                     <a href="https://www.janelia.org/project-team/mouselight/neuronbrowser">

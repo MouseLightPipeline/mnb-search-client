@@ -2,7 +2,6 @@ import * as React from "react";
 import {
     Tooltip,
     OverlayTrigger,
-    Glyphicon,
     ListGroup,
     ListGroupItem,
     ButtonToolbar,
@@ -20,6 +19,7 @@ import {IBrainArea} from "../../models/brainArea";
 import {HighlightSelectionMode} from "./TracingViewer";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
+import {Icon} from "semantic-ui-react";
 
 interface IActiveTracingItemProps {
     viewModel: NeuronViewModel;
@@ -121,7 +121,7 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, IAc
                     <div style={{flex: "0 0 auto", order: 3, paddingRight: "10px"}}>
                         {somaBrainAreaLabel}
                     </div>
-                    <Glyphicon glyph="remove" className="pull-right"
+                    <Icon name="remove" className="pull-right"
                                style={{flex: "0 0 auto", order: 4, marginBottom: "4px"}}
                                onClick={() => this.props.onRemoveFromHistory(n)}/>
                 </div>
@@ -318,9 +318,9 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             return null;
         }
 
-        const glyph = this.state.isActiveTracingsVisible ? "chevron-up" : "chevron-down";
+        const iconName = this.state.isActiveTracingsVisible ? "chevron up" : "chevron down";
 
-        const displayGlyph = this.props.displayHighlightedOnly ? "eye-close" : "eye-open";
+        const displayIcon = this.props.displayHighlightedOnly ? "eye slash" : "eye";
 
         const rows: any = this.props.activeNeurons.map(n => {
             return (<ActiveTracingItemList key={`an_${n.Id}`} viewModel={n}
@@ -338,10 +338,10 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
         if (this.props.highlightSelectionMode === HighlightSelectionMode.Normal) {
             leftCommands = (
                 <div style={{order: 1, flex: "0 0 auto"}}>
-                    <Glyphicon glyph={displayGlyph}
+                    <Icon name={displayIcon}
                                style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
                                onClick={() => this.props.onToggleLimitToHighlighted()}/>
-                    <Glyphicon glyph="transfer"
+                    <Icon name="exchange"
                                style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
                                onClick={() => this.props.onChangeHighlightMode()}/>
                 </div>
@@ -350,13 +350,13 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
         } else {
             leftCommands = (
                 <div style={{order: 1, flex: "0 0 auto"}}>
-                    <Glyphicon glyph="triangle-left"
+                    <Icon name="triangle left"
                                style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
                                onClick={() => this.props.onCycleHighlightNeuron(-1)}/>
-                    <Glyphicon glyph="triangle-right"
+                    <Icon name="triangle right"
                                style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
                                onClick={() => this.props.onCycleHighlightNeuron(1)}/>
-                    <Glyphicon glyph="remove"
+                    <Icon name="remove"
                                style={{margin: "auto", marginLeft: "8px", marginRight: "4px", paddingTop: "2px"}}
                                onClick={() => this.props.onChangeHighlightMode()}/>
                 </div>
@@ -383,7 +383,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                         Selected Tracings
                     </h5>
                     <div style={{order: 3, flex: "0 0 auto"}}>
-                        <Glyphicon glyph={glyph}
+                        <Icon name={iconName}
                                    style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
                                    onClick={() => this.setState({isActiveTracingsVisible: !this.state.isActiveTracingsVisible})}/>
                     </div>
@@ -403,7 +403,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             return;
         }
 
-        const glyph = this.state.isCenterPointCollapsed ? "chevron-down" : "chevron-up";
+        const iconName = this.state.isCenterPointCollapsed ? "chevron down" : "chevron up";
 
         return (
             <div style={{display: "flex", flexFlow: "column nowrap", minWidth: "300px"}}>
@@ -424,7 +424,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                         Center Point
                     </h5>
                     <div style={{order: 2, flex: "0 0 auto"}}>
-                        <Glyphicon glyph={glyph} style={{margin: "auto", marginRight: "4px", paddingTop: "2px"}}
+                        <Icon name={iconName} style={{margin: "auto", marginRight: "4px", paddingTop: "2px"}}
                                    onClick={() => this.setState({isCenterPointCollapsed: !this.state.isCenterPointCollapsed})}/>
                     </div>
                 </div>

@@ -1,9 +1,8 @@
 import {IQueryOperator} from "./queryOperator";
 import {IBrainArea} from "./brainArea";
 import {NeuronalStructure} from "./neuronalStructure";
-import {BrainAreaFilterType, BrainAreaFilterTypeOption, findBrainAreaFilterType} from "./brainAreaFilterType";
 import {NdbConstants} from "./constants";
-import {isNullOrUndefined} from "util";
+import {isNullOrUndefined} from "../util/nodeUtil";
 
 export enum FilterComposition {
     and = 1,
@@ -17,21 +16,6 @@ export interface IPositionInput {
     z: number;
 }
 
-export interface IFilterInput {
-    tracingIdsOrDOIs: string[];
-    tracingIdsOrDOIsExactMatch: boolean;
-    tracingStructureIds: string[];
-    nodeStructureIds: string[];
-    operatorId: string;
-    amount: number;
-    brainAreaIds: string[];
-    arbCenter: IPositionInput;
-    arbSize: number;
-    invert: boolean;
-    composition: number;
-    nonce: string;
-}
-
 export interface IPosition {
     x: string;
     y: string;
@@ -40,51 +24,7 @@ export interface IPosition {
     [key: string]: string;
 }
 
-export interface IQueryFilter {
-    tracingIdsOrDOIs: string;
-    tracingIdsOrDOIsExactMatch: boolean;
-    neuronalStructure: NeuronalStructure;
-    operator: IQueryOperator;
-    amount: string;
-    brainAreas: IBrainArea[];
-    arbCenter: IPosition;
-    arbSize: string;
-    invert: boolean;
-    composition: FilterComposition;
-    nonce: string;
-
-    IsAmountValid: boolean;
-}
-
-export class UIQueryFilter {
-    id: string;
-    index: number;
-    brainAreaFilterType: BrainAreaFilterType;
-    filter: FilterContents;
-
-    public serialize() {
-        return {
-            id: this.id,
-            index: this.index,
-            brainAreaFilterTypeOption: this.brainAreaFilterType.option,
-            filter: this.filter ? this.filter.serialize() : null
-        }
-    }
-
-    public static deserialize(data: any, constants: NdbConstants): UIQueryFilter {
-        const filter = new UIQueryFilter();
-
-        filter.id = data.id || "";
-        filter.index = data.index || 0;
-        filter.brainAreaFilterType = findBrainAreaFilterType(data.brainAreaFilterTypeOption || BrainAreaFilterTypeOption.Compartments);
-
-        filter.filter = data.filter ? FilterContents.deserialize(data.filter, constants) : null;
-
-        return filter;
-    }
-}
-
-export class FilterContents implements IQueryFilter {
+export class FilterContents {
     public tracingIdsOrDOIs: string;
     public tracingIdsOrDOIsExactMatch: boolean;
     public neuronalStructure: NeuronalStructure;

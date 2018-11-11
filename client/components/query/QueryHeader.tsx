@@ -2,6 +2,7 @@ import * as React from "react";
 import {Button, Glyphicon} from "react-bootstrap";
 
 import {headerButton, primaryBackground, spinnerStyle} from "../../util/styles";
+import {UIQueryPredicates} from "../../models/uiQueryPredicate";
 
 
 const styles = {
@@ -21,6 +22,7 @@ export enum QueryStatus {
 }
 
 export interface IQueryHeaderBaseProps {
+    predicates: UIQueryPredicates;
     isCollapsed: boolean;
     status: QueryStatus;
     neuronSystemCount: number;
@@ -29,18 +31,11 @@ export interface IQueryHeaderBaseProps {
     isPublicRelease: boolean;
 
     onToggleCollapsed(): void;
-    onAddPredicate(evt: Event): void;
-    onPerformQuery(evt: Event): void;
-    onClearQuery(): void;
+    onPerformQuery(): void;
+    onResetPage(): void;
 }
 
-interface IQueryHeaderProps extends IQueryHeaderBaseProps {
-}
-
-interface IQueryHeaderState {
-}
-
-export class QueryHeader extends React.Component<IQueryHeaderProps, IQueryHeaderState> {
+export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
     private renderToggleButton() {
         if (this.props.status === QueryStatus.Loading) {
             return null;
@@ -48,7 +43,7 @@ export class QueryHeader extends React.Component<IQueryHeaderProps, IQueryHeader
 
         return (
             <Button style={Object.assign({marginRight: "0px", marginLeft: "0px", marginTop: "1px"}, headerButton)} bsSize="sm"
-                    onClick={(evt: any) => this.props.onClearQuery()}>
+                    onClick={() => this.props.onResetPage()}>
                 <Glyphicon glyph="remove-circle" style={{paddingRight: "8px"}}/>
                 Reset
             </Button>
@@ -85,15 +80,19 @@ export class QueryHeader extends React.Component<IQueryHeaderProps, IQueryHeader
                 return null;
             }
 
-            const duration = (this.props.queryDuration / 1000);
+            if (this.props.queryDuration >= 0) {
+                const duration = (this.props.queryDuration / 1000);
 
-            let matched = `Matched ${this.props.neuronMatchCount} of ${this.props.neuronSystemCount} neurons`;
+                let matched = `Matched ${this.props.neuronMatchCount} of ${this.props.neuronSystemCount} neurons`;
 
-            if (!this.props.isPublicRelease) {
-                matched += ` in ${duration.toFixed(3)} ${duration === 1 ? "second" : "seconds"}`;
+                if (!this.props.isPublicRelease) {
+                    matched += ` in ${duration.toFixed(3)} ${duration === 1 ? "second" : "seconds"}`;
+                }
+
+                return (<span>{matched}</span>);
+            } else {
+                return null;
             }
-
-            return (<span>{matched}</span>)
         }
     }
 
@@ -102,13 +101,13 @@ export class QueryHeader extends React.Component<IQueryHeaderProps, IQueryHeader
             <div>
                 <Button style={Object.assign({marginRight: "20px"}, headerButton)} bsSize="sm"
                         disabled={this.props.status === QueryStatus.Loading}
-                        onClick={(evt: any) => this.props.onAddPredicate(evt)}>
+                        onClick={() => this.props.predicates.addPredicate()}>
                     <Glyphicon glyph="plus" style={{paddingRight: "8px"}}/>
                     Add Filter
                 </Button>
                 <Button bsSize="sm" style={Object.assign({marginRight: "10px"}, headerButton)}
                         disabled={this.props.status === QueryStatus.Loading}
-                        onClick={(evt: any) => this.props.onPerformQuery(evt)}>
+                        onClick={() => this.props.onPerformQuery()}>
                     <Glyphicon glyph="search" style={{paddingRight: "8px"}}/>Search
                 </Button>
             </div>

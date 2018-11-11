@@ -1,9 +1,9 @@
 import * as React from "react";
-import {Glyphicon} from "react-bootstrap";
 
 import {ITracingViewerProps, TracingViewer} from "./TracingViewer";
 import {FetchState} from "./MainView";
 import {primaryBackground} from "../../util/styles";
+import {Icon} from "semantic-ui-react";
 
 interface IViewerProps extends ITracingViewerProps {
     isQueryCollapsed: boolean;
@@ -43,11 +43,11 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
     private renderFloatNeuronListGlyph() {
         if (!this.props.isNeuronListDocked && !this.props.isNeuronListOpen) {
             return (
-                <div style={{display: "flex", alignItems: "center", marginTop: "3px"}}
+                <div style={{display: "flex", alignItems: "center", height: "100%"}}
                      onClick={() => this.props.onFloatNeuronList()}>
-                    <h5 style={{color: "white", fontWeight: "lighter", marginLeft: "10px", marginRight: "6px"}}>
+                    <h5 style={{color: "white", fontWeight: "lighter", margin: "0 6px 0 10px"}}>
                         Neurons</h5>
-                    <Glyphicon glyph="chevron-right" style={{height: "100%", top: -1, order: 2}}
+                    <Icon name="chevron right" style={{top: -1, order: 2}}
                     />
                 </div>);
         } else {
@@ -58,14 +58,13 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
     private renderFloatCompartmentListGlyph() {
         if (!this.props.isCompartmentListDocked && !this.props.isCompartmentListOpen) {
             return (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "3px"}}
+                <div style={{display: "flex", alignItems: "center", height: "100%"}}
                      onClick={() => this.props.onFloatCompartmentList()}>
-                    <Glyphicon glyph="chevron-left" style={{height: "100%", order: 1, top: -1}}/>
+                    <Icon name="chevron left" style={{order: 1, top: -1}}/>
                     <h5 style={{
                         color: "white",
                         fontWeight: "lighter",
-                        marginLeft: "6px",
-                        marginRight: "10px",
+                        margin: "0 6px 0 10px",
                         order: 2
                     }}>
                         Compartments</h5>
@@ -76,7 +75,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
     }
 
     private renderCollapseQueryGlyph() {
-        return (<Glyphicon glyph={this.props.isQueryCollapsed ? "chevron-down" : "chevron-up"}
+        return (<Icon name={this.props.isQueryCollapsed ? "chevron down" : "chevron up"}
                            style={{margin: "auto", order: 3}}
                            onClick={() => this.props.onToggleQueryCollapsed()}/>)
     }
@@ -93,7 +92,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
         const isPaused = this.props.fetchState === FetchState.Paused;
 
         if (this.props.fetchCount > 0) {
-            const glyph = isPaused ? "play" : "pause";
+            const iconName = isPaused ? "play" : "pause";
 
             return (
                 <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
@@ -116,7 +115,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             border: "1px solid #ccc",
                             padding: "0px 10px"
                         }}>
-                            <Glyphicon glyph={glyph}
+                            <Icon name={iconName}
                                        style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
                                        onClick={() => this.props.onSetFetchState(isPaused ? FetchState.Running : FetchState.Paused)}/>
                         </div>
@@ -127,7 +126,7 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                             border: "1px solid #ccc", marginLeft: "10px",
                             padding: "0px 10px"
                         }}>
-                            <Glyphicon glyph="remove"
+                            <Icon name="remove"
                                        style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
                                        onClick={() => this.props.onCancelFetch()}/>
                         </div>

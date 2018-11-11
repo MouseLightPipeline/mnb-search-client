@@ -1,4 +1,4 @@
-import {UIQueryFilter} from "../models/queryFilter";
+import {UIQueryPredicate} from "../models/uiQueryPredicate";
 
 export interface INotificationListener {
     preferenceChanged(name: string, value: any);
@@ -150,7 +150,7 @@ export class PreferencesManager {
         }
     }
 
-    public AppendQueryHistory(filters: UIQueryFilter[]) {
+    public AppendQueryHistory(filters: UIQueryPredicate[]) {
         if (typeof(Storage) !== undefined) {
             const obj = {
                 timestamp: new Date(),
@@ -161,7 +161,7 @@ export class PreferencesManager {
         }
     }
 
-    public get LastQuery() {
+    public get LastQuery(): UIQueryPredicate[] {
         if (typeof(Storage) !== undefined) {
             const str = localStorage.getItem(prefix + "queryHistory");
 

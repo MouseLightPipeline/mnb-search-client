@@ -22,6 +22,7 @@ export class NdbConstants {
     private _release = "";
     private _apiVersion = "";
     private _clientVersion = "";
+    private _neuronCount = -1;
 
     private _isLoaded: boolean;
 
@@ -38,6 +39,7 @@ export class NdbConstants {
 
         this._apiVersion = data.systemSettings.version;
         this._release = data.systemSettings.release;
+        this._neuronCount = data.systemSettings.neuronCount;
 
         this.loadQueryOperators(data.queryOperators);
         this.loadBrainAreas(data.brainAreas);
@@ -65,6 +67,10 @@ export class NdbConstants {
 
     public get IsPublicRelease(): boolean {
         return this._release === "public";
+    }
+
+    public get NeuronCount(): number {
+        return this._neuronCount;
     }
 
     public get QueryOperators(): IQueryOperator[] {

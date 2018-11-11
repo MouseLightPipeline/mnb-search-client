@@ -1,4 +1,14 @@
-export const examples = [
+export type ExampleDefinition = {
+    name: string;
+    filters: any[];
+    brainAreas: number[];
+    viewOrientation: {
+        r1: number;
+        r2: number;
+    }
+    colors: string[];
+}
+export const examples: ExampleDefinition[] = [
     {
         name: "Striatum ventral region",
         filters: [
@@ -59,7 +69,7 @@ export const examples = [
             }
         ],
         brainAreas: [],
-        viewOrientation: null,
+        viewOrientation: {r1: 0, r2: 0},
         colors: ["#0000ff"]
     },
     {
@@ -82,7 +92,7 @@ export const examples = [
             }
         ],
         brainAreas: [],
-        viewOrientation: null,
+        viewOrientation: {r1: 0, r2: 0},
         colors: ["#0000ff", "#ff0000"]
     },
     {
@@ -105,7 +115,7 @@ export const examples = [
             }
         ],
         brainAreas: [741],
-        viewOrientation: {r1: Math.PI/4, r2: Math.PI/5},
+        viewOrientation: {r1: Math.PI / 4, r2: Math.PI / 5},
         colors: ["#0000ff", "#ff0000", "#00ff00"]
     },
     {
@@ -128,7 +138,7 @@ export const examples = [
             }
         ],
         brainAreas: [],
-        viewOrientation: null,
+        viewOrientation: {r1: 0, r2: 0},
         colors: ["#0000ff", "#ff0000", "#00ff00", "#00ffff"]
     }
 ];
