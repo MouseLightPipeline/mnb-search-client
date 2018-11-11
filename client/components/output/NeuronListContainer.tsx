@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Glyphicon, Dropdown, MenuItem} from "react-bootstrap";
+import {Dropdown, MenuItem} from "react-bootstrap";
 
 import {INeuronTableProps, NeuronTable} from "./NeuronTable";
 import {DrawerState} from "./MainView";
@@ -27,11 +27,11 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
     }
 
     private renderCloseGlyph() {
-        const transform = this.props.isDocked ? "rotate(-45deg)" : "";
+        const transform = this.props.isDocked ? "" : "rotate(-45deg)";
         const state = this.props.isDocked ? DrawerState.Float : DrawerState.Dock;
 
         return (
-            <Glyphicon glyph="pushpin" style={{margin: "auto", order: 3, marginRight: "10px", transform: transform}}
+            <Icon name="pin" style={{margin: "auto", order: 3, marginRight: "10px", transform: transform}}
                        onClick={() => this.props.onClickCloseOrPin(state)}/>
         );
     }
@@ -54,7 +54,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
             <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}}
                       disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
                 <Dropdown.Toggle style={{backgroundColor: "transparent", border: "none", color: "white"}}>
-                    <Glyphicon glyph="save"/>
+                    <Icon name="save"/>
                 </Dropdown.Toggle>
                 <Dropdown.Menu style={{fontSize: "11px", fontWeight: "normal"}}>
                     {menus}

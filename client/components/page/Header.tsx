@@ -1,10 +1,11 @@
 import * as React from "react";
-import {Navbar, Nav, Glyphicon, Popover, NavItem, NavDropdown, MenuItem, Modal, OverlayTrigger} from "react-bootstrap"
+import {Navbar, Nav, Popover, NavItem, NavDropdown, MenuItem, Modal, OverlayTrigger} from "react-bootstrap"
 
 import {PreferencesManager} from "../../util/preferencesManager";
 import {ExampleDefinition, examples} from "../../examples";
 import {TutorialDialog} from "./Tutorial";
 import {SYSTEM_MESSAGE_QUERY, SystemMessageQuery} from "../../graphql/systemMessage";
+import {Icon} from "semantic-ui-react";
 
 const logoImagelg = require("file-loader!../../../assets/mouseLight_NB_color.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
@@ -149,7 +150,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                                     </NavDropdown>
                                     {PreferencesManager.HavePreferences ?
                                         <NavItem onSelect={() => this.props.onSettingsClick()}>
-                                            <Glyphicon glyph="cog"/>
+                                            <Icon name="cog"/>
                                         </NavItem> : null}
                                 </Nav>
                             </Navbar.Collapse>

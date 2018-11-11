@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Grid, Row, Col, FormControl, ControlLabel, FormGroup, HelpBlock, Glyphicon, Checkbox} from "react-bootstrap";
+import {Grid, Row, Col, FormControl, ControlLabel, FormGroup, HelpBlock, Checkbox} from "react-bootstrap";
 
 import {IBrainArea} from "../../models/brainArea";
 
@@ -18,6 +18,7 @@ import {
 import {CompositionSelect} from "../editors/CompositionSelect";
 import {UIQueryPredicate} from "../../models/uiQueryPredicate";
 import {isNullOrUndefined} from "../../util/nodeUtil";
+import {Icon} from "semantic-ui-react";
 
 interface IQueryFilterProps {
     constants: NdbConstants;
@@ -151,7 +152,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
     private renderRemoveElement() {
         if (this.props.isRemovable) {
             return (
-                <Glyphicon glyph="remove" onClick={() => this.props.onRemoveFilter(this.props.queryFilter.id)}/>
+                <Icon name="remove" onClick={() => this.props.onRemoveFilter(this.props.queryFilter.id)}/>
             )
         } else {
             return null;

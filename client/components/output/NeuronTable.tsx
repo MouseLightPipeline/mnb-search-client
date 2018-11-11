@@ -1,5 +1,6 @@
 import * as React from "react";
-import {Table, Checkbox, Glyphicon} from "react-bootstrap";
+import {Icon} from "semantic-ui-react";
+import {Table, Checkbox} from "react-bootstrap";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
@@ -204,7 +205,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                         </Checkbox>
                     </th>
                     <th>
-                        <Glyphicon glyph="edit" style={{marginRight: "6px"}}
+                        <Icon name="edit" style={{marginRight: "6px"}}
                                    onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}/>
                         <a onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}
                            style={{textDecoration: "underline"}}>

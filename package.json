@@ -30,6 +30,7 @@
     "@types/rc-slider": "^8.6.0",
     "@types/react": "^16.4.18",
     "@types/react-bootstrap": "0.0.49",
+    "@types/react-color": "^2.13.6",
     "@types/react-dom": "^16.0.9",
     "@types/react-select": "^2.0.6",
     "@types/three": "^0.84.22",

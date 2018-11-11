@@ -1,8 +1,9 @@
 import * as React from "react";
-import {FormGroup, InputGroup, Glyphicon, Button} from "react-bootstrap";
+import {FormGroup, InputGroup, Button} from "react-bootstrap";
 import {isNullOrUndefined} from "util";
 import {CSSProperties} from "react";
 import Select from "react-select";
+import {Icon} from "semantic-ui-react";
 
 // Indicators cause the vertical height to be 38 with default font settings and the default
 // vertical padding of 8.
@@ -233,7 +234,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
         return (
             <InputGroup.Button>
                 <Button bsStyle="info" onClick={() => this.props.onRequestAdd()} style={{borderRadius: 0}}>
-                    <Glyphicon glyph="plus"/>
+                    <Icon name="plus"/>
                 </Button>
             </InputGroup.Button>
         );
@@ -266,14 +267,14 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
                         <InputGroup bsSize="sm">
                             <InputGroup.Button>
                                 <Button onClick={() => this.onCancelEdit()}>
-                                    <Glyphicon glyph="remove"/>
+                                    <Icon name="remove"/>
                                 </Button>
                             </InputGroup.Button>
                             {this.renderSelect(selection, options, true, true)}
                             {this.renderAddButton()}
                             <InputGroup.Button>
                                 <Button bsStyle="success" onClick={() => this.onAcceptEdit()}>
-                                    <Glyphicon glyph="ok"/>
+                                    <Icon name="check"/>
                                 </Button>
                             </InputGroup.Button>
                         </InputGroup>

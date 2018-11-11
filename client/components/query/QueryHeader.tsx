@@ -1,8 +1,9 @@
 import * as React from "react";
-import {Button, Glyphicon} from "react-bootstrap";
+import {Button} from "react-bootstrap";
 
 import {headerButton, primaryBackground, spinnerStyle} from "../../util/styles";
 import {UIQueryPredicates} from "../../models/uiQueryPredicate";
+import {Icon} from "semantic-ui-react";
 
 
 const styles = {
@@ -44,7 +45,7 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
         return (
             <Button style={Object.assign({marginRight: "0px", marginLeft: "0px", marginTop: "1px"}, headerButton)} bsSize="sm"
                     onClick={() => this.props.onResetPage()}>
-                <Glyphicon glyph="remove-circle" style={{paddingRight: "8px"}}/>
+                <Icon name="remove circle" style={{paddingRight: "8px"}}/>
                 Reset
             </Button>
         )
@@ -55,7 +56,7 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
             if (this.props.isCollapsed) {
                 return (
                     <div>
-                        <Glyphicon glyph="fullscreen" style={styles.toggle}
+                        <Icon name="expand arrows alternate" style={styles.toggle}
                                    onClick={() => this.props.onToggleCollapsed()}/>
                         <span style={{paddingLeft: "6px"}}>Expand to perform a query</span>
                     </div>
@@ -102,13 +103,13 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
                 <Button style={Object.assign({marginRight: "20px"}, headerButton)} bsSize="sm"
                         disabled={this.props.status === QueryStatus.Loading}
                         onClick={() => this.props.predicates.addPredicate()}>
-                    <Glyphicon glyph="plus" style={{paddingRight: "8px"}}/>
+                    <Icon name="plus" style={{paddingRight: "8px"}}/>
                     Add Filter
                 </Button>
                 <Button bsSize="sm" style={Object.assign({marginRight: "10px"}, headerButton)}
                         disabled={this.props.status === QueryStatus.Loading}
                         onClick={() => this.props.onPerformQuery()}>
-                    <Glyphicon glyph="search" style={{paddingRight: "8px"}}/>Search
+                    <Icon name="search" style={{paddingRight: "8px"}}/>Search
                 </Button>
             </div>
         );
