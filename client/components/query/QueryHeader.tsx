@@ -1,9 +1,8 @@
 import * as React from "react";
-import {Button} from "react-bootstrap";
+import {Button, Icon} from "semantic-ui-react";
 
-import {headerButton, primaryBackground, spinnerStyle} from "../../util/styles";
+import {primaryBackground, spinnerStyle} from "../../util/styles";
 import {UIQueryPredicates} from "../../models/uiQueryPredicate";
-import {Icon} from "semantic-ui-react";
 
 
 const styles = {
@@ -43,11 +42,7 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
         }
 
         return (
-            <Button style={Object.assign({marginRight: "0px", marginLeft: "0px", marginTop: "1px"}, headerButton)} bsSize="sm"
-                    onClick={() => this.props.onResetPage()}>
-                <Icon name="remove circle" style={{paddingRight: "8px"}}/>
-                Reset
-            </Button>
+            <Button size="mini" inverted icon="remove circle" content="Reset" onClick={() => this.props.onResetPage()}/>
         )
     }
 
@@ -57,7 +52,7 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
                 return (
                     <div>
                         <Icon name="expand arrows alternate" style={styles.toggle}
-                                   onClick={() => this.props.onToggleCollapsed()}/>
+                              onClick={() => this.props.onToggleCollapsed()}/>
                         <span style={{paddingLeft: "6px"}}>Expand to perform a query</span>
                     </div>
 
@@ -100,17 +95,12 @@ export class QueryHeader extends React.Component<IQueryHeaderBaseProps, {}> {
     private renderButtons() {
         return (
             <div>
-                <Button style={Object.assign({marginRight: "20px"}, headerButton)} bsSize="sm"
+                <Button size="mini" inverted icon="plus" content="Add Filter"
                         disabled={this.props.status === QueryStatus.Loading}
-                        onClick={() => this.props.predicates.addPredicate()}>
-                    <Icon name="plus" style={{paddingRight: "8px"}}/>
-                    Add Filter
-                </Button>
-                <Button bsSize="sm" style={Object.assign({marginRight: "10px"}, headerButton)}
+                        onClick={() => this.props.predicates.addPredicate()}/>
+                <Button size="mini" inverted icon="search" content="Search"
                         disabled={this.props.status === QueryStatus.Loading}
-                        onClick={() => this.props.onPerformQuery()}>
-                    <Icon name="search" style={{paddingRight: "8px"}}/>Search
-                </Button>
+                        onClick={() => this.props.onPerformQuery()}/>
             </div>
         );
     }

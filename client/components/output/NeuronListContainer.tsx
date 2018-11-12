@@ -54,7 +54,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
             <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}}
                       disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
                 <Dropdown.Toggle style={{backgroundColor: "transparent", border: "none", color: "white"}}>
-                    <Icon name="save"/>
+                    <Icon name="download"/>
                 </Dropdown.Toggle>
                 <Dropdown.Menu style={{fontSize: "11px", fontWeight: "normal"}}>
                     {menus}

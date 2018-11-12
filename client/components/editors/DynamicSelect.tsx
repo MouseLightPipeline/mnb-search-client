@@ -1,9 +1,8 @@
 import * as React from "react";
-import {FormGroup, InputGroup, Button} from "react-bootstrap";
-import {isNullOrUndefined} from "util";
 import {CSSProperties} from "react";
 import Select from "react-select";
-import {Icon} from "semantic-ui-react";
+
+import {isNullOrUndefined} from "../../util/nodeUtil";
 
 // Indicators cause the vertical height to be 38 with default font settings and the default
 // vertical padding of 8.
@@ -40,7 +39,8 @@ const customStyles = {
     }),
     multiValueLabel: (provided) => ({
         ...provided,
-        color: "rgb(0, 126, 255)"
+        color: "rgb(0, 126, 255)",
+        padding: 0
     }),
     multiValueRemove: (provided) => ({
         ...provided,
@@ -77,9 +77,7 @@ export interface IDynamicSelectProps<T, S, U> {
 }
 
 export interface IDynamicSelectState<T> {
-    isInEditMode?: boolean;
     selectedOption?: T;
-    isOpen?: boolean;
 }
 
 // T Defines individual options (e.g., ISample)
@@ -91,7 +89,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     public constructor(props: IDynamicSelectProps<T, S, U>) {
         super(props);
 
-        this.state = {isInEditMode: false, selectedOption: props.selectedOption, isOpen: false};
+        this.state = {selectedOption: props.selectedOption};
     }
 
     protected findSelectedObject(option: P): S {
@@ -101,51 +99,13 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     private onSelectChange(option: P) {
         const selectedObject: S = this.findSelectedObject(option);
 
-        if (this.isExclusiveEditMode || !this.isDeferredEditMode) {
-            if (this.props.onSelect) {
-                this.props.onSelect(selectedObject);
-            }
-        } else {
-            this.setState({selectedOption: selectedObject});
-        }
-    }
-
-    private onAcceptEdit() {
-        this.setState({isInEditMode: false});
-
         if (this.props.onSelect) {
-            this.props.onSelect(this.state.selectedOption);
+            this.props.onSelect(selectedObject);
         }
-    }
-
-    private onCancelEdit() {
-        this.setState({isInEditMode: false, selectedOption: this.props.selectedOption});
-    }
-
-    private onRequestEditMode() {
-        this.setState({isInEditMode: true});
-    }
-
-    private get isExclusiveEditMode() {
-        return (isNullOrUndefined(this.props.isExclusiveEditMode) || this.props.isExclusiveEditMode);
-    }
-
-    public get isInEditMode() {
-        return this.isExclusiveEditMode || this.state.isInEditMode;
-    }
-
-    public set isInEditMode(b: boolean) {
-        this.setState({isInEditMode: b});
-    }
-
-    private get isDeferredEditMode() {
-        return !isNullOrUndefined(this.props.isDeferredEditMode) && this.props.isDeferredEditMode;
     }
 
     public componentWillReceiveProps(props: IDynamicSelectProps<T, S, U>) {
-        // if (this.isExclusiveEditMode || !this.isInEditMode) {
         this.setState({selectedOption: props.selectedOption});
-        // }
     }
 
     protected selectValueForOption(option: T): any {
@@ -153,10 +113,6 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     }
 
     protected selectLabelForOption(option: T): any {
-        return option.toString();
-    }
-
-    protected staticDisplayForOption(option: S): any {
         return option.toString();
     }
 
@@ -185,17 +141,6 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
         return true;
     }
 
-    protected onInputKeyDown(event: any) {
-        switch (event.keyCode) {
-            case 13: // ENTER
-                if (!this.state.isOpen && this.state.isInEditMode && this.props.isDeferredEditMode) {
-                    this.onAcceptEdit();
-                    event.preventDefault();
-                }
-                break;
-        }
-    }
-
     protected renderSelect(selected: any, options: any[], hasLeftInputGroup: boolean, hasRightInputGroup: boolean) {
         let style = this.props.style || {};
 
@@ -220,32 +165,13 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
             isMulti: this.props.multiSelect,
             styles: customStyles,
             filterOption: (option: object, filter: string) => this.filterOption(option, filter),
-            onChange: (option: P) => this.onSelectChange(option),
-            onKeyDown: (event: any) => this.onInputKeyDown(event)
+            onChange: (option: P) => this.onSelectChange(option)
         };
 
         return <Select {...props}/>;
     }
 
-    private renderAddButton() {
-        if (!this.props.onRequestAdd) {
-            return null;
-        }
-        return (
-            <InputGroup.Button>
-                <Button bsStyle="info" onClick={() => this.props.onRequestAdd()} style={{borderRadius: 0}}>
-                    <Icon name="plus"/>
-                </Button>
-            </InputGroup.Button>
-        );
-    }
-
     public render() {
-        const style = {
-            margin: "0px",
-            display: "inline"
-        };
-
         let selection: any = null;
 
         const options = this.props.options.map(o => {
@@ -258,34 +184,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
             return option;
         });
 
-        if (this.isInEditMode) {
-            if (!this.isDeferredEditMode) {
-                return this.renderSelect(selection, options, this.props.hasLeftInputGroup, this.props.hasRightInputGroup);
-            } else {
-                return (
-                    <FormGroup style={style}>
-                        <InputGroup bsSize="sm">
-                            <InputGroup.Button>
-                                <Button onClick={() => this.onCancelEdit()}>
-                                    <Icon name="remove"/>
-                                </Button>
-                            </InputGroup.Button>
-                            {this.renderSelect(selection, options, true, true)}
-                            {this.renderAddButton()}
-                            <InputGroup.Button>
-                                <Button bsStyle="success" onClick={() => this.onAcceptEdit()}>
-                                    <Icon name="check"/>
-                                </Button>
-                            </InputGroup.Button>
-                        </InputGroup>
-                    </FormGroup>
-                );
-            }
-        } else {
-            return (
-                <a onClick={() => this.onRequestEditMode()}>{this.staticDisplayForOption(this.props.selectedOption)}</a>
-            );
-        }
+        return this.renderSelect(selection, options, this.props.hasLeftInputGroup, this.props.hasRightInputGroup);
     }
 }
 
@@ -296,13 +195,6 @@ export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends Dyna
 
     protected selectValueForOption(option: T): string | number {
         return option.id;
-    }
-
-    protected staticDisplayForOption(option: T): any {
-        if (isNullOrUndefined(option) && isNullOrUndefined(this.props.userData)) {
-            return (<span style={{color: "#AAA"}}>{this.props.placeholder}</span>)
-        }
-        return this.selectLabelForOption(option);
     }
 
     protected isSelectedOption(object: T, selectedOption: T) {
@@ -328,20 +220,14 @@ export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends Dynam
         return option.id;
     }
 
-    protected staticDisplayForOption(option: T[]): any {
-        return this.selectLabelForOption(option[0]);
-    }
-
     protected isSelectedOption(object: T, selectedOption: T[]) {
         return (selectedOption.length > 0) && !isNullOrUndefined(selectedOption.find(s => s.id === object.id));
     }
 
     protected addToSelection(option: any, selection: any[]) {
         if (selection) {
-            // selection.push(option.value);
             selection.push(option);
         } else {
-            // selection = [option.value]
             selection = [option];
         }
         return selection;

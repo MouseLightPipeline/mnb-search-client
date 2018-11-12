@@ -20,10 +20,10 @@ const BrainCompartmentViewHistoryList = (props: IBrainVolumesTableRowProps) => {
                     <Icon name="remove" color="red" onClick={() => props.onRemoveFromHistory(v)}/>
                 }
             </List.Content>
-            <List.Icon name={v.isDisplayed ? "check square outline" : "square outline"} color="blue"
+            <List.Icon name={v.isDisplayed ? "check square outline" : "square outline"}
                        onClick={() => props.onToggleCompartmentSelected(v.compartment.id)}/>
             <List.Content onClick={() => props.onToggleCompartmentSelected(v.compartment.id)}>
-                <span style={{color: "rgb(115, 135, 156)"}}>{v.compartment.name}</span>
+                {v.compartment.name}
             </List.Content>
         </List.Item>
     )

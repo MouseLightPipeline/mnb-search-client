@@ -244,7 +244,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                         <FormGroup validationState={this.props.queryFilter.filter.IsAmountValid ? null : "error"}
                                    style={{marginBottom: "0px"}}>
                             <ControlLabel>&nbsp;</ControlLabel>
-                            <FormControl type="text" placeholder="" bsSize="small"
+                            <FormControl type="text" placeholder=""
                                          onChange={(evt: any) => this.onAmountChange(evt)}
                                          value={this.props.queryFilter.filter.amount}/>
                         </FormGroup>
@@ -338,7 +338,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                         <FormGroup validationState={filter.IsAmountValid ? null : "error"}
                                    style={{marginBottom: "0px"}}>
                             <ControlLabel>&nbsp;</ControlLabel>
-                            <FormControl type="text" placeholder="" bsSize="small"
+                            <FormControl type="text" placeholder=""
                                          disabled={!filter.CanHaveThreshold}
                                          onChange={(evt: any) => this.onAmountChange(evt)}
                                          value={this.props.queryFilter.filter.amount}/>
