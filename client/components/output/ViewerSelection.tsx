@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-    Tooltip,
-    OverlayTrigger,
-    ListGroup,
-    ListGroupItem,
-    ButtonToolbar,
-    MenuItem,
-    DropdownButton
-} from "react-bootstrap";
+import {Dropdown, Icon, List, MenuItem, Popup} from "semantic-ui-react";
 
 import {ITracingNode} from "../../models/tracingNode";
 import {StructureIdentifier} from "../../models/structureIdentifier";
@@ -19,7 +11,6 @@ import {IBrainArea} from "../../models/brainArea";
 import {HighlightSelectionMode} from "./TracingViewer";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
-import {Icon} from "semantic-ui-react";
 
 interface IActiveTracingItemProps {
     viewModel: NeuronViewModel;
@@ -33,12 +24,9 @@ interface IActiveTracingItemProps {
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
-interface IActiveTracingItemState {
-}
-
-class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, IActiveTracingItemState> {
-    private onViewModeChange(eventKey) {
-       this.props.onChangeNeuronViewMode(this.props.viewModel, eventKey);
+class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, {}> {
+    private onViewModeChange(viewMode: NeuronViewMode) {
+        this.props.onChangeNeuronViewMode(this.props.viewModel, viewMode);
     }
 
     public render() {
@@ -59,18 +47,13 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, IAc
                 somaDisplayBrainArea = this.props.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
             }
 
-            const somaBrainAreaTooltip = (
-                <Tooltip id="somaBrainAreaTooltip" style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Tooltip>
-            );
+            const somaBrainAreaTrigger = <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
+                {` ${somaBrainArea.acronym}`}
+            </a>;
 
             somaBrainAreaLabel = (
-                <span>
-                    <OverlayTrigger placement="right" overlay={somaBrainAreaTooltip}>
-                        <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
-                                {` ${somaBrainArea.acronym}`}
-                        </a>
-                    </OverlayTrigger>
-                </span>)
+                <Popup trigger={somaBrainAreaTrigger} style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
+            );
         }
 
         let structureLabel = " - (soma only)";
@@ -78,12 +61,6 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, IAc
         // If not highlighted is the proxy tracing for showing just the soma.
         if (viewMode !== TracingStructure.soma) {
             structureLabel = "";
-        }
-
-        let listStyle = {padding: "4px", borderRadius: 0};
-
-        if (this.props.isSelected) {
-            listStyle = Object.assign(listStyle, {backgroundColor: "#eee"});
         }
 
         const options = NEURON_VIEW_MODES.slice();
@@ -101,31 +78,32 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, IAc
         }
 
         const menus = options.map(o => {
-            return (<MenuItem key={o.id} eventKey={o}>{o.id}</MenuItem>);
+            return (<MenuItem key={o.id} onClick={() => this.onViewModeChange(o)}>{o.id}</MenuItem>);
+            // return (<MenuItem key={o.id} eventKey={o}>{o.id}</MenuItem>);
         });
 
         return (
-            <ListGroupItem style={listStyle}>
+            <List.Item active={this.props.isSelected}>
                 <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                     <div style={{flex: "1 1 auto", order: 1}} onClick={() => this.props.onSetHighlightedNeuron(n)}>
                         {`${n.neuron.idString}${structureLabel} `}
                     </div>
-                    { n.RequestedViewMode === null ?
-                    <ButtonToolbar style={{flex: "0 0 auto", order: 2, width: "80px", textAlign: "left"}}>
-                        <DropdownButton bsSize="xsmall" title={n.CurrentViewMode.id} id="dropdown-size-extra-small"
-                                        style={{backgroundColor: "transparent", border: "none"}}
-                                        onSelect={(eventKey) => this.onViewModeChange(eventKey)}>
-                            {menus}
-                        </DropdownButton>
-                    </ButtonToolbar> : <div style={{flex: "0 0 auto", order: 2, width: "80px"}}>Loading...</div>}
+
+                    {n.RequestedViewMode === null ? <Dropdown options={menus} trigger={n.CurrentViewMode.id} style={{
+                            flex: "0 0 auto",
+                            order: 2,
+                            width: "80px",
+                            textAlign: "left"
+                        }}/>
+                        : <div style={{flex: "0 0 auto", order: 2, width: "80px"}}>Loading...</div>}
                     <div style={{flex: "0 0 auto", order: 3, paddingRight: "10px"}}>
                         {somaBrainAreaLabel}
                     </div>
                     <Icon name="remove" className="pull-right"
-                               style={{flex: "0 0 auto", order: 4, marginBottom: "4px"}}
-                               onClick={() => this.props.onRemoveFromHistory(n)}/>
+                          style={{flex: "0 0 auto", order: 4, marginBottom: "4px"}}
+                          onClick={() => this.props.onRemoveFromHistory(n)}/>
                 </div>
-            </ListGroupItem>
+            </List.Item>
         )
     }
 }
@@ -220,10 +198,6 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
 
         const label = structure.value === StructureIdentifier.soma ? "Soma brain area:" : "Node brain area:";
 
-        const tooltip = (
-            <Tooltip id="tooltip" style={{maxHeight: "30px"}}>{brainArea.name}</Tooltip>
-        );
-
         let somaBrainAreaLabel = null;
 
         if (structure.value !== StructureIdentifier.soma && this.props.selectedTracing && this.props.selectedTracing.soma) {
@@ -235,8 +209,14 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                 somaDisplayBrainArea = this.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
             }
 
-            const somaBrainAreaTooltip = (
-                <Tooltip id="somaBrainAreaTooltip" style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Tooltip>
+            const somaBrainAreaTrigger = (
+                <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
+                    {` ${somaBrainArea.acronym}`}
+                </a>
+            );
+
+            const somaBrainAreaPopup = (
+                <Popup trigger={somaBrainAreaTrigger} style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
             );
 
             somaBrainAreaLabel = (
@@ -244,13 +224,20 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                     <strong>
                         Soma brain area:
                     </strong>
-                    <OverlayTrigger placement="right" overlay={somaBrainAreaTooltip}>
-                        <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
-                                {` ${somaBrainArea.acronym}`}
-                        </a>
-                    </OverlayTrigger>
-                </span>)
+                    {somaBrainAreaPopup}
+                </span>
+            );
         }
+
+        const nodeBrainAreaTrigger = (
+            <a onClick={() => this.props.onToggleLoadedGeometry(displayBrainArea.id)}>
+                {`${brainArea.acronym}`}
+            </a>
+        );
+
+        const nodeBrainAreaPopup = (
+            <Popup trigger={nodeBrainAreaTrigger} style={{maxHeight: "30px"}}>{brainArea.name}</Popup>
+        );
 
         return (
             <div style={{display: "flex", flexFlow: "column nowrap"}}>
@@ -259,11 +246,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                         <strong>Neuron:</strong>{` ${this.props.selectedTracing.neuron.neuron.idString}`}
                         <br/>
                         <strong>{`${label} `}</strong>
-                        <OverlayTrigger placement="right" overlay={tooltip}>
-                            <a onClick={() => this.props.onToggleLoadedGeometry(displayBrainArea.id)}>
-                                {`${brainArea.acronym}`}
-                            </a>
-                        </OverlayTrigger>
+                        {nodeBrainAreaPopup}
                         <br/>
                         {somaBrainAreaLabel}
                     </div>
@@ -339,11 +322,11 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             leftCommands = (
                 <div style={{order: 1, flex: "0 0 auto"}}>
                     <Icon name={displayIcon}
-                               style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
-                               onClick={() => this.props.onToggleLimitToHighlighted()}/>
+                          style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
+                          onClick={() => this.props.onToggleLimitToHighlighted()}/>
                     <Icon name="exchange"
-                               style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
-                               onClick={() => this.props.onChangeHighlightMode()}/>
+                          style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
+                          onClick={() => this.props.onChangeHighlightMode()}/>
                 </div>
             );
 
@@ -351,14 +334,14 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             leftCommands = (
                 <div style={{order: 1, flex: "0 0 auto"}}>
                     <Icon name="triangle left"
-                               style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
-                               onClick={() => this.props.onCycleHighlightNeuron(-1)}/>
+                          style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
+                          onClick={() => this.props.onCycleHighlightNeuron(-1)}/>
                     <Icon name="triangle right"
-                               style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
-                               onClick={() => this.props.onCycleHighlightNeuron(1)}/>
+                          style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
+                          onClick={() => this.props.onCycleHighlightNeuron(1)}/>
                     <Icon name="remove"
-                               style={{margin: "auto", marginLeft: "8px", marginRight: "4px", paddingTop: "2px"}}
-                               onClick={() => this.props.onChangeHighlightMode()}/>
+                          style={{margin: "auto", marginLeft: "8px", marginRight: "4px", paddingTop: "2px"}}
+                          onClick={() => this.props.onChangeHighlightMode()}/>
                 </div>
             );
         }
@@ -384,15 +367,15 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                     </h5>
                     <div style={{order: 3, flex: "0 0 auto"}}>
                         <Icon name={iconName}
-                                   style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
-                                   onClick={() => this.setState({isActiveTracingsVisible: !this.state.isActiveTracingsVisible})}/>
+                              style={{margin: "auto", marginLeft: "4px", marginRight: "4px", paddingTop: "2px"}}
+                              onClick={() => this.setState({isActiveTracingsVisible: !this.state.isActiveTracingsVisible})}/>
                     </div>
                 </div>
                 {this.state.isActiveTracingsVisible ?
                     <div style={{order: 2}}>
-                        <ListGroup style={{margin: 0, border: "none"}}>
+                        <List>
                             {rows}
-                        </ListGroup>
+                        </List>
                     </div> : null}
             </div>
         );
@@ -425,7 +408,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                     </h5>
                     <div style={{order: 2, flex: "0 0 auto"}}>
                         <Icon name={iconName} style={{margin: "auto", marginRight: "4px", paddingTop: "2px"}}
-                                   onClick={() => this.setState({isCenterPointCollapsed: !this.state.isCenterPointCollapsed})}/>
+                              onClick={() => this.setState({isCenterPointCollapsed: !this.state.isCenterPointCollapsed})}/>
                     </div>
                 </div>
                 {!this.state.isCenterPointCollapsed ?

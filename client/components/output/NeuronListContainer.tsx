@@ -1,12 +1,11 @@
 import * as React from "react";
-import {Dropdown, MenuItem} from "react-bootstrap";
 
 import {INeuronTableProps, NeuronTable} from "./NeuronTable";
 import {DrawerState} from "./MainView";
 import {QueryStatus} from "../query/QueryHeader";
 import {primaryBackground} from "../../util/styles";
 import {ExportFormat} from "../../models/tracing";
-import {Icon} from "semantic-ui-react";
+import {Dropdown, Icon} from "semantic-ui-react";
 
 interface INeuronListContainerProps extends INeuronTableProps {
     isDocked: boolean;
@@ -32,7 +31,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
 
         return (
             <Icon name="pin" style={{margin: "auto", order: 3, marginRight: "10px", transform: transform}}
-                       onClick={() => this.props.onClickCloseOrPin(state)}/>
+                  onClick={() => this.props.onClickCloseOrPin(state)}/>
         );
     }
 
@@ -41,26 +40,27 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
             return n.isSelected ? c + 1 : c
         }, 0);
 
-        let menus = [];
+        let options = null;
 
         if (count <= 20) {
-            menus[0] = (<MenuItem key="1" eventKey={ExportFormat.SWC}>Export SWC</MenuItem>);
-            menus[1] = (<MenuItem key="2" eventKey={ExportFormat.JSON}>Export JSON</MenuItem>);
+            options = [{
+                key: ExportFormat.SWC,
+                value: ExportFormat.SWC,
+                text: "Export SWC"
+            }, {
+                key: ExportFormat.JSON,
+                value:  ExportFormat.JSON,
+                text: "Export JSON"
+            }];
         } else {
-            menus[0] = (<MenuItem key="1" disabled={true}>Please select 20 or fewer tracings to export</MenuItem>);
+            options = [{
+                key: -1,
+                text: "Please select 20 or fewer tracings to export",
+                disabled: true
+            }];
         }
 
-        return (
-            <Dropdown id="dropdown-custom-1" style={{backgroundColor: "transparent", border: "none"}}
-                      disabled={count <= 0} onSelect={(f) => this.props.onRequestExport(f)}>
-                <Dropdown.Toggle style={{backgroundColor: "transparent", border: "none", color: "white"}}>
-                    <Icon name="download"/>
-                </Dropdown.Toggle>
-                <Dropdown.Menu style={{fontSize: "11px", fontWeight: "normal"}}>
-                    {menus}
-                </Dropdown.Menu>
-            </Dropdown>
-        );
+        return <Dropdown trigger={<Icon name="download"/>} value={null} options={options} disabled={count === 0} onChange={(evt, {value}) => this.props.onRequestExport(value as ExportFormat)}/>
     }
 
     private renderHeader() {
@@ -89,7 +89,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                 }}>Neurons</h4>
                 {this.renderCloseGlyph()}
                 <Icon name="chevron left" style={{margin: "auto", order: 4}}
-                           onClick={() => this.props.onClickCloseOrPin(DrawerState.Hidden)}/>
+                      onClick={() => this.props.onClickCloseOrPin(DrawerState.Hidden)}/>
             </div>
         );
     }
@@ -106,7 +106,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                 content = (
                     <h5 style={{textAlign: "center", verticalAlign: "middle", marginTop: "40px"}}>Loading</h5>);
             } else {
-                content = ( <NeuronTable {...this.props}/>);
+                content = (<NeuronTable {...this.props}/>);
             }
         } else {
             if (this.props.neuronViewModels.length === 0) {
@@ -114,7 +114,7 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
                     <h5 style={{textAlign: "center", verticalAlign: "middle", marginTop: "40px"}}>No neurons
                         found</h5>);
             } else {
-                content = ( <NeuronTable {...this.props}/>);
+                content = (<NeuronTable {...this.props}/>);
             }
         }
 

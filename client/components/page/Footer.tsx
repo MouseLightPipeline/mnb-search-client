@@ -6,11 +6,21 @@ export type FooterProps = {
 
 export const Footer = (props: FooterProps) => {
     return (
-        <div className="container-fluid footer" style={{
+        <div style={{
             display: "flex",
             order: 1,
             flexDirection: "row",
-            verticalAlign: "middle"
+            verticalAlign: "middle",
+            fontSize: "12px",
+            position: "fixed",
+            color: "#ccc",
+            bottom: "0",
+            left: "0",
+            width: "100%",
+            zIndex: 1000,
+            backgroundColor: "#2b2b2b",
+            height: "40px",
+            padding: "10px"
         }}>
             <div style={{verticalAlign: "middle", color: "white", order: 1, flexGrow: 0, flexShrink: 0}}>
                 MouseLight Neuron Browser Copyright © 2016 - 2018 Howard Hughes Medical Institute

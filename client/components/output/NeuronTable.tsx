@@ -1,6 +1,5 @@
 import * as React from "react";
-import {Icon} from "semantic-ui-react";
-import {Table, Checkbox} from "react-bootstrap";
+import {Icon, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
@@ -102,10 +101,8 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
         return (
             <tr>
                 <td>
-                    <Checkbox style={{margin: 0}} className="pull-left"
-                              onChange={() => this.props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}
-                              checked={v.isSelected}>
-                    </Checkbox>
+                    <Icon name={v.isSelected ? "check square outline" : "square outline"}
+                           onClick={() => this.props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
                     <div style={{display: "inline"}}>
                         <div style={styles.swatch} onClick={() => this.handleClick()}>
                             <div style={rowStyles.color}/>
@@ -190,7 +187,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
         });
 
         return (
-            <Table condensed>
+            <Table compact>
                 <ChangeAllStructureDisplayDialog show={this.state.showChangeAllStructureDisplayDialog}
                                                  onCancel={() => this.onCancel()}
                                                  onAccept={(mode: NeuronViewMode) => this.onAccept(mode)}
@@ -198,11 +195,9 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                 <thead>
                 <tr>
                     <th>
-                        <Checkbox style={{margin: "0"}}
-                                  checked={this.props.isAllTracingsSelected}
-                                  onChange={() => this.props.onChangeSelectAllTracings(!this.props.isAllTracingsSelected)}>
-                            <b>Display</b>
-                        </Checkbox>
+                        <Icon name={this.props.isAllTracingsSelected ? "check square outline" : "square outline"}
+                              onClick={() => this.props.onChangeSelectAllTracings(!this.props.isAllTracingsSelected)}/>
+
                     </th>
                     <th>
                         <Icon name="edit" style={{marginRight: "6px"}}

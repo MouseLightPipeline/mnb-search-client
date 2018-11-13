@@ -1,11 +1,11 @@
 import * as React from "react";
-import {ListGroup, ListGroupItem} from "react-bootstrap";
 
 import {QueryFilter} from "./QueryFilter";
 import {NdbConstants} from "../../models/constants";
 import {IQueryHeaderBaseProps, QueryHeader} from "./QueryHeader";
 import {columnStyle} from "../../util/styles";
 import {UIQueryPredicate} from "../../models/uiQueryPredicate";
+import {List} from "semantic-ui-react";
 
 interface IQueryFilterContainerProps extends IQueryHeaderBaseProps {
     constants: NdbConstants;
@@ -23,7 +23,7 @@ const styles = {
 export class QueryFilterContainer extends React.Component<IQueryFilterContainerProps, {}> {
      private renderPredicates(style: any) {
         const listItems = this.props.predicateList.map((q, index) => (
-            <ListGroupItem key={`qf_${q.id}`} style={{padding: "0", margin: 0, border: "none"}}>
+            <List.Item key={`qf_${q.id}`} style={{padding: "0", margin: 0, border: "none"}}>
                 <QueryFilter queryFilter={q}
                              isComposite={index > 0}
                              isRemovable={this.props.predicateList.length > 1}
@@ -32,15 +32,15 @@ export class QueryFilterContainer extends React.Component<IQueryFilterContainerP
                              onChangeFilter={(f) => this.props.predicates.replacePredicate(f)}
                              onRemoveFilter={(id: string) => this.props.predicates.removePredicate(id)}
                 />
-            </ListGroupItem>
+            </List.Item>
         ));
 
 
         return (
             <div style={style}>
-                <ListGroup style={styles.searchRow}>
+                <List style={styles.searchRow}>
                     {listItems}
-                </ListGroup>
+                </List>
             </div>
         );
     }

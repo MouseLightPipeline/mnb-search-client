@@ -1,5 +1,6 @@
 import * as React from "react";
-import {Modal, Button} from "react-bootstrap"
+import {Button, Modal} from "semantic-ui-react";
+
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
 import {TracingViewModeSelect} from "../editors/TracingViewModeSelect";
 
@@ -27,11 +28,9 @@ export class ChangeAllStructureDisplayDialog extends React.Component<IChangeAllS
 
     public render() {
         return (
-            <Modal show={this.props.show} onHide={this.props.onCancel} aria-labelledby="contained-modal-title-sm">
-                <Modal.Header closeButton>
-                    <Modal.Title id="contained-modal-title-sm">Set Display Structures</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+            <Modal open={this.props.show} onClose={this.props.onCancel}>
+                <Modal.Header closeButton content="Set Display Structures"/>
+                <Modal.Content>
                     Update the all neurons to display
                     <TracingViewModeSelect idName="view-mode"
                                            options={NEURON_VIEW_MODES}
@@ -40,11 +39,11 @@ export class ChangeAllStructureDisplayDialog extends React.Component<IChangeAllS
                                            searchable={false}
                                            selectedOption={this.state.structureSelection}
                                            onSelect={(v: NeuronViewMode) => this.onViewModeChange(v)}/>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button bsSize="small" onClick={this.props.onCancel}>Cancel</Button>
-                    <Button bsSize="small" bsStyle="success" onClick={() => this.props.onAccept(this.state.structureSelection)}>Ok</Button>
-                </Modal.Footer>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button onClick={this.props.onCancel}>Cancel</Button>
+                    <Button onClick={() => this.props.onAccept(this.state.structureSelection)}>Ok</Button>
+                </Modal.Actions>
             </Modal>
         );
     }

@@ -96,7 +96,7 @@ export class UIQueryPredicate {
         const operatorId = n && n.IsSoma ? null : (this.filter.operator ? this.filter.operator.id : null);
 
         return {
-            tracingIdsOrDOIs: this.brainAreaFilterType.IsIdQuery ? [this.filter.tracingIdsOrDOIs.trim()] : [],
+            tracingIdsOrDOIs: this.brainAreaFilterType.IsIdQuery ? this.filter.tracingIdsOrDOIs.split(",").map(s => s.trim()).filter(s => s.length > 0) : [],
             tracingIdsOrDOIsExactMatch: this.filter.tracingIdsOrDOIsExactMatch,
             tracingStructureIds: tracingStructureId ? [tracingStructureId] : [],
             nodeStructureIds: nodeStructureId ? [nodeStructureId] : [],

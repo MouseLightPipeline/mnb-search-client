@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Grid, Row, Col, FormControl, ControlLabel, FormGroup, HelpBlock, Checkbox} from "react-bootstrap";
+import {Form, Grid, Icon, Input} from "semantic-ui-react";
 
 import {IBrainArea} from "../../models/brainArea";
 
@@ -18,7 +18,6 @@ import {
 import {CompositionSelect} from "../editors/CompositionSelect";
 import {UIQueryPredicate} from "../../models/uiQueryPredicate";
 import {isNullOrUndefined} from "../../util/nodeUtil";
-import {Icon} from "semantic-ui-react";
 
 interface IQueryFilterProps {
     constants: NdbConstants;
@@ -108,9 +107,9 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
     }
 
 
-    private onTracingIdsOrDOIsExactMatch(b: boolean) {
+    private onTracingIdsOrDOIsExactMatch() {
         const filter = this.props.queryFilter;
-        filter.filter.tracingIdsOrDOIsExactMatch = b;
+        filter.filter.tracingIdsOrDOIsExactMatch = !filter.filter.tracingIdsOrDOIsExactMatch;
         this.props.onChangeFilter(filter);
     }
 
@@ -159,129 +158,119 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
         }
     }
 
-    private renderSphereXCell() {
-        return (
-            <Col xs={2} lg={1}>
-                <ControlLabel>X (µm)</ControlLabel>
-                <FormControl type="text" placeholder=""
-                             onChange={(evt: any) => this.onArbCenterChanged(evt, "x")}
-                             value={this.props.queryFilter.filter.arbCenter.x}/>
-            </Col>
-        )
-    }
-
-    private renderSphereYCell() {
-        return (
-            <Col xs={2} lg={1}>
-                <ControlLabel>Y (µm)</ControlLabel>
-                <FormControl type="text" placeholder=""
-                             onChange={(evt: any) => this.onArbCenterChanged(evt, "y")}
-                             value={this.props.queryFilter.filter.arbCenter.y}/>
-            </Col>
-        )
-    }
-
-    private renderSphereZCell() {
-        return (
-            <Col xs={2} lg={1}>
-                <ControlLabel>Z (µm)</ControlLabel>
-                <FormControl type="text" placeholder=""
-                             onChange={(evt: any) => this.onArbCenterChanged(evt, "z")}
-                             value={this.props.queryFilter.filter.arbCenter.z}/>
-            </Col>
-        )
-    }
-
-    private renderSphereRadiusCell() {
-        return (
-            <Col sm={3} lg={2}>
-                <ControlLabel>Radius (µm)</ControlLabel>
-                <FormControl type="text" placeholder=""
-                             onChange={(evt: any) => this.onArbSizeChanged(evt)}
-                             value={this.props.queryFilter.filter.arbSize}/>
-            </Col>
-        )
-    }
-
     private renderSphereQuery() {
         return (
-            <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0}}>
-                <Col xs={3} sm={3} md={3} lg={2}>
-                    <ControlLabel>Query Type</ControlLabel>
-                    <BrainAreaFilterTypeSelect idName="filter-mode"
-                                               options={BRAIN_AREA_FILTER_TYPES}
-                                               placeholder="required"
-                                               clearable={false}
-                                               searchable={false}
-                                               selectedOption={this.props.queryFilter.brainAreaFilterType}
-                                               onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
-                </Col>
-                {this.renderSphereXCell()}
-                {this.renderSphereYCell()}
-                {this.renderSphereZCell()}
-                {this.renderSphereRadiusCell()}
-                <Col xs={6} sm={8} md={8} lg={3}>
-                    <ControlLabel>Structure</ControlLabel>
-                    <NeuronalStructureSelect idName="neuronal-structure"
-                                             options={this.props.constants.NeuronStructures}
-                                             selectedOption={this.props.queryFilter.filter.neuronalStructure}
-                                             multiSelect={false}
-                                             searchable={false}
-                                             placeholder="any"
-                                             onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
-                </Col>
-                <Col xs={3} sm={2} md={2} lg={1}>
-                    <ControlLabel>Threshold</ControlLabel>
-                    <QueryOperatorSelect idName="query-operator"
-                                         options={this.props.queryOperators}
-                                         selectedOption={this.props.queryFilter.filter.operator}
-                                         placeholder="any"
-                                         searchable={false}
-                                         onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
-                </Col>
-                <Col xs={3} sm={2} md={2} lg={1}>
-                    {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
-                        <FormGroup validationState={this.props.queryFilter.filter.IsAmountValid ? null : "error"}
-                                   style={{marginBottom: "0px"}}>
-                            <ControlLabel>&nbsp;</ControlLabel>
-                            <FormControl type="text" placeholder=""
-                                         onChange={(evt: any) => this.onAmountChange(evt)}
-                                         value={this.props.queryFilter.filter.amount}/>
-                        </FormGroup>
-                        : null}
-                </Col>
-            </Row>
+            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0}}>
+                <Grid.Column width={12}>
+                    <Form size="small">
+                        <Form.Group>
+                            <Form.Field width={3}>
+                                <label>Query Type</label>
+                                <BrainAreaFilterTypeSelect idName="filter-mode"
+                                                           options={BRAIN_AREA_FILTER_TYPES}
+                                                           placeholder="required"
+                                                           clearable={false}
+                                                           searchable={false}
+                                                           selectedOption={this.props.queryFilter.brainAreaFilterType}
+                                                           onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
+                            </Form.Field>
+
+                            <Form.Field width={2}>
+                                <label>X (µm)</label>
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.x}
+                                       onChange={(evt: any) => this.onArbCenterChanged(evt, "x")}/>
+                            </Form.Field>
+
+                            <Form.Field width={2}>
+                                <label>Y (µm)</label>
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.y}
+                                       onChange={(evt: any) => this.onArbCenterChanged(evt, "y")}/>
+                            </Form.Field>
+
+                            <Form.Field width={2}>
+                                <label>Z (µm)</label>
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.z}
+                                       onChange={(evt: any) => this.onArbCenterChanged(evt, "z")}/>
+                            </Form.Field>
+
+                            <Form.Field width={2}>
+                                <label>Radius (µm)</label>
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbSize}
+                                       onChange={(evt: any) => this.onArbSizeChanged(evt)}/>
+                            </Form.Field>
+
+                            <Form.Field width={3}>
+                                <label>Structure</label>
+                                <NeuronalStructureSelect idName="neuronal-structure"
+                                                         options={this.props.constants.NeuronStructures}
+                                                         selectedOption={this.props.queryFilter.filter.neuronalStructure}
+                                                         multiSelect={false}
+                                                         searchable={false}
+                                                         placeholder="any"
+                                                         onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
+                            </Form.Field>
+
+                            <Form.Field width={1} style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                                <label>Threshold</label>
+                                <QueryOperatorSelect idName="query-operator"
+                                                     options={this.props.queryOperators}
+                                                     selectedOption={this.props.queryFilter.filter.operator}
+                                                     disabled={!this.props.queryFilter.filter.CanHaveThreshold}
+                                                     searchable={false}
+                                                     placeholder="any"
+                                                     onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
+                            </Form.Field>
+
+                            {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
+                                <Form.Field width={1} error={!this.props.queryFilter.filter.IsAmountValid}
+                                            style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                                    <label>&nbsp;</label>
+                                    <Input placeholder="" disabled={!this.props.queryFilter.filter.CanHaveThreshold}
+                                           value={this.props.queryFilter.filter.amount}
+                                           onChange={(evt: any) => this.onAmountChange(evt)}/>
+                                </Form.Field>
+                                : null}
+                        </Form.Group>
+                    </Form>
+                </Grid.Column>
+            </Grid.Row>
         );
     }
 
     private renderByIdQuery() {
         return (
-            <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0, verticalAlign: "middle"}}>
-                <Col xs={12} sm={3} md={3} lg={2}>
-                    <ControlLabel>Query Type</ControlLabel>
-                    <BrainAreaFilterTypeSelect idName="filter-mode"
-                                               options={BRAIN_AREA_FILTER_TYPES}
-                                               placeholder="required"
-                                               clearable={false}
-                                               searchable={false}
-                                               selectedOption={this.props.queryFilter.brainAreaFilterType}
-                                               onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
+            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0, verticalAlign: "middle"}}>
+                <Grid.Column width={12}>
+                    <Form size="small">
+                        <Form.Group>
+                            <Form.Field width={3}>
+                                <label>Query Type</label>
+                                <BrainAreaFilterTypeSelect idName="filter-mode"
+                                                           options={BRAIN_AREA_FILTER_TYPES}
+                                                           placeholder="required"
+                                                           clearable={false}
+                                                           searchable={false}
+                                                           selectedOption={this.props.queryFilter.brainAreaFilterType}
+                                                           onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
+                            </Form.Field>
 
-                </Col>
-                <Col xs={12} sm={7} md={7} lg={8}>
-                    <ControlLabel>Id (Id or DOI)</ControlLabel>
-                    <FormControl type="text" placeholder=""
-                                 onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}
-                                 value={this.props.queryFilter.filter.tracingIdsOrDOIs}/>
-                </Col>
-                <Col xs={12} sm={2} md={2} lg={2}>
-                    <ControlLabel>&nbsp; </ControlLabel>
-                    <Checkbox checked={this.props.queryFilter.filter.tracingIdsOrDOIsExactMatch}
-                              onChange={(evt: any) => this.onTracingIdsOrDOIsExactMatch(evt.target.checked)}>
-                        Exact Match
-                    </Checkbox>
-                </Col>
-            </Row>
+                            <Form.Field width={11}>
+                                <label>Id or DOI (use comma-separated list for multiple)</label>
+                                <Input placeholder="" value={this.props.queryFilter.filter.tracingIdsOrDOIs}
+                                       onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}/>
+                            </Form.Field>
+                            <Form.Field width={2}>
+                                <label>&nbsp;</label>
+                                <div style={{verticalAlign: "middle"}}>
+                                    <Form.Checkbox label="Exact match"
+                                                   checked={this.props.queryFilter.filter.tracingIdsOrDOIsExactMatch}
+                                                   onChange={() => this.onTracingIdsOrDOIsExactMatch()}/>
+                                </div>
+                            </Form.Field>
+                        </Form.Group>
+                    </Form>
+                </Grid.Column>
+            </Grid.Row>
         );
     }
 
@@ -289,63 +278,69 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
         const filter = this.props.queryFilter.filter;
 
         return (
-            <Row style={{paddingBottom: "10px", paddingTop: "10px", margin: 0}}>
-                <Col xs={12} sm={3} md={3} lg={2}>
-                    <ControlLabel>Query Type</ControlLabel>
-                    <BrainAreaFilterTypeSelect idName="filter-mode"
-                                               options={BRAIN_AREA_FILTER_TYPES}
-                                               placeholder="required"
-                                               clearable={false}
-                                               searchable={false}
-                                               selectedOption={this.props.queryFilter.brainAreaFilterType}
-                                               onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
+            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0}}>
+                <Grid.Column width={12}>
+                    <Form size="small">
+                        <Form.Group>
+                            <Form.Field width={3}>
+                                <label>Query Type</label>
+                                <BrainAreaFilterTypeSelect idName="filter-mode"
+                                                           options={BRAIN_AREA_FILTER_TYPES}
+                                                           placeholder="required"
+                                                           clearable={false}
+                                                           searchable={false}
+                                                           selectedOption={this.props.queryFilter.brainAreaFilterType}
+                                                           onSelect={(v: BrainAreaFilterType) => this.onBrainAreaFilterTypeChanged(v)}/>
+                            </Form.Field>
 
-                </Col>
-                <Col xs={12} sm={9} md={9} lg={5}>
-                    <ControlLabel>Source or Target Locations</ControlLabel>
-                    <BrainAreaSelect idName="brain-area"
-                                     options={this.props.constants.BrainAreasWithGeometry}
-                                     selectedOption={filter.brainAreas}
-                                     multiSelect={true}
-                                     placeholder="any"
-                                     filterOption={(option: any, filterValue: string) => this.onFilterBrainArea(option, filterValue)}
-                                     onSelect={(brainAreas: IBrainArea[]) => this.onBrainAreaChange(brainAreas)}/>
-                    {filter.brainAreas.length > 1 ?
-                        <HelpBlock>multiple treated as or condition</HelpBlock> : null}
-                </Col>
-                <Col xs={6} sm={8} md={8} lg={3}>
-                    <ControlLabel>Structure</ControlLabel>
-                    <NeuronalStructureSelect idName="neuronal-structure"
-                                             options={this.props.constants.NeuronStructures}
-                                             selectedOption={filter.neuronalStructure}
-                                             multiSelect={false}
-                                             searchable={false}
-                                             placeholder="any"
-                                             onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
-                </Col>
-                <Col xs={3} sm={2} md={2} lg={1} style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
-                    <ControlLabel>Threshold</ControlLabel>
-                    <QueryOperatorSelect idName="query-operator"
-                                         options={this.props.queryOperators}
-                                         selectedOption={filter.operator}
-                                         disabled={!filter.CanHaveThreshold}
-                                         searchable={false}
-                                         placeholder="any"
-                                         onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
-                </Col>
-                <Col xs={3} sm={2} md={2} lg={1} style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
-                    {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
-                        <FormGroup validationState={filter.IsAmountValid ? null : "error"}
-                                   style={{marginBottom: "0px"}}>
-                            <ControlLabel>&nbsp;</ControlLabel>
-                            <FormControl type="text" placeholder=""
-                                         disabled={!filter.CanHaveThreshold}
-                                         onChange={(evt: any) => this.onAmountChange(evt)}
-                                         value={this.props.queryFilter.filter.amount}/>
-                        </FormGroup>
-                        : null}
-                </Col>
-            </Row>
+
+                            <Form.Field width={8}>
+                                <label>Source or Target Locations (multiple treated as or condition)</label>
+                                <BrainAreaSelect idName="brain-area"
+                                                 options={this.props.constants.BrainAreasWithGeometry}
+                                                 selectedOption={filter.brainAreas}
+                                                 multiSelect={true}
+                                                 placeholder="any"
+                                                 filterOption={(option: any, filterValue: string) => this.onFilterBrainArea(option, filterValue)}
+                                                 onSelect={(brainAreas: IBrainArea[]) => this.onBrainAreaChange(brainAreas)}/>
+                            </Form.Field>
+
+                            <Form.Field width={3}>
+                                <label>Structure</label>
+                                <NeuronalStructureSelect idName="neuronal-structure"
+                                                         options={this.props.constants.NeuronStructures}
+                                                         selectedOption={filter.neuronalStructure}
+                                                         multiSelect={false}
+                                                         searchable={false}
+                                                         clearable={true}
+                                                         placeholder="any"
+                                                         onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
+                            </Form.Field>
+
+                            <Form.Field width={1} style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                                <label>Threshold</label>
+                                <QueryOperatorSelect idName="query-operator"
+                                                     options={this.props.queryOperators}
+                                                     selectedOption={filter.operator}
+                                                     disabled={!filter.CanHaveThreshold}
+                                                     searchable={false}
+                                                     placeholder="any"
+                                                     onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
+                            </Form.Field>
+
+                            {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
+                                <Form.Field width={1} error={!filter.IsAmountValid}
+                                            style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                                    <label>&nbsp;</label>
+                                    <Input placeholder="" disabled={!filter.CanHaveThreshold}
+                                           value={this.props.queryFilter.filter.amount}
+                                           onChange={(evt: any) => this.onAmountChange(evt)}/>
+                                </Form.Field>
+                                : null}
+                        </Form.Group>
+                    </Form>
+                </Grid.Column>
+            </Grid.Row>
         );
     }
 
@@ -378,7 +373,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                 }}>
                     {this.renderComposition()}
                 </div>
-                <Grid fluid style={{flexGrow: 1, order: 1}}>
+                <Grid style={{flexGrow: 1, order: 1}}>
                     {this.chooseFilterRender()}
                 </Grid>
                 <div style={{

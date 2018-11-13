@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Alert} from "react-bootstrap";
+import {Message} from "semantic-ui-react";
 
 import {Content} from "./Content";
 import {NdbConstants} from "../../models/constants";
@@ -65,14 +65,8 @@ export class App extends React.Component<{}, {}> {
                     if (error) {
                         console.log(error);
                         return (
-                            <div>
-                                <Alert bsStyle="danger">
-                                    <div>
-                                        <h5>Service Error</h5>
-                                        {`${error.toString()}`}
-                                    </div>
-                                </Alert>
-                            </div>
+                            <Message negative icon="exclamation triangle" header="Service not responding"
+                                     content="System data could not be loaded.  Will attempt again shortly."/>
                         );
                     }
 

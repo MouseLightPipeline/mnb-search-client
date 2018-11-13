@@ -1,13 +1,12 @@
 import * as React from "react";
-import {Navbar, Nav, Popover, NavItem, NavDropdown, MenuItem, Modal, OverlayTrigger} from "react-bootstrap"
+import {Menu, Icon, Image, Dropdown, MenuItem, Popup, Modal} from "semantic-ui-react";
 
 import {PreferencesManager} from "../../util/preferencesManager";
 import {ExampleDefinition, examples} from "../../examples";
 import {TutorialDialog} from "./Tutorial";
 import {SYSTEM_MESSAGE_QUERY, SystemMessageQuery} from "../../graphql/systemMessage";
-import {Icon} from "semantic-ui-react";
 
-const logoImagelg = require("file-loader!../../../assets/mouseLight_NB_color.svg");
+const logo = require("file-loader!../../../assets/mouseLight_NB_color.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 
 interface IHeadingProps {
@@ -16,7 +15,7 @@ interface IHeadingProps {
 }
 
 interface IHeadingState {
-    showSettings?: boolean;
+    showShortcuts?: boolean;
     showTutorial?: boolean;
 }
 
@@ -25,25 +24,21 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
         super(props);
 
         this.state = {
-            showSettings: false,
+            showShortcuts: false,
             showTutorial: false
         }
     }
 
-    private onSelectExampleQuery(eventKey: any) {
-        this.props.onApplyExampleQuery(eventKey);
+    private onSelectExampleQuery(example: ExampleDefinition) {
+        this.props.onApplyExampleQuery(example);
     }
 
-    private onSelectHelpMenuItem(eventKey) {
-        if (!eventKey) {
-            return;
-        }
-
-        this.setState({showSettings: true});
+    private onShowShortcuts() {
+        this.setState({showShortcuts: true});
     }
 
-    private onHideSettings() {
-        this.setState({showSettings: false});
+    private onHideShortcuts() {
+        this.setState({showShortcuts: false});
     }
 
     private onHideTutorial() {
@@ -51,12 +46,31 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
     }
 
     public render() {
-        const menuItems = examples.map(s => {
-            return (<MenuItem eventKey={s} key={s.name}>{s.name}</MenuItem>);
+        const exampleMenuItems = examples.map(s => {
+            return (<Dropdown.Item key={s.name} onClick={() => this.onSelectExampleQuery(s)}>{s.name}</Dropdown.Item>);
         });
 
         let message = null;
-        let popover = null;
+
+        const helpItems = [
+            <Dropdown.Item key={"1"} href="https://www.janelia.org/project-team/mouselight/neuronbrowser"
+                           target="_blank">
+                About
+            </Dropdown.Item>,
+            <Dropdown.Item key={"2"} onClick={() => this.onShowShortcuts()}>
+                Shortcuts
+            </Dropdown.Item>,
+            <Dropdown.Item key={"3"} href="mailto:mouselightadmin@janelia.hhmi.org">
+                Report an Issue
+            </Dropdown.Item>,
+            <Dropdown.Item key={"4"} href="mailto:mouselightadmin@hhmi.org">
+                Contact Us
+            </Dropdown.Item>,
+            <Dropdown.Item key={"5"} href="https://www.janelia.org/project-team/mouselight/neuronbrowser"
+                           target="_blank">
+                Terms of Use
+            </Dropdown.Item>
+        ];
 
         return (
             <SystemMessageQuery query={SYSTEM_MESSAGE_QUERY} pollInterval={10000}>
@@ -64,22 +78,73 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                     if (data && data.systemSettings) {
                         switch (data.systemSettings.release.toLowerCase()) {
                             case "internal":
-                                popover = (
-                                    <Popover id="foo1" title="Data">This instance set includes any tracing marked public or internal
-                                        that have been
-                                        transitioned to this optimized search instance. This may not include recently transformed
-                                        tracings.</Popover>);
-                                message = "INTERNAL INSTANCE (MAY INCLUDE NON-PUBLIC CONTENTS)";
+                                message =
+                                    <Popup trigger={<span>INTERNAL INSTANCE (MAY INCLUDE NON-PUBLIC CONTENTS)</span>}
+                                           flowing={true}
+                                           content="This instance set includes any tracing marked public or internal that have been transitioned to this optimized search instance. This may not include recently transformed tracings."/>;
                                 break;
                             case "team":
-                                popover = (
-                                    <Popover id="foo2" title="Data">This instance set includes all uploaded tracings. New tracings
-                                        are available immediately after the transform completes.</Popover>);
-                                message = "TEAM INSTANCE (NON-PUBLIC/NON-INTERNAL CONTENTS)";
+                                message = <Popup trigger={<span>TEAM INSTANCE (NON-PUBLIC/NON-INTERNAL CONTENTS)</span>}
+                                                 flowing={true}
+                                                 content="This instance set includes all uploaded tracings.  New tracings are available immediately after the transform completes."/>;
                                 break;
                         }
                     }
 
+                    return (
+                        <Menu inverted stackable borderless={true}
+                              style={{margin: 0, borderRadius: 0, height: "79px"}}>
+                            {this.state.showTutorial ? <TutorialDialog show={this.state.showTutorial}
+                                                                       onHide={() => this.onHideTutorial()}/> : null}
+                            <Modal open={this.state.showShortcuts} onClose={() => this.onHideShortcuts()}>
+                                <Modal.Header closeButton content="Viewer Shortcuts"/>
+                                <Modal.Content>
+                                    <ul>
+                                        <li>ctrl-click: snap to position</li>
+                                        <li>shift-click: add neuron to selection</li>
+                                        <li>alt/option-click: toggle neuron on/off</li>
+                                    </ul>
+                                </Modal.Content>
+                            </Modal>
+
+                            <Menu.Item fitted="horizontally" as="a" style={{maxWidth: "214px"}}
+                                       href="https://www.janelia.org/project-team/mouselight/neuronbrowser">
+                                <Image size="medium" src={logo}/>
+                            </Menu.Item>
+                            <Menu.Item fitted="horizontally" style={{margin: "0 40px"}}>
+                                {message ||
+                                <a href="http://www.janelia.org" target="_blank" style={{maxWidth: "214px"}}>
+                                    <Image size="small" src={hhmiImage}/>
+                                </a>}
+                            </Menu.Item>
+
+                            <Menu.Menu position="right" style={{height: "79px"}}>
+                                <MenuItem onClick={() => this.setState({showTutorial: true})}>
+                                    Tutorial Video
+                                </MenuItem>
+                                <Dropdown item text="Examples - Try It Now!">
+                                    <Dropdown.Menu>
+                                        {exampleMenuItems}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                                <MenuItem as="a" href="http://mouselight.janelia.org" target="_blank">
+                                    MouseLight Home
+                                </MenuItem>
+                                <Dropdown item text="Help">
+                                    <Dropdown.Menu>
+                                        {helpItems}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+
+                                {PreferencesManager.HavePreferences ?
+                                    <MenuItem onClick={() => this.props.onSettingsClick()}>
+                                        <Icon name="cog"/>
+                                    </MenuItem> : null}
+                            </Menu.Menu>
+                        </Menu>
+                    );
+
+                    /*
                     return (
                         <Navbar inverse={true} fluid style={{borderRadius: 0, marginBottom: 0}}>
                             <Navbar.Header>
@@ -155,6 +220,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                                 </Nav>
                             </Navbar.Collapse>
                         </Navbar>);
+                        */
                 }}
             </SystemMessageQuery>
         );

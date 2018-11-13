@@ -1,8 +1,10 @@
 import * as React from "react";
-import {Modal, Button, Checkbox, ControlLabel} from "react-bootstrap"
-import {PreferencesManager} from "../../util/preferencesManager";
+import {Button, Form, Modal} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
+
 const Slider = require("rc-slider").default;
+
+import {PreferencesManager} from "../../util/preferencesManager";
 
 interface ISettingsDialogProps {
     show: boolean
@@ -87,32 +89,23 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
         };
 
         return (
-            <Modal show={this.props.show} onHide={this.props.onHide} aria-labelledby="contained-modal-title-sm" bsSize="large">
-                <Modal.Header closeButton>
-                    <Modal.Title id="contained-modal-title-sm">Settings</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Checkbox checked={this.state.shouldAutoCollapseOnQuery}
-                              onChange={(evt: any) => this.onSetAutoCollapseOnQuery(evt.target.checked)}>
-                        Collapse query after search
-                    </Checkbox>
-                    <Checkbox checked={this.state.shouldAlwaysShowSoma}
-                              onChange={(evt: any) => this.onSetAlwaysShowSoma(evt.target.checked)}>
-                        Always display tracing after search
-                    </Checkbox>
-                    <Checkbox checked={this.state.shouldAlwaysShowFullTracing} style={{marginLeft: "20px"}}
-                              disabled={!this.state.shouldAlwaysShowSoma}
-                              onChange={(evt: any) => this.onSetAlwaysShowFullTracing(evt.target.checked)}>
-                        Display full tracing in addition to soma
-                    </Checkbox>
-                    {/*
-                    <ControlLabel>Opacity for hidden selected tracings</ControlLabel>
-                    <div style={{width: "100%"}}>
-                        <Slider onAfterChange={(value) => this.onAfterChangeOpacity(value)} min={0} max={1} step={0.01}
-                                marks={{0: "0%", 1: "100%"}}
-                                defaultValue={PreferencesManager.Instance.TracingSelectionHiddenOpacity}/>
-                    </div>
-                    */}
+            <Modal open={this.props.show} onClose={this.props.onHide} dimmer="blurring">
+                <Modal.Header closeButton content="Settings"/>
+                <Modal.Content>
+                    <Form>
+                        <Form.Checkbox width={16} checked={this.state.shouldAutoCollapseOnQuery}
+                                       label="Collapse query after search"
+                                       onChange={(evt: any) => this.onSetAutoCollapseOnQuery(evt.target.checked)}/>
+                        <Form.Checkbox width={16} checked={this.state.shouldAlwaysShowSoma}
+                                       label="Always display tracing after search"
+                                       onChange={(evt: any) => this.onSetAlwaysShowSoma(evt.target.checked)}/>
+                        <Form.Checkbox width={16} checked={this.state.shouldAlwaysShowFullTracing}
+                                       style={{marginLeft: "26px"}}
+                                       disabled={!this.state.shouldAlwaysShowSoma}
+                                       label="Display full tracing in addition to soma"
+                                       onChange={(evt: any) => this.onSetAlwaysShowFullTracing(evt.target.checked)}/>
+                    </Form>
+
                     <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                         <div style={styles.swatch} onClick={() => this.handleClick()}>
                             <div style={rowStyles.color}/>
@@ -124,10 +117,11 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                         </div> : null}
                         <span style={styles.text}> Viewer background color</span>
                     </div>
+
                     {!this.props.isPublicRelease ?
                         <div style={{paddingTop: "10px"}}>
-                            <ControlLabel>Tracing fetch batch size (requires page refresh)</ControlLabel>
-                            < div style={{
+                            <label>Tracing fetch batch size (requires page refresh)</label>
+                            <div style={{
                                 width: "100%",
                                 paddingLeft: "30px",
                                 paddingRight: "20px",
@@ -140,10 +134,10 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                                         defaultValue={PreferencesManager.Instance.TracingFetchBatchSize}/>
                             </div>
                         </div> : null}
-                </Modal.Body>
-                <Modal.Footer>
+                </Modal.Content>
+                <Modal.Actions>
                     <Button bsSize="small" onClick={this.props.onHide}>Close</Button>
-                </Modal.Footer>
+                </Modal.Actions>
             </Modal>
         );
     }

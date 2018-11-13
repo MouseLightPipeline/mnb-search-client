@@ -28,7 +28,8 @@ const customStyles = {
     control: (provided) => ({
         ...provided,
         boxShadow: "none",
-        minHeight: "34px"
+        minHeight: "34px",
+        maxHeight: "36px"
     }),
     multiValue: (provided) => ({
         ...provided,

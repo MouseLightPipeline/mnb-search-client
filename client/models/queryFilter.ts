@@ -38,7 +38,7 @@ export class FilterContents {
     public nonce: string;
 
     public constructor(isDefaultQuery: boolean = false) {
-        this.tracingIdsOrDOIs = null;
+        this.tracingIdsOrDOIs = "";
         this.tracingIdsOrDOIsExactMatch = true;
         this.neuronalStructure = null;
         this.operator = null;
@@ -77,7 +77,7 @@ export class FilterContents {
     public static deserialize(data: any, constants: NdbConstants): FilterContents {
         const filter = new FilterContents();
 
-        filter.tracingIdsOrDOIs = data.tracingIdsOrDOIs || null;
+        filter.tracingIdsOrDOIs = data.tracingIdsOrDOIs || "";
         filter.tracingIdsOrDOIsExactMatch = isNullOrUndefined(data.tracingIdsOrDOIsExactMatch) ? true : data.tracingIdsOrDOIsExactMatch;
         filter.neuronalStructure = constants.findNeuronalStructure(data.neuronalStructureId);
         filter.operator = constants.findQueryOperator(data.operatorId);

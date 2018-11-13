@@ -148,7 +148,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
         return (
             <ApolloConsumer>
                 {client => (
-                    <div style={{height: "100vh"}}>
+                    <div style={{height: "calc(100vh - 112px)"}}>
                         <SettingsDialog show={this.state.isSettingsOpen} apiVersion={apiVersion}
                                         clientVersion={clientVersion}
                                         isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease}
