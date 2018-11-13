@@ -1,11 +1,11 @@
 import * as React from "react";
+import {Dropdown, Icon, Message} from "semantic-ui-react";
 
 import {INeuronTableProps, NeuronTable} from "./NeuronTable";
 import {DrawerState} from "./MainView";
 import {QueryStatus} from "../query/QueryHeader";
 import {primaryBackground} from "../../util/styles";
 import {ExportFormat} from "../../models/tracing";
-import {Dropdown, Icon} from "semantic-ui-react";
 
 interface INeuronListContainerProps extends INeuronTableProps {
     isDocked: boolean;
@@ -43,24 +43,23 @@ export class NeuronListContainer extends React.Component<INeuronListContainerPro
         let options = null;
 
         if (count <= 20) {
-            options = [{
-                key: ExportFormat.SWC,
-                value: ExportFormat.SWC,
-                text: "Export SWC"
-            }, {
-                key: ExportFormat.JSON,
-                value:  ExportFormat.JSON,
-                text: "Export JSON"
-            }];
+            options = [
+                <Dropdown.Item key="1" text="Export SWC" onClick={() => this.props.onRequestExport(ExportFormat.SWC)}/>,
+                <Dropdown.Item key="2" text="Export JSON"
+                               onClick={() => this.props.onRequestExport(ExportFormat.JSON)}/>
+            ];
         } else {
-            options = [{
-                key: -1,
-                text: "Please select 20 or fewer tracings to export",
-                disabled: true
-            }];
+            options = [
+                <Message key="3" error content="Please select 20 or fewer tracings to export"/>
+            ];
         }
 
-        return <Dropdown trigger={<Icon name="download"/>} value={null} options={options} disabled={count === 0} onChange={(evt, {value}) => this.props.onRequestExport(value as ExportFormat)}/>
+        return <Dropdown inline compact={true} trigger={<Icon name="download"/>} value={null} disabled={count === 0}
+                         style={{paddingTop: "6px"}}>
+            <Dropdown.Menu>
+                {options}
+            </Dropdown.Menu>
+        </Dropdown>
     }
 
     private renderHeader() {

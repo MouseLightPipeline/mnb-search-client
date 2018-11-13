@@ -24,6 +24,7 @@ import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
 import {isNullOrUndefined} from "../../util/nodeUtil";
 import {ICompartmentNode} from "./compartments/CompartmentNode";
+import {Button, Confirm, Message, Modal} from "semantic-ui-react";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
@@ -88,6 +89,7 @@ interface IOutputContainerState {
     isNeuronListDocked?: boolean;
     isCompartmentListOpen?: boolean;
     isCompartmentListDocked?: boolean;
+    isExportMessageOpen?: boolean;
 }
 
 export class MainView extends React.Component<IOutputContainerProps, IOutputContainerState> {
@@ -119,7 +121,8 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             latestTiming: null,
             isNeuronListOpen: false,
             isNeuronListDocked: PreferencesManager.Instance.IsNeuronListDocked,
-            isCompartmentListDocked: PreferencesManager.Instance.IsCompartmentListDocked
+            isCompartmentListDocked: PreferencesManager.Instance.IsCompartmentListDocked,
+            isExportMessageOpen: false
         };
     }
 
@@ -214,6 +217,10 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                     ids
                 })
             }).then(async (response) => {
+                if (response.status !== 200) {
+                    this.setState({isExportMessageOpen: true});
+                    return;
+                }
                 const data: any = await response.json();
 
                 let contents = data.contents;
@@ -232,6 +239,8 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
 
                 saveFile(contents, `${data.filename}`, mime);
+            }).catch((err) => {
+                console.log(err)
             });
         } catch (error) {
             console.log(error);
@@ -782,6 +791,17 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         return (
             <div style={style}>
+                <Modal open={this.state.isExportMessageOpen} dimmer="blurring"
+                       onClose={() => this.setState({isExportMessageOpen: false})}>
+                    <Modal.Header content="Export Failed"/>
+                    <Modal.Content>
+                        <Message error
+                                 content="There was an issue contacting the download server. The tracings were not downloaded."/>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button content="Ok" onClick={() => this.setState({isExportMessageOpen: false})}/>
+                    </Modal.Actions>
+                </Modal>
                 {neuronListFloat}
                 {compartmentListFloat}
                 {overlay}
