@@ -10,8 +10,8 @@ type ITutorialProps = {
 }
 
 export const TutorialDialog = (props: ITutorialProps) => (
-    <Modal open={props.show} onClose={props.onHide}>
-        <Modal.Content>
+    <Modal open={props.show} onClose={props.onHide} size="fullscreen" dimmer="blurring" style={{backgroundColor: "transparent", boxShadow: "none"}}>
+        <Modal.Content style={{textAlign: "center", backgroundColor: "transparent", boxShadow: "none"}}>
             <video id="tutorial" controls>
                 <source
                     src={movie}
