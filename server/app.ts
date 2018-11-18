@@ -4,22 +4,10 @@ const express = require("express");
 const passport = require("passport");
 const DigestStrategy = require("passport-http").DigestStrategy;
 
-let webpackConfig = null;
-let Webpack = null;
-let webpackDevServer = null;
-let compiler = null;
-
-if (process.env.NODE_ENV !== "production") {
-    webpackConfig = require("../webpack.dev.config.js");
-    Webpack = require("webpack");
-    webpackDevServer = require("webpack-dev-server");
-    compiler = Webpack(webpackConfig);
-}
+const debug = require("debug")("ndb:search-client:app");
 
 import {ServerConfiguration} from "./serverConfig";
 import * as fs from "fs";
-
-const rootPath = path.resolve(path.join(__dirname, "..", "public"));
 
 const version = readSystemVersion();
 
@@ -50,6 +38,9 @@ passport.deserializeUser(function (id: any, done: any) {
 if (process.env.NODE_ENV !== "production") {
     app = devServer();
 } else {
+    debug("configuring production express server");
+
+    const rootPath = path.resolve(path.join(__dirname, "public"));
     app = express();
 
     if (ServerConfiguration.authRequired) {
@@ -73,9 +64,15 @@ app.listen(ServerConfiguration.port, "0.0.0.0", () => {
     }
 });
 
-
 function devServer() {
+    const staticUri = `http://${ServerConfiguration.staticHostname}:${ServerConfiguration.staticPort}`;
     const apiUri = `http://${ServerConfiguration.graphQlHostname}:${ServerConfiguration.graphQlPort}`;
+    const exportUri = `http://${ServerConfiguration.exportHostname}:${ServerConfiguration.exportPort}`;
+
+    const webpackConfig = require("../webpack.dev.config.js");
+    const Webpack = require("webpack");
+    const webpackDevServer = require("webpack-dev-server");
+    const compiler = Webpack(webpackConfig);
 
     return new webpackDevServer(compiler, {
         stats: {
@@ -88,11 +85,14 @@ function devServer() {
             "/tracings": {
                 target: apiUri
             },
+            "/public": {
+                target: staticUri
+            },
             "/swc": {
-                target: "http://localhost:9691"
+                target: exportUri
             },
             "/json": {
-                target: "http://localhost:9691"
+                target: exportUri
             }
         },
         setup: (app) => {
@@ -100,7 +100,6 @@ function devServer() {
                 res.json({version});
             });
         },
-        contentBase: path.resolve(path.join(__dirname, "..", "public")),
         disableHostCheck: true,
         publicPath: webpackConfig.output.publicPath,
         historyApiFallback: true,
