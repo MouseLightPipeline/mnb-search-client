@@ -4,13 +4,15 @@ const express = require("express");
 const passport = require("passport");
 const DigestStrategy = require("passport-http").DigestStrategy;
 
-const debug = require("debug")("ndb:search-client:app");
+const debug = require("debug")("mnb:search-client:app");
 
 import {ServerConfiguration} from "./serverConfig";
 import * as fs from "fs";
 import {SearchScope} from "../client/models/uiQueryPredicate";
 
 const version = readSystemVersion();
+
+debug(`search scope will limited to ${SearchScope[ServerConfiguration.searchScope]}`);
 
 let app = null;
 
@@ -52,6 +54,13 @@ if (process.env.NODE_ENV !== "production") {
         });
     }
 
+    app.use("/system", (req, res) => {
+        res.json({
+            systemVersion: version,
+            searchScope: ServerConfiguration.searchScope
+        });
+    });
+
     app.use(express.static(rootPath));
 
     app.use("/", (req, res) => {
@@ -61,7 +70,7 @@ if (process.env.NODE_ENV !== "production") {
 
 app.listen(ServerConfiguration.port, "0.0.0.0", () => {
     if (process.env.NODE_ENV !== "production") {
-        console.log(`Listening at http://localhost:${ServerConfiguration.port}/`);
+        debug(`listening at http://localhost:${ServerConfiguration.port}/`);
     }
 });
 
@@ -100,7 +109,7 @@ function devServer() {
             app.use("/system", (req, res) => {
                 res.json({
                     systemVersion: version,
-                    searchScope: SearchScope.Internal
+                    searchScope: ServerConfiguration.searchScope
                 });
             });
         },
@@ -115,6 +124,7 @@ function devServer() {
 function readSystemVersion(): string {
     try {
         const contents = JSON.parse(fs.readFileSync(path.resolve("package.json")).toString());
+        debug(`system version set to ${contents.version}`);
         return contents.version;
     } catch (err) {
         console.log(err);

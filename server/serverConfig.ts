@@ -1,3 +1,5 @@
+import {SearchScope} from "../client/models/uiQueryPredicate";
+
 const configuration = {
     port: 5000,
     graphQlHostname: "search-api",
@@ -9,7 +11,8 @@ const configuration = {
     exportPort: 5000,
     authRequired: true,
     authUser: "mouselight",
-    authPassword: "auth_secret" // always override this, but in the event env is not set, don't leave completely open
+    authPassword: "auth_secret", // always override this, but in the event env is not set, don't leave completely open
+    searchScope: SearchScope.Public
 };
 
 function loadServerConfiguration() {
@@ -25,6 +28,7 @@ function loadServerConfiguration() {
     config.authRequired = process.env.SEARCH_AUTH_REQUIRED !== "false";
     config.authUser = process.env.SEARCH_AUTH_USER || config.authUser;
     config.authPassword = process.env.SEARCH_AUTH_PASS || config.authPassword;
+    config.searchScope = process.env.SEARCH_CLIENT_SCOPE ? SearchScope[process.env.SEARCH_CLIENT_SCOPE] || config.searchScope : config.searchScope;
 
     return config;
 }
