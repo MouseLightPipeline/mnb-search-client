@@ -448,7 +448,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     }
 
     public render() {
-        const activeNeurons = _.uniqBy(this.props.tracings.map(t => t.neuron).filter(n => n.isInHighlightList), "Id");
+        const activeNeurons = _.uniqBy(this.props.tracings.map(t => t.neuron).filter(n => n.isInHighlightList), "IdOrDoi");
 
         const style = Object.assign({
             height: "100%",

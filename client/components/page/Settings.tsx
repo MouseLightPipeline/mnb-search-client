@@ -8,9 +8,6 @@ import {PreferencesManager} from "../../util/preferencesManager";
 
 interface ISettingsDialogProps {
     show: boolean
-
-    apiVersion: string;
-    clientVersion: string;
     isPublicRelease: boolean;
 
     onHide(): void;

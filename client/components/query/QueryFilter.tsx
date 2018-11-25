@@ -346,11 +346,11 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
     private chooseFilterRender() {
         switch (this.props.queryFilter.brainAreaFilterType.option) {
-            case BrainAreaFilterTypeOption.Compartments:
+            case BrainAreaFilterTypeOption.AnatomicalRegion:
                 return this.renderCompartmentQuery();
-            case BrainAreaFilterTypeOption.Sphere:
+            case BrainAreaFilterTypeOption.CustomRegion:
                 return this.renderSphereQuery();
-            case BrainAreaFilterTypeOption.Id:
+            case BrainAreaFilterTypeOption.IdOrDoi:
                 return this.renderByIdQuery();
             default:
                 return null;

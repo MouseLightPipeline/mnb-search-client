@@ -5,16 +5,11 @@ export const SYSTEM_MESSAGE_QUERY = gql`query SystemMessage {
     systemMessage
   	systemSettings {
   	  version
-  	  release
   	}
 }`;
 
 type SystemMessageQueryResponse = {
     systemMessage: string;
-    systemSettings: {
-        version: string,
-        release: string
-    }
 }
 
 export class SystemMessageQuery extends Query<SystemMessageQueryResponse, {}> {

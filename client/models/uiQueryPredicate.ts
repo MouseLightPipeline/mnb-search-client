@@ -4,10 +4,21 @@ import {
     BrainAreaFilterTypeOption,
     findBrainAreaFilterType
 } from "./brainAreaFilterType";
-import {QueryPredicate} from "../graphql/neurons";
+import {SearchPredicate} from "../graphql/neurons";
 import {NdbConstants} from "./constants";
 import {FilterContents, IPosition, IPositionInput} from "./queryFilter";
 import cuid = require("cuid");
+
+export enum SearchScope {
+    Private = 0,
+    Team = 1,
+    Division = 2,
+    Internal = 3,
+    Moderated = 4,
+    External = 5,
+    Public = 6,
+    Published
+}
 
 export type PredicateListenerFcn = (predicates: UIQueryPredicates) => void;
 
@@ -86,7 +97,7 @@ export class UIQueryPredicate {
     brainAreaFilterType: BrainAreaFilterType;
     filter: FilterContents;
 
-    public asFilterInput(preserveId: boolean = false): QueryPredicate {
+    public asFilterInput(): SearchPredicate {
         const amount = this.filter.amount.length === 0 ? 0 : parseFloat(this.filter.amount);
 
         const n = this.filter.neuronalStructure;
@@ -96,6 +107,7 @@ export class UIQueryPredicate {
         const operatorId = n && n.IsSoma ? null : (this.filter.operator ? this.filter.operator.id : null);
 
         return {
+            predicateType: this.brainAreaFilterType.option,
             tracingIdsOrDOIs: this.brainAreaFilterType.IsIdQuery ? this.filter.tracingIdsOrDOIs.split(",").map(s => s.trim()).filter(s => s.length > 0) : [],
             tracingIdsOrDOIsExactMatch: this.filter.tracingIdsOrDOIsExactMatch,
             tracingStructureIds: tracingStructureId ? [tracingStructureId] : [],
@@ -106,8 +118,7 @@ export class UIQueryPredicate {
             arbCenter: createPositionInput(this.brainAreaFilterType.IsCustomRegionQuery, this.filter.arbCenter),
             arbSize: arbNumberToString(this.brainAreaFilterType.IsCustomRegionQuery, this.filter.arbSize),
             invert: this.filter.invert,
-            composition: this.filter.composition,
-            nonce:  preserveId ? this.id : cuid()
+            composition: this.filter.composition
         };
     }
 
@@ -125,7 +136,7 @@ export class UIQueryPredicate {
 
         filter.id = data.id || "";
         filter.index = data.index || 0;
-        filter.brainAreaFilterType = findBrainAreaFilterType(data.brainAreaFilterTypeOption || BrainAreaFilterTypeOption.Compartments);
+        filter.brainAreaFilterType = findBrainAreaFilterType(data.brainAreaFilterTypeOption || BrainAreaFilterTypeOption.AnatomicalRegion);
 
         filter.filter = data.filter ? FilterContents.deserialize(data.filter, constants) : null;
 

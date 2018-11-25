@@ -19,9 +19,6 @@ export class NdbConstants {
     private _NeuronStructures: NeuronalStructure[] = [];
     private _neuronStructureMap = new Map<string, NeuronalStructure>();
 
-    private _release = "";
-    private _apiVersion = "";
-    private _clientVersion = "";
     private _neuronCount = -1;
 
     private _isLoaded: boolean;
@@ -37,8 +34,6 @@ export class NdbConstants {
             return;
         }
 
-        this._apiVersion = data.systemSettings.version;
-        this._release = data.systemSettings.release;
         this._neuronCount = data.systemSettings.neuronCount;
 
         this.loadQueryOperators(data.queryOperators);
@@ -51,22 +46,6 @@ export class NdbConstants {
 
     public get IsLoaded(): boolean {
         return this._isLoaded;
-    }
-
-    public get ApiVersion(): string {
-        return this._apiVersion;
-    }
-
-    public get ClientVersion(): string {
-        return this._clientVersion;
-    }
-
-    public set ClientVersion(v: string) {
-        this._clientVersion = v;
-    }
-
-    public get IsPublicRelease(): boolean {
-        return this._release === "public";
     }
 
     public get NeuronCount(): number {

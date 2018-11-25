@@ -11,10 +11,13 @@ import {ApolloConsumer} from "react-apollo";
 import {NEURONS_QUERY} from "../../graphql/neurons";
 import {ApolloError} from "apollo-client";
 import {INeuron} from "../../models/neuron";
-import {UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
+import {SearchScope, UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
+import cuid = require("cuid");
 
 interface IContentProps {
     constants: NdbConstants;
+    searchScope: SearchScope;
+    systemVersion: string;
 }
 
 interface IContentState {
@@ -84,7 +87,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
         this.setState({
             predicates: this._uiPredicates.Predicates,
         }, async () => {
-            await this.onExecuteQuery(client, true);
+            await this.onExecuteQuery(client, example.filters ? example.filters[0].id : null);
         });
     }
 
@@ -102,17 +105,21 @@ export class Content extends React.Component<IContentProps, IContentState> {
         this.setState({isSettingsOpen: false});
     }
 
-    private onExecuteQuery = async (client, preserveIds: boolean = false) => {
+    private onExecuteQuery = async (client, nonce: string = null) => {
         this.setState({isInQuery: true});
 
         try {
             PreferencesManager.Instance.AppendQueryHistory(this.state.predicates);
 
-            const filters = this.state.predicates.map(f => f.asFilterInput(preserveIds));
+            const context = {
+                scope: this.props.searchScope,
+                nonce: nonce || cuid(),
+                predicates: this.state.predicates.map(f => f.asFilterInput())
+            };
 
             const {data, error} = await client.query({
                 query: NEURONS_QUERY,
-                variables: {filters}
+                variables: {context}
             });
 
             if (error) {
@@ -128,10 +135,10 @@ export class Content extends React.Component<IContentProps, IContentState> {
             this.setState({
                 queryError: null,
                 isInQuery: false,
-                queryTime: data.queryData.queryTime,
-                queryNonce: data.queryData.nonce,
-                totalCount: data.queryData.totalCount,
-                neurons: data.queryData.neurons,
+                queryTime: data.searchNeurons.queryTime,
+                queryNonce: data.searchNeurons.nonce,
+                totalCount: data.searchNeurons.totalCount,
+                neurons: data.searchNeurons.neurons,
                 shouldAlwaysShowSoma: PreferencesManager.Instance.ShouldAlwaysShowSoma,
                 shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing
             });
@@ -142,18 +149,14 @@ export class Content extends React.Component<IContentProps, IContentState> {
     };
 
     public render() {
-        const apiVersion = this.props.constants.IsLoaded ? ` ${this.props.constants.ApiVersion}` : "";
-        const clientVersion = this.props.constants.IsLoaded ? ` ${this.props.constants.ClientVersion}` : "";
-
         return (
             <ApolloConsumer>
                 {client => (
                     <div style={{height: "calc(100vh - 112px)"}}>
-                        <SettingsDialog show={this.state.isSettingsOpen} apiVersion={apiVersion}
-                                        clientVersion={clientVersion}
-                                        isPublicRelease={NdbConstants.DefaultConstants.IsPublicRelease}
+                        <SettingsDialog show={this.state.isSettingsOpen}
+                                        isPublicRelease={this.props.searchScope >= SearchScope.Public}
                                         onHide={() => this.onSettingsClose()}/>
-                        <PageHeader onSettingsClick={() => this.onSettingsClick()}
+                        <PageHeader searchScope={this.props.searchScope} onSettingsClick={() => this.onSettingsClick()}
                                     onApplyExampleQuery={(f) => this.onApplyExampleQuery(f, client)}/>
                         <QueryPage constants={this.props.constants} predicates={this._uiPredicates}
                                    predicateList={this.state.predicates} neurons={this.state.neurons}

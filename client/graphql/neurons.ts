@@ -1,10 +1,13 @@
 import gql from "graphql-tag";
 import {Query} from "react-apollo";
+
 import {INeuron} from "../models/neuron";
 import {IPositionInput} from "../models/queryFilter";
+import {BrainAreaFilterTypeOption} from "../models/brainAreaFilterType";
+import {SearchScope} from "../models/uiQueryPredicate";
 
-export const NEURONS_QUERY = gql`query QueryData($filters: [FilterInput!]) {
-  queryData(filters: $filters) {
+export const NEURONS_QUERY = gql`query SearchNeurons($context: SearchContext) {
+  searchNeurons(context: $context) {
     totalCount
     queryTime
     nonce
@@ -43,8 +46,8 @@ export const NEURONS_QUERY = gql`query QueryData($filters: [FilterInput!]) {
   }
 }`;
 
-
-export type QueryPredicate = {
+export type SearchPredicate = {
+    predicateType: BrainAreaFilterTypeOption;
     tracingIdsOrDOIs: string[];
     tracingIdsOrDOIsExactMatch: boolean;
     tracingStructureIds: string[];
@@ -56,11 +59,16 @@ export type QueryPredicate = {
     arbSize: number;
     invert: boolean;
     composition: number;
-    nonce: string;
+}
+
+export type SearchContext = {
+    scope: SearchScope,
+    nonce: string,
+    predicates: SearchPredicate[];
 }
 
 type NeuronsQueryVariable = {
-    filters: QueryPredicate[];
+    context: SearchContext;
 }
 
 export type NeuronsQueryData = {
@@ -72,7 +80,7 @@ export type NeuronsQueryData = {
 }
 
 type NeuronsQueryResponse = {
-    queryData: NeuronsQueryData
+    searchNeurons: NeuronsQueryData
 }
 
 export class NeuronsQuery extends Query<NeuronsQueryResponse, NeuronsQueryVariable> {

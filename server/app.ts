@@ -8,6 +8,7 @@ const debug = require("debug")("ndb:search-client:app");
 
 import {ServerConfiguration} from "./serverConfig";
 import * as fs from "fs";
+import {SearchScope} from "../client/models/uiQueryPredicate";
 
 const version = readSystemVersion();
 
@@ -95,9 +96,12 @@ function devServer() {
                 target: exportUri
             }
         },
-        setup: (app) => {
+        before: (app) => {
             app.use("/system", (req, res) => {
-                res.json({version});
+                res.json({
+                    systemVersion: version,
+                    searchScope: SearchScope.Internal
+                });
             });
         },
         disableHostCheck: true,
