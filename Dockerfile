@@ -4,8 +4,6 @@ WORKDIR /app
 
 COPY dist .
 
-COPY ./public/allen/ ./public/allen/
-
 RUN yarn install --production=true
 
 CMD ["./docker-entry.sh"]

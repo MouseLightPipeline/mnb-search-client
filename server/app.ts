@@ -1,18 +1,24 @@
 import * as path from "path";
-
+import * as fs from "fs";
 const express = require("express");
+const proxy = require("express-http-proxy");
 const passport = require("passport");
 const DigestStrategy = require("passport-http").DigestStrategy;
 
 const debug = require("debug")("mnb:search-client:app");
 
 import {ServerConfiguration} from "./serverConfig";
-import * as fs from "fs";
-import {SearchScope} from "../client/models/uiQueryPredicate";
+import {SearchScope} from "./searchScope";
 
 const version = readSystemVersion();
 
 debug(`search scope will limited to ${SearchScope[ServerConfiguration.searchScope]}`);
+
+const apiUri = `http://${ServerConfiguration.graphQLService.hostname}:${ServerConfiguration.graphQLService.port}`;
+const tracingsUri = `http://${ServerConfiguration.tracingsService.hostname}:${ServerConfiguration.tracingsService.port}`;
+const staticUri = `http://${ServerConfiguration.staticService.hostname}:${ServerConfiguration.staticService.port}`;
+const exportSwcUri = `http://${ServerConfiguration.exportSwcService.hostname}:${ServerConfiguration.exportSwcService.port}`;
+const exportJsonUri = `http://${ServerConfiguration.exportJsonService.hostname}:${ServerConfiguration.exportJsonService.port}`;
 
 let app = null;
 
@@ -54,12 +60,18 @@ if (process.env.NODE_ENV !== "production") {
         });
     }
 
-    app.use("/system", (req, res) => {
+    app.use(ServerConfiguration.systemEndpoint, (req, res) => {
         res.json({
             systemVersion: version,
             searchScope: ServerConfiguration.searchScope
         });
     });
+
+    app.use(`/${ServerConfiguration.graphQLService.endpoint}`, proxy(`${apiUri}/${ServerConfiguration.graphQLService.endpoint}`));
+    app.use(`/${ServerConfiguration.tracingsService.endpoint}`, proxy(`${tracingsUri}/${ServerConfiguration.tracingsService.endpoint}`));
+    app.use(`/${ServerConfiguration.staticService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.staticService.endpoint}`));
+    app.use(`/${ServerConfiguration.exportSwcService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.exportSwcService.endpoint}`));
+    app.use(`/${ServerConfiguration.exportJsonService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.exportJsonService.endpoint}`));
 
     app.use(express.static(rootPath));
 
@@ -75,10 +87,6 @@ app.listen(ServerConfiguration.port, "0.0.0.0", () => {
 });
 
 function devServer() {
-    const staticUri = `http://${ServerConfiguration.staticHostname}:${ServerConfiguration.staticPort}`;
-    const apiUri = `http://${ServerConfiguration.graphQlHostname}:${ServerConfiguration.graphQlPort}`;
-    const exportUri = `http://${ServerConfiguration.exportHostname}:${ServerConfiguration.exportPort}`;
-
     const webpackConfig = require("../webpack.dev.config.js");
     const Webpack = require("webpack");
     const webpackDevServer = require("webpack-dev-server");
@@ -89,24 +97,24 @@ function devServer() {
             colors: true
         },
         proxy: {
-            "/graphql": {
+            [ServerConfiguration.graphQLService.endpoint]: {
                 target: apiUri
             },
-            "/tracings": {
-                target: apiUri
+            [ServerConfiguration.tracingsService.endpoint]: {
+                target: tracingsUri
             },
-            "/public": {
+            [ServerConfiguration.staticService.endpoint]: {
                 target: staticUri
             },
-            "/swc": {
-                target: exportUri
+            [ServerConfiguration.exportSwcService.endpoint]: {
+                target: exportSwcUri
             },
-            "/json": {
-                target: exportUri
+            [ServerConfiguration.exportJsonService.endpoint]: {
+                target: exportJsonUri
             }
         },
         before: (app) => {
-            app.use("/system", (req, res) => {
+            app.use(ServerConfiguration.systemEndpoint, (req, res) => {
                 res.json({
                     systemVersion: version,
                     searchScope: ServerConfiguration.searchScope

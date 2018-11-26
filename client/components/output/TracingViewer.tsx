@@ -147,7 +147,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.dom_element = "viewer-container";
             s.centerpoint = [6688, 3849, 5687];
             s.metadata = false;
-            s.compartment_path = "public/allen/obj/";
+            s.compartment_path = "static/allen/obj/";
             s.WIDTH = width;
             s.HEIGHT = height;
             s.on_select_node = (tracingId: string, sampleNumber: number, event) => this.onSelectNode(tracingId, sampleNumber, event);
