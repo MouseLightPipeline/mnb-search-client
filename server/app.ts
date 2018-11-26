@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+
 const express = require("express");
 const proxy = require("express-http-proxy");
 const passport = require("passport");
@@ -21,6 +22,8 @@ const exportSwcUri = `http://${ServerConfiguration.exportSwcService.hostname}:${
 const exportJsonUri = `http://${ServerConfiguration.exportJsonService.hostname}:${ServerConfiguration.exportJsonService.port}`;
 
 let app = null;
+
+const maintainBaseUrl = req => req.baseUrl;
 
 passport.use(new DigestStrategy({qop: 'auth'},
     function (username: any, done: any) {
@@ -67,11 +70,23 @@ if (process.env.NODE_ENV !== "production") {
         });
     });
 
-    app.use(`/${ServerConfiguration.graphQLService.endpoint}`, proxy(`${apiUri}/${ServerConfiguration.graphQLService.endpoint}`));
-    app.use(`/${ServerConfiguration.tracingsService.endpoint}`, proxy(`${tracingsUri}/${ServerConfiguration.tracingsService.endpoint}`));
-    app.use(`/${ServerConfiguration.staticService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.staticService.endpoint}`));
-    app.use(`/${ServerConfiguration.exportSwcService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.exportSwcService.endpoint}`));
-    app.use(`/${ServerConfiguration.exportJsonService.endpoint}`, proxy(`${staticUri}/${ServerConfiguration.exportJsonService.endpoint}`));
+    // For most deployments the following are intercepted by an nginx instance to load balance between multiple backend
+    // instances.  However, there may be certain client instances where  directly to this
+
+    debug(`proxying ${ServerConfiguration.graphQLService.endpoint} to ${apiUri}`);
+    app.use(`${ServerConfiguration.graphQLService.endpoint}`, proxy(`${apiUri}`, {proxyReqPathResolver: maintainBaseUrl}));
+
+    debug(`proxying ${ServerConfiguration.tracingsService.endpoint} to ${tracingsUri}`);
+    app.use(`${ServerConfiguration.tracingsService.endpoint}`, proxy(`${tracingsUri}`, {proxyReqPathResolver: maintainBaseUrl}));
+
+    debug(`proxying ${ServerConfiguration.staticService.endpoint} to ${staticUri}`);
+    app.use(`${ServerConfiguration.staticService.endpoint}`, proxy(`${staticUri}`, {proxyReqPathResolver: req => "/static" + req.url}));
+
+    debug(`proxying ${ServerConfiguration.exportSwcService.endpoint} to ${exportSwcUri}`);
+    app.use(`${ServerConfiguration.exportSwcService.endpoint}`, proxy(`${exportSwcUri}`, {proxyReqPathResolver: maintainBaseUrl}));
+
+    debug(`proxying ${ServerConfiguration.exportJsonService.endpoint} to ${exportJsonUri}`);
+    app.use(`${ServerConfiguration.exportJsonService.endpoint}`, proxy(`${exportJsonUri}`, {proxyReqPathResolver: maintainBaseUrl}));
 
     app.use(express.static(rootPath));
 

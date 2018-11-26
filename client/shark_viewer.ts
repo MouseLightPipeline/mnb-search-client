@@ -43,7 +43,7 @@ export class SharkViewer {
     public radius_scale_factor = 1;
     public metadata = false;
     public centerpoint = null;
-    public compartment_path = "allen_horta/obj/";
+    public compartment_path = "/static/allen/obj/";
     public on_select_node = null;
     public on_toggle_node = null;
 
@@ -878,7 +878,9 @@ export class SharkViewer {
 
         const that = this;
 
-        loader.load(this.compartment_path + geometryFile, function (object) {
+        const path = this.compartment_path + geometryFile;
+
+        loader.load(path,  (object) =>{
             object.traverse(function (child) {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
