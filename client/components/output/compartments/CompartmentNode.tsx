@@ -3,23 +3,42 @@ import {Icon, List, SemanticICONS} from "semantic-ui-react";
 
 import {IBrainArea} from "../../../models/brainArea";
 
-export interface ICompartmentNode {
+export class CompartmentNode {
     name: string;
     toggled: boolean;
     isChecked: boolean;
-    children: ICompartmentNode[];
+    children: CompartmentNode[];
     compartment: IBrainArea;
+
+    matches(str: string): boolean {
+        let matches: boolean = this.name.toLowerCase().includes(str);
+
+        if (!matches) {
+            matches = this.compartment.acronym.toLowerCase().includes(str);
+        }
+
+        if (!matches && this.compartment.aliases.length > 0) {
+            matches = this.compartment.aliases.some(a => a.includes(str));
+        }
+
+        return matches;
+    }
 }
 
-interface ICompartmentsProps {
-    compartmentNode: ICompartmentNode;
+type CompartmentNodeProps = {
+    compartmentNode: CompartmentNode;
+    compartmentOnly: boolean;
 
-    onToggle(node: ICompartmentNode): void;
-    onSelect(node: ICompartmentNode): void;
+    onToggle(node: CompartmentNode): void;
+    onSelect(node: CompartmentNode): void;
 }
 
-export class CompartmentNode extends React.Component<ICompartmentsProps, {}> {
+export class CompartmentNodeView extends React.Component<CompartmentNodeProps, {}> {
     private get IconName(): SemanticICONS {
+        if (this.props.compartmentOnly) {
+            return "file";
+        }
+
         if (this.props.compartmentNode.toggled) {
             return "folder open";
         }
@@ -30,13 +49,14 @@ export class CompartmentNode extends React.Component<ICompartmentsProps, {}> {
     public render() {
         let items = null;
 
-        if (this.props.compartmentNode.toggled && this.props.compartmentNode.children) {
+        if (this.props.compartmentNode.toggled && !this.props.compartmentOnly && this.props.compartmentNode.children) {
             items = (
                 <List.List>
                     {this.props.compartmentNode.children.map(c => (
-                        <CompartmentNode key={c.name} compartmentNode={c}
-                                         onToggle={this.props.onToggle}
-                                         onSelect={this.props.onSelect}/>
+                        <CompartmentNodeView key={c.name} compartmentNode={c}
+                                             compartmentOnly={this.props.compartmentOnly}
+                                             onToggle={this.props.onToggle}
+                                             onSelect={this.props.onSelect}/>
                     ))}
                 </List.List>
             );

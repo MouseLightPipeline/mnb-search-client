@@ -23,8 +23,8 @@ import {QueryStatus} from "../query/QueryHeader";
 import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
 import {isNullOrUndefined} from "../../util/nodeUtil";
-import {ICompartmentNode} from "./compartments/CompartmentNode";
-import {Button, Confirm, Message, Modal} from "semantic-ui-react";
+import {CompartmentNode} from "./compartments/CompartmentNode";
+import {Button, Message, Modal} from "semantic-ui-react";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
@@ -76,7 +76,7 @@ interface IOutputContainerState {
     defaultStructureSelection?: NeuronViewMode;
     neuronViewModels?: NeuronViewModel[];
     tracingsToDisplay?: TracingViewModel[];
-    rootNode?: ICompartmentNode;
+    rootNode?: CompartmentNode;
     displayHighlightedOnly?: boolean;
     wasDisplayHighlightedOnly?: boolean;
     cycleFocusNeuronId?: string;
@@ -111,7 +111,6 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             neuronViewModels: neuronCalc.neurons,
             tracingsToDisplay: [],
             rootNode: makeCompartmentNodes(props.constants.BrainAreasWithGeometry),
-            // brainAreaExpanded: expanded,
             displayHighlightedOnly: false,
             highlightSelectionMode: HighlightSelectionMode.Normal,
             fetchState: FetchState.Running,
@@ -487,8 +486,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                 if (this.props.shouldAlwaysShowFullTracing) {
                     viewModel.requestViewMode(TracingStructure.all);
                     viewModel.isSelected = true;
-                }
-                else if (this.props.shouldAlwaysShowSoma) {
+                } else if (this.props.shouldAlwaysShowSoma) {
                     viewModel.requestViewMode(TracingStructure.soma);
                     viewModel.isSelected = true;
                 } else {
@@ -824,8 +822,7 @@ function saveFile(data: any, filename: string, mime: string = null) {
         // These URLs will no longer resolve as the data backing
         // the URL has been freed."
         window.navigator.msSaveBlob(blob, filename);
-    }
-    else {
+    } else {
         const blobURL = window.URL.createObjectURL(blob);
         const tempLink = document.createElement("a");
         tempLink.href = blobURL;
@@ -855,26 +852,25 @@ const ROOT = 997;
 const RETINA = 304325711;
 const GROOVES = 1024;
 
-const compartmentNodeMap = new Map<number, ICompartmentNode>();
+export const compartmentNodeSortedList = new Array<CompartmentNode>();
+const compartmentNodeMap = new Map<number, CompartmentNode>();
 
-function makeCompartmentNodes(brainAreas: IBrainArea[]): ICompartmentNode {
+function makeCompartmentNodes(brainAreas: IBrainArea[]): CompartmentNode {
     if (compartmentNodeMap.size > 0) {
         return compartmentNodeMap.get(ROOT);
     }
 
-    let sorted = brainAreas.slice().sort((a: IBrainArea, b: IBrainArea) => {
-        return a.depth - b.depth;
-    });
+    let sorted = brainAreas.slice();
 
-    const root: ICompartmentNode = {
-        name: sorted[0].name,
-        isChecked: true,
-        toggled: true,
-        children: null,
-        compartment: sorted[0]
-    };
+    const root: CompartmentNode = new CompartmentNode();
+    root.name = sorted[0].name;
+    root.isChecked = true;
+    root.toggled = true;
+    root.children = null;
+    root.compartment = sorted[0];
 
     compartmentNodeMap.set(sorted[0].structureId, root);
+    compartmentNodeSortedList.push(root);
 
     sorted = sorted.slice(1);
 
@@ -883,15 +879,15 @@ function makeCompartmentNodes(brainAreas: IBrainArea[]): ICompartmentNode {
             return;
         }
 
-        const node: ICompartmentNode = {
-            name: c.name,
-            isChecked: false,
-            toggled: false,
-            children: null,
-            compartment: c
-        };
+        const node: CompartmentNode = new CompartmentNode();
+        node.name = c.name;
+        node.isChecked = false;
+        node.toggled = false;
+        node.children = null;
+        node.compartment = c;
 
         compartmentNodeMap.set(c.structureId, node);
+        compartmentNodeSortedList.push(node);
 
         const parent = compartmentNodeMap.get(c.parentStructureId);
 

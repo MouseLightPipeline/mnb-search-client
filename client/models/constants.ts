@@ -95,7 +95,13 @@ export class NdbConstants {
 
         this._BrainAreas = Array.from(this._brainAreaIdMap.values());
 
-        this._brainAreasWithGeometry = this.BrainAreas.filter(b => b.geometryEnable);
+        this._brainAreasWithGeometry = this.BrainAreas.filter(b => b.geometryEnable).sort((a: IBrainArea, b: IBrainArea) => {
+            if (a.depth === b.depth) {
+                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            }
+
+            return a.depth - b.depth;
+        });
     }
 
     private loadStructureIdentifiers(structures: IStructureIdentifier[]) {

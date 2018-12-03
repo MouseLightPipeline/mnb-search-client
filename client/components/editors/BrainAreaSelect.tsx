@@ -8,4 +8,8 @@ export class BrainAreaSelect extends DynamicSimpleMultiSelect<IBrainArea> {
     protected selectLabelForOption(option: IBrainArea): any {
         return displayBrainArea(option);
     }
+
+    protected selectValueForOption(option: IBrainArea): any {
+        return option;
+    }
 }

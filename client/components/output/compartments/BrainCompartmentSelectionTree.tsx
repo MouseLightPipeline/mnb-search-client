@@ -3,12 +3,12 @@ import * as React from "react";
 import {NdbConstants} from "../../../models/constants";
 import {BrainCompartmentViewModel} from "../../../viewmodel/brainCompartmentViewModel";
 import {Compartments} from "./Compartments";
-import { ICompartmentNode} from "./CompartmentNode";
+import {CompartmentNode} from "./CompartmentNode";
 
 export interface IBrainAreaGeometryProps {
     constants: NdbConstants;
     brainAreaViewModels: BrainCompartmentViewModel[];
-    rootNode: ICompartmentNode;
+    rootNode: CompartmentNode;
 
     onChangeLoadedGeometry(added: string[], removed: string[]): void;
 }

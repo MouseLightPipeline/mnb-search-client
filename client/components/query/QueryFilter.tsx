@@ -124,6 +124,16 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
             return true;
         }
 
+        if (option.value.acronym.toLowerCase().includes(filterValue)) {
+            return true;
+        }
+
+        const matches = option.value.aliases.some(a => a.toLowerCase().includes(filterValue));
+
+        if (matches) {
+            return true;
+        }
+
         const parts = filterValue.split(/\s+/);
 
         if (parts.length < 2) {
@@ -179,25 +189,29 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
                             <Form.Field width={2}>
                                 <label>X (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.x} style={{maxHeight: "34px"}}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.x}
+                                       style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "x")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Y (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.y} style={{maxHeight: "34px"}}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.y}
+                                       style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "y")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Z (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.z} style={{maxHeight: "34px"}}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.z}
+                                       style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "z")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Radius (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbSize} style={{maxHeight: "34px"}}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbSize}
+                                       style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbSizeChanged(evt)}/>
                             </Form.Field>
 
@@ -259,7 +273,8 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
                             <Form.Field width={11}>
                                 <label>Id or DOI (use comma-separated list for multiple)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.tracingIdsOrDOIs} style={{maxHeight: "34px"}}
+                                <Input placeholder="" value={this.props.queryFilter.filter.tracingIdsOrDOIs}
+                                       style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}/>
                             </Form.Field>
                             <Form.Field width={2}>
@@ -304,7 +319,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                  selectedOption={filter.brainAreas}
                                                  multiSelect={true}
                                                  placeholder="any"
-                                                 filterOption={(option: any, filterValue: string) => this.onFilterBrainArea(option, filterValue)}
+                                                 filterOption={(option: IBrainArea, filterValue: string) => this.onFilterBrainArea(option, filterValue)}
                                                  onSelect={(brainAreas: IBrainArea[]) => this.onBrainAreaChange(brainAreas)}/>
                             </Form.Field>
 

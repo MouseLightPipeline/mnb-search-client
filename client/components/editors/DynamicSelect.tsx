@@ -194,7 +194,7 @@ export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends Dyna
         return option ? this.props.options.filter(s => s.id === option.value)[0] : null;
     }
 
-    protected selectValueForOption(option: T): string | number {
+    protected selectValueForOption(option: T): any {
         return option.id;
     }
 
