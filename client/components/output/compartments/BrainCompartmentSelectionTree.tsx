@@ -7,12 +7,12 @@ import {CompartmentNode} from "./CompartmentNode";
 
 export interface IBrainAreaGeometryProps {
     constants: NdbConstants;
-    brainAreaViewModels: BrainCompartmentViewModel[];
+    visibleBrainAreas: BrainCompartmentViewModel[];
     rootNode: CompartmentNode;
 
     onChangeLoadedGeometry(added: string[], removed: string[]): void;
 }
 
 export const BrainCompartmentSelectionTree = (props: IBrainAreaGeometryProps) => (
-    <Compartments rootNode={props.rootNode} onChangeLoadedGeometry={props.onChangeLoadedGeometry}/>
+    <Compartments rootNode={props.rootNode} visibleBrainAreas={props.visibleBrainAreas} onChangeLoadedGeometry={props.onChangeLoadedGeometry}/>
 );

@@ -2,11 +2,12 @@ import * as React from "react";
 import {Icon, List, SemanticICONS} from "semantic-ui-react";
 
 import {IBrainArea} from "../../../models/brainArea";
+import {BrainCompartmentViewModel} from "../../../viewmodel/brainCompartmentViewModel";
 
 export class CompartmentNode {
     name: string;
     toggled: boolean;
-    isChecked: boolean;
+   // isChecked: boolean;
     children: CompartmentNode[];
     compartment: IBrainArea;
 
@@ -28,9 +29,10 @@ export class CompartmentNode {
 type CompartmentNodeProps = {
     compartmentNode: CompartmentNode;
     compartmentOnly: boolean;
+    visibleBrainAreas: BrainCompartmentViewModel[];
 
-    onToggle(node: CompartmentNode): void;
-    onSelect(node: CompartmentNode): void;
+    onToggle?(node: CompartmentNode): void;
+    onSelect(node: CompartmentNode, select: boolean): void;
 }
 
 export class CompartmentNodeView extends React.Component<CompartmentNodeProps, {}> {
@@ -55,6 +57,7 @@ export class CompartmentNodeView extends React.Component<CompartmentNodeProps, {
                     {this.props.compartmentNode.children.map(c => (
                         <CompartmentNodeView key={c.name} compartmentNode={c}
                                              compartmentOnly={this.props.compartmentOnly}
+                                             visibleBrainAreas={this.props.visibleBrainAreas}
                                              onToggle={this.props.onToggle}
                                              onSelect={this.props.onSelect}/>
                     ))}
@@ -62,12 +65,14 @@ export class CompartmentNodeView extends React.Component<CompartmentNodeProps, {
             );
         }
 
+        const isSelected = this.props.visibleBrainAreas.some(c => c.compartment.id === this.props.compartmentNode.compartment.id && c.isDisplayed);
+
         return (
             <List.Item>
-                <List.Icon name={this.IconName} onClick={() => this.props.onToggle(this.props.compartmentNode)}/>
+                <List.Icon name={this.IconName} onClick={() => {if (this.props.onToggle) {this.props.onToggle(this.props.compartmentNode);}}}/>
                 <List.Content>
-                    <List.Description onClick={() => this.props.onSelect(this.props.compartmentNode)}>
-                        <Icon name={this.props.compartmentNode.isChecked ? "check square outline" : "square outline"}/>
+                    <List.Description onClick={() => this.props.onSelect(this.props.compartmentNode, !isSelected)}>
+                        <Icon name={isSelected ? "check square outline" : "square outline"}/>
                         {this.props.compartmentNode.name}
                     </List.Description>
                     {items}

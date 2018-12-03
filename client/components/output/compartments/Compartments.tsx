@@ -3,9 +3,11 @@ import {Container, Input, List} from "semantic-ui-react";
 
 import {CompartmentNode, CompartmentNodeView} from "./CompartmentNode";
 import {compartmentNodeSortedList} from "../MainView";
+import {BrainCompartmentViewModel} from "../../../viewmodel/brainCompartmentViewModel";
 
 type CompartmentsProps = {
     rootNode: CompartmentNode;
+    visibleBrainAreas: BrainCompartmentViewModel[];
 
     onChangeLoadedGeometry(added: string[], removed: string[]): void;
 }
@@ -25,11 +27,10 @@ export class Compartments extends React.Component<CompartmentsProps, Compartment
         }
     }
 
-    public onSelect = (node: CompartmentNode) => {
-        node.isChecked = !node.isChecked;
+    public onSelect = (node: CompartmentNode, select: boolean) => {
 
-        const added = node.isChecked ? [node.compartment.id] : [];
-        const remove = node.isChecked ? [] : [node.compartment.id];
+        const added = select ? [node.compartment.id] : [];
+        const remove = select ? [] : [node.compartment.id];
 
         this.props.onChangeLoadedGeometry(added, remove);
     };
@@ -55,9 +56,8 @@ export class Compartments extends React.Component<CompartmentsProps, Compartment
             const listItems = items.map(c => (
                 <CompartmentNodeView key={c.name} compartmentNode={c}
                                      compartmentOnly={true}
-                                     onToggle={() => {
-                                     }}
-                                     onSelect={(node) => this.onSelect(node)}/>
+                                     visibleBrainAreas={this.props.visibleBrainAreas}
+                                     onSelect={this.onSelect}/>
             ));
             list = (
                 <List>
@@ -69,8 +69,9 @@ export class Compartments extends React.Component<CompartmentsProps, Compartment
                 <List>
                     <CompartmentNodeView compartmentNode={this.props.rootNode}
                                          compartmentOnly={false}
-                                         onToggle={(node) => this.onToggle(node)}
-                                         onSelect={(node) => this.onSelect(node)}/>
+                                         onToggle={this.onToggle}
+                                         visibleBrainAreas={this.props.visibleBrainAreas}
+                                         onSelect={this.onSelect}/>
                 </List>
             );
         }
@@ -78,7 +79,8 @@ export class Compartments extends React.Component<CompartmentsProps, Compartment
         return (
             <Container fluid>
                 <div>
-                    <Input size="mini" icon='search' placeholder='Search...' fluid
+                    <Input size="mini" icon="search" iconPosition="left" action={{icon: "cancel", as: "div", onClick: () => this.setState({filterText: ""})}}
+                           placeholder='Filter compartments...' fluid value={this.state.filterText} className="compartment-search"
                            onChange={(e, {value}) => this.setState({filterText: value.toLowerCase()})}/>
                 </div>
                 <div style={{padding: "10px"}}>

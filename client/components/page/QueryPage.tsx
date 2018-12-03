@@ -141,7 +141,7 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
             isQueryCollapsed: this.state.isQueryCollapsed,
             queryStatus: queryStatus,
             neurons: this.props.neurons,
-            brainAreas: this.state.visibleBrainAreas,
+            visibleBrainAreas: this.state.visibleBrainAreas,
             isLoading: this.props.isInQuery,
             nonce: this.props.queryNonce,
             shouldAlwaysShowFullTracing: this.props.shouldAlwaysShowFullTracing,

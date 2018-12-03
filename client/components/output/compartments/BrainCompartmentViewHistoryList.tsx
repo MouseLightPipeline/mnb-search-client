@@ -30,18 +30,18 @@ const BrainCompartmentViewHistoryList = (props: IBrainVolumesTableRowProps) => {
 };
 
 export interface IBrainVolumesTableProps {
-    brainAreaViewModels: BrainCompartmentViewModel[];
+    visibleBrainAreas: BrainCompartmentViewModel[];
 
     onToggleCompartmentSelected(id: string): void;
     onRemoveFromHistory(viewModel: BrainCompartmentViewModel): void;
 }
 
 export const BrainVolumesTable = (props: IBrainVolumesTableProps) => {
-    if (!props.brainAreaViewModels || props.brainAreaViewModels.length === 0) {
+    if (!props.visibleBrainAreas || props.visibleBrainAreas.length === 0) {
         return null;
     }
 
-    const rows: any = props.brainAreaViewModels.filter(c => c.shouldIncludeInHistory).map(v => {
+    const rows: any = props.visibleBrainAreas.filter(c => c.shouldIncludeInHistory).map(v => {
         return (<BrainCompartmentViewHistoryList key={`bv_${v.compartment.id}`} brainAreaViewModel={v}
                                                  onToggleCompartmentSelected={props.onToggleCompartmentSelected}
                                                  onRemoveFromHistory={props.onRemoveFromHistory}/>)

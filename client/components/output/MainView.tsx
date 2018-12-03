@@ -58,7 +58,7 @@ interface IOutputContainerProps {
     queryStatus: QueryStatus;
     isLoading: boolean;
     neurons: INeuron[];
-    brainAreas: BrainCompartmentViewModel[];
+    visibleBrainAreas: BrainCompartmentViewModel[];
     constants: NdbConstants;
     nonce: string;
     shouldAlwaysShowFullTracing: boolean;
@@ -708,7 +708,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             constants: this.props.constants,
             isLoading: this.props.isLoading,
             tracings: this.state.tracingsToDisplay,
-            compartments: this.props.brainAreas,
+            compartments: this.props.visibleBrainAreas,
             highlightedTracings: [],
             isRendering: this.state.isRendering,
             fetchCount: this.state.fetchCount,
@@ -739,7 +739,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             isDocked: this.state.isCompartmentListDocked,
             constants: this.props.constants,
             onChangeLoadedGeometry: this.props.onMutateBrainAreas,
-            brainAreaViewModels: this.props.brainAreas,
+            visibleBrainAreas: this.props.visibleBrainAreas,
             rootNode: this.state.rootNode,
             onToggleCompartmentSelected: this.props.onToggleBrainArea,
             onRemoveFromHistory: this.props.onRemoveBrainAreaFromHistory,
@@ -864,7 +864,7 @@ function makeCompartmentNodes(brainAreas: IBrainArea[]): CompartmentNode {
 
     const root: CompartmentNode = new CompartmentNode();
     root.name = sorted[0].name;
-    root.isChecked = true;
+    // root.isChecked = true;
     root.toggled = true;
     root.children = null;
     root.compartment = sorted[0];
@@ -881,7 +881,7 @@ function makeCompartmentNodes(brainAreas: IBrainArea[]): CompartmentNode {
 
         const node: CompartmentNode = new CompartmentNode();
         node.name = c.name;
-        node.isChecked = false;
+        // node.isChecked = false;
         node.toggled = false;
         node.children = null;
         node.compartment = c;
