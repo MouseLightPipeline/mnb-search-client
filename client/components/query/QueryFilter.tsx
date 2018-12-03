@@ -151,7 +151,9 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
     private renderRemoveElement() {
         if (this.props.isRemovable) {
             return (
-                <Icon name="remove" onClick={() => this.props.onRemoveFilter(this.props.queryFilter.id)}/>
+                <div style={{marginTop: "18px"}}>
+                    <Icon name="remove" onClick={() => this.props.onRemoveFilter(this.props.queryFilter.id)}/>
+                </div>
             )
         } else {
             return null;
@@ -160,8 +162,8 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
     private renderSphereQuery() {
         return (
-            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0}}>
-                <Grid.Column width={12}>
+            <Grid.Row style={{padding: "30px 0px 20px 10px", margin: 0}}>
+                <Grid.Column width={16}>
                     <Form size="small">
                         <Form.Group>
                             <Form.Field width={3}>
@@ -177,25 +179,25 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
                             <Form.Field width={2}>
                                 <label>X (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.x}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.x} style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "x")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Y (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.y}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.y} style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "y")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Z (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.z}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbCenter.z} style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbCenterChanged(evt, "z")}/>
                             </Form.Field>
 
                             <Form.Field width={2}>
                                 <label>Radius (µm)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.arbSize}
+                                <Input placeholder="" value={this.props.queryFilter.filter.arbSize} style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onArbSizeChanged(evt)}/>
                             </Form.Field>
 
@@ -210,7 +212,8 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                          onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
                             </Form.Field>
 
-                            <Form.Field width={1} style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                            <Form.Field width={1}
+                                        style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                 <label>Threshold</label>
                                 <QueryOperatorSelect idName="query-operator"
                                                      options={this.props.queryOperators}
@@ -226,7 +229,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                             style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                     <label>&nbsp;</label>
                                     <Input placeholder="" disabled={!this.props.queryFilter.filter.CanHaveThreshold}
-                                           value={this.props.queryFilter.filter.amount}
+                                           value={this.props.queryFilter.filter.amount} style={{maxHeight: "34px"}}
                                            onChange={(evt: any) => this.onAmountChange(evt)}/>
                                 </Form.Field>
                                 : null}
@@ -239,8 +242,8 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
     private renderByIdQuery() {
         return (
-            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0, verticalAlign: "middle"}}>
-                <Grid.Column width={12}>
+            <Grid.Row style={{padding: "30px 0px 20px 10px", margin: 0}}>
+                <Grid.Column width={16}>
                     <Form size="small">
                         <Form.Group>
                             <Form.Field width={3}>
@@ -256,12 +259,12 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
                             <Form.Field width={11}>
                                 <label>Id or DOI (use comma-separated list for multiple)</label>
-                                <Input placeholder="" value={this.props.queryFilter.filter.tracingIdsOrDOIs}
+                                <Input placeholder="" value={this.props.queryFilter.filter.tracingIdsOrDOIs} style={{maxHeight: "34px"}}
                                        onChange={(evt: any) => this.onQueryTracingIdChanged(evt)}/>
                             </Form.Field>
                             <Form.Field width={2}>
                                 <label>&nbsp;</label>
-                                <div style={{verticalAlign: "middle"}}>
+                                <div style={{margin: "12px 0"}}>
                                     <Form.Checkbox label="Exact match"
                                                    checked={this.props.queryFilter.filter.tracingIdsOrDOIsExactMatch}
                                                    onChange={() => this.onTracingIdsOrDOIsExactMatch()}/>
@@ -278,8 +281,8 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
         const filter = this.props.queryFilter.filter;
 
         return (
-            <Grid.Row style={{paddingBottom: "0", paddingTop: "10px", margin: 0}}>
-                <Grid.Column width={12}>
+            <Grid.Row style={{padding: "30px 0px 20px 10px", margin: 0}}>
+                <Grid.Column width={16}>
                     <Form size="small">
                         <Form.Group>
                             <Form.Field width={3}>
@@ -333,7 +336,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                             style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                     <label>&nbsp;</label>
                                     <Input placeholder="" disabled={!filter.CanHaveThreshold}
-                                           value={this.props.queryFilter.filter.amount}
+                                           value={this.props.queryFilter.filter.amount} style={{maxHeight: "34px"}}
                                            onChange={(evt: any) => this.onAmountChange(evt)}/>
                                 </Form.Field>
                                 : null}
@@ -365,11 +368,9 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                 <div style={{
                     width: "90px",
                     order: 0,
-                    verticalAlign: "middle",
-                    margin: "auto",
-                    paddingLeft: "10px",
-                    paddingBottom: "6px",
-                    flexBasis: "content"
+                    flexBasis: "content",
+                    marginTop: "36px",
+                    paddingLeft: "8px"
                 }}>
                     {this.renderComposition()}
                 </div>

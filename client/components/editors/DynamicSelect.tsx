@@ -29,7 +29,7 @@ const customStyles = {
         ...provided,
         boxShadow: "none",
         minHeight: "34px",
-        maxHeight: "36px"
+        maxHeight: "34px"
     }),
     multiValue: (provided) => ({
         ...provided,
@@ -45,7 +45,7 @@ const customStyles = {
     }),
     multiValueRemove: (provided) => ({
         ...provided,
-        borderLeft: " 1px solid rgba(0, 126, 255, 0.239216)",
+        borderLeft: "1px solid rgba(0, 126, 255, 0.239216)",
     })
 };
 
