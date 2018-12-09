@@ -1,4 +1,5 @@
-import {NODE_PARTICLE_IMAGE, swc_parser} from "./viewer/util";
+import {NODE_PARTICLE_IMAGE} from "./viewer/util";
+import {PreferencesManager} from "./util/preferencesManager";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -90,20 +91,15 @@ export class SharkViewer {
             let result = "#000000";
             if (i >= 0 && i <= 15) {
                 result = "#00000" + i.toString(16);
-            }
-            else if (i >= 16 && i <= 255) {
+            } else if (i >= 16 && i <= 255) {
                 result = "#0000" + i.toString(16);
-            }
-            else if (i >= 256 && i <= 4095) {
+            } else if (i >= 256 && i <= 4095) {
                 result = "#000" + i.toString(16);
-            }
-            else if (i >= 4096 && i <= 65535) {
+            } else if (i >= 4096 && i <= 65535) {
                 result = "#00" + i.toString(16);
-            }
-            else if (i >= 65536 && i <= 1048575) {
+            } else if (i >= 65536 && i <= 1048575) {
                 result = "#0" + i.toString(16);
-            }
-            else if (i >= 1048576 && i <= 16777215) {
+            } else if (i >= 1048576 && i <= 16777215) {
                 result = "#" + i.toString(16);
             }
             return result;
@@ -701,6 +697,8 @@ export class SharkViewer {
         //const cameraPosition = this.calculateCameraPosition(fov);
         const cameraPosition = -20000;
         this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
+        // const cameraPosition = -2000;
+        // this.camera = new THREE.OrthographicCamera(-5000, 5000, 5000, -5000, 1, cameraPosition * 5);
         this.scene.add(this.camera);
 
         this.camera.position.z = cameraPosition;
@@ -732,9 +730,18 @@ export class SharkViewer {
         }
 
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.dom_element));
+        this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
         this.trackControls.addEventListener('change', this.render.bind(this));
 
         this.raycaster.params.Points.threshold = DEFAULT_POINT_THRESHOLD;
+
+        PreferencesManager.Instance.addListener({
+            preferenceChanged: (name) => {
+                if (name === "zoomSpeed") {
+                    this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
+                }
+            }
+        });
     };
 
     addEventHandler = function (handler) {
@@ -880,7 +887,7 @@ export class SharkViewer {
 
         const path = this.compartment_path + geometryFile;
 
-        loader.load(path,  (object) =>{
+        loader.load(path, (object) => {
             object.traverse(function (child) {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {

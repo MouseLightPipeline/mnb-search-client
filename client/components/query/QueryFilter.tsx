@@ -3,7 +3,7 @@ import {Form, Grid, Icon, Input} from "semantic-ui-react";
 
 import {IBrainArea} from "../../models/brainArea";
 
-import {BrainAreaSelect} from "../editors/BrainAreaSelect";
+import {BrainAreaMultiSelect} from "../editors/BrainAreaMultiSelect";
 import {IQueryOperator} from "../../models/queryOperator";
 import {QueryOperatorSelect} from "../editors/QueryOperatorSelect";
 import {FilterComposition} from "../../models/queryFilter";
@@ -314,13 +314,9 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
                             <Form.Field width={8}>
                                 <label>Source or Target Locations (multiple treated as or condition)</label>
-                                <BrainAreaSelect idName="brain-area"
-                                                 options={this.props.constants.BrainAreasWithGeometry}
-                                                 selectedOption={filter.brainAreas}
-                                                 multiSelect={true}
-                                                 placeholder="any"
-                                                 filterOption={(option: IBrainArea, filterValue: string) => this.onFilterBrainArea(option, filterValue)}
-                                                 onSelect={(brainAreas: IBrainArea[]) => this.onBrainAreaChange(brainAreas)}/>
+                                <BrainAreaMultiSelect compartments={this.props.constants.BrainAreasWithGeometry}
+                                                      selection={filter.brainAreas}
+                                                      onSelectionChange={(brainAreas: IBrainArea[]) => this.onBrainAreaChange(brainAreas)}/>
                             </Form.Field>
 
                             <Form.Field width={3}>

@@ -110,10 +110,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         this.updateDimensions();
     }
 
-    public preferenceChanged(name: string, value: any) {
+    public preferenceChanged(name: string) {
         if (name === "viewerBackgroundColor") {
             if (this._viewer) {
-                this._viewer.setBackground(parseInt(value.slice(1), 16));
+                this._viewer.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
             }
         }
     }

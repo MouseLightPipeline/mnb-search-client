@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Icon, Table} from "semantic-ui-react";
+import {Dropdown, Icon, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
@@ -101,32 +101,31 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
         return (
             <tr>
                 <td>
-                    <Icon name={v.isSelected ? "check square outline" : "square outline"}
-                           onClick={() => this.props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
-                    <div style={{display: "inline"}}>
-                        <div style={styles.swatch} onClick={() => this.handleClick()}>
-                            <div style={rowStyles.color}/>
-                        </div>
-                        {this.state.displayColorPicker ?
-                            <div style={{position: "relative"}}>
-                                <div style={this.props.isEnd ? styles.popoverLow : styles.popover}>
-                                    <div style={styles.cover} onClick={() => this.handleClose()}/>
-                                    <SketchPicker color={v.baseColor}
-                                                  onChange={(color: any) => this.props.onChangeNeuronColor(v, color)}/>
-                                </div>
+                    <div style={{display: "flex"}}>
+                        <Icon name={v.isSelected ? "check square outline" : "square outline"}
+                              style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
+                              onClick={() => this.props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
+                        <div style={{order: 1}}>
+                            <div style={styles.swatch} onClick={() => this.handleClick()}>
+                                <div style={rowStyles.color}/>
                             </div>
-                            : null}
+                            {this.state.displayColorPicker ?
+                                <div style={{position: "relative"}}>
+                                    <div style={this.props.isEnd ? styles.popoverLow : styles.popover}>
+                                        <div style={styles.cover} onClick={() => this.handleClose()}/>
+                                        <SketchPicker color={v.baseColor}
+                                                      onChange={(color: any) => this.props.onChangeNeuronColor(v, color)}/>
+                                    </div>
+                                </div>
+                                : null}
+                        </div>
                     </div>
                 </td>
                 <td style={{verticalAlign: "middle"}}>
                     {this.props.neuronViewModel.RequestedViewMode === null ?
-                        <TracingViewModeSelect idName="view-mode"
-                                               options={options}
-                                               placeholder="any"
-                                               clearable={false}
-                                               searchable={false}
-                                               selectedOption={this.props.neuronViewModel.CurrentViewMode}
-                                               onSelect={(v: NeuronViewMode) => this.onViewModeChange(v)}/> :
+                    <Dropdown search fluid inline options={options}
+                              value={this.props.neuronViewModel.CurrentViewMode.value}
+                              onChange={(e: any, {value}) => this.onViewModeChange(NEURON_VIEW_MODES[value as number])}/> :
                         <span>Loading...</span>}
                 </td>
                 <td style={{verticalAlign: "middle"}}>
@@ -180,7 +179,8 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
         }
 
         const rows: any = this.props.neuronViewModels.map((v, idx) => {
-            return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v} isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
+            return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v}
+                                    isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
                                     onChangeNeuronColor={this.props.onChangeNeuronColor}
                                     onChangeSelectTracing={this.props.onChangeSelectTracing}
                                     onChangeNeuronViewMode={this.props.onChangeNeuronViewMode}/>)
@@ -201,7 +201,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                     </th>
                     <th>
                         <Icon name="edit" style={{marginRight: "6px"}}
-                                   onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}/>
+                              onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}/>
                         <a onClick={() => this.setState({showChangeAllStructureDisplayDialog: true})}
                            style={{textDecoration: "underline"}}>
                             Structures

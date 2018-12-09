@@ -97,7 +97,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                 {this.state.showTutorial ? <TutorialDialog show={this.state.showTutorial}
                                                            onHide={() => this.onHideTutorial()}/> : null}
                 <Modal open={this.state.showShortcuts} onClose={() => this.onHideShortcuts()}>
-                    <Modal.Header closeButton content="Viewer Shortcuts"/>
+                    <Modal.Header content="Viewer Shortcuts"/>
                     <Modal.Content>
                         <ul>
                             <li>ctrl-click: snap to position</li>

@@ -1,7 +1,7 @@
 import {UIQueryPredicate} from "../models/uiQueryPredicate";
 
 export interface INotificationListener {
-    preferenceChanged(name: string, value: any);
+    preferenceChanged(name: string);
 }
 
 const prefix = "jne:";
@@ -26,6 +26,14 @@ export class PreferencesManager {
 
     public constructor() {
         this.validateDefaultSettings();
+
+        if (typeof(Storage) !== undefined) {
+            window.addEventListener("storage", (e) => {
+                if (e.key && e.key.startsWith(prefix)) {
+                    this.notifyListeners(e.key.substring(prefix.length), null);
+                }
+            });
+        }
     }
 
     public addListener(listener: INotificationListener) {
@@ -40,7 +48,7 @@ export class PreferencesManager {
 
     private notifyListeners(name: string, value: any) {
         this._notificationListeners.map(n => {
-            n.preferenceChanged(name, value);
+            n.preferenceChanged(name);
         })
     }
 
@@ -133,6 +141,20 @@ export class PreferencesManager {
     public set TracingSelectionHiddenOpacity(n: number) {
         if (typeof(Storage) !== undefined) {
             localStorage.setItem(prefix + "tracingSelectionHiddenOpacity", n.toFixed(2));
+        }
+    }
+
+    public get ZoomSpeed() {
+        if (typeof(Storage) !== undefined) {
+            return parseFloat(localStorage.getItem(prefix + "zoomSpeed"));
+        } else {
+            return 1.0;
+        }
+    }
+
+    public set ZoomSpeed(n: number) {
+        if (typeof(Storage) !== undefined) {
+            localStorage.setItem(prefix + "zoomSpeed", n.toFixed(1));
         }
     }
 
@@ -284,6 +306,10 @@ export class PreferencesManager {
 
             if (!localStorage.getItem(prefix + "hideCursorOnPage")) {
                 localStorage.setItem(prefix + "hideCursorOnPage", false.toString());
+            }
+
+            if (!localStorage.getItem(prefix + "zoomSpeed")) {
+                localStorage.setItem(prefix + "zoomSpeed", "1.0");
             }
         }
     }

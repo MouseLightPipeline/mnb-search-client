@@ -55,10 +55,6 @@ export interface IDynamicSelectOption {
 
 export interface IDynamicSelectProps<T, S, U> {
     idName: string;
-    isExclusiveEditMode?: boolean;
-    isDeferredEditMode?: boolean;
-    hasLeftInputGroup?: boolean;
-    hasRightInputGroup?: boolean;
     options: T[];
     selectedOption: S;
     disabled?: boolean;
@@ -124,16 +120,6 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
     protected addToSelection(option: any, selection: any): any {
     }
 
-    /*
-    protected filterOptions?(options: Option[], filterValue: string, currentValues: Option[]): Option[] {
-        if (this.props.filterOptions) {
-            return this.props.filterOptions(options, filterValue, currentValues);
-        }
-
-        return options;
-    }
-*/
-
     protected filterOption?(option: object, filter: string): boolean {
         if (this.props.filterOption) {
             return this.props.filterOption(option, filter);
@@ -142,19 +128,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
         return true;
     }
 
-    protected renderSelect(selected: any, options: any[], hasLeftInputGroup: boolean, hasRightInputGroup: boolean) {
-        let style = this.props.style || {};
-
-        if (hasLeftInputGroup && hasRightInputGroup) {
-            style["borderRadius"] = "0px"
-        } else if (hasLeftInputGroup) {
-            style["borderTopLeftRadius"] = "0px";
-            style["borderBottomLeftRadius"] = "0px";
-        } else if (hasRightInputGroup) {
-            style["borderTopRightRadius"] = "0px";
-            style["borderBottomRightRadius"] = "0px";
-        }
-
+    protected renderSelect(selected: any, options: any[]) {
         const props = {
             name: `${this.props.idName}-select`,
             placeholder: this.props.placeholder || "Select...",
@@ -185,7 +159,7 @@ export class DynamicSelect<T, S, P, U> extends React.Component<IDynamicSelectPro
             return option;
         });
 
-        return this.renderSelect(selection, options, this.props.hasLeftInputGroup, this.props.hasRightInputGroup);
+        return this.renderSelect(selection, options);
     }
 }
 
@@ -202,7 +176,7 @@ export class DynamicSingleSelect<T extends IDynamicSelectOption, U> extends Dyna
         return object.id === selectedOption.id;
     }
 
-    protected addToSelection(option: any, selection: any) {
+    protected addToSelection(option: T, selection: T) {
         return option;
     }
 }
@@ -213,7 +187,7 @@ export class DynamicSimpleSelect<T extends IDynamicSelectOption> extends Dynamic
 export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends DynamicSelect<T, T[], any[], U> {
     protected findSelectedObject(option: any[]): T[] {
         return option.map(o => {
-            return this.props.options.find(s => s.id === o.value);
+            return this.props.options.find(s => s.id === o.value.id);
         });
     }
 
@@ -222,15 +196,16 @@ export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends Dynam
     }
 
     protected isSelectedOption(object: T, selectedOption: T[]) {
-        return (selectedOption.length > 0) && !isNullOrUndefined(selectedOption.find(s => s.id === object.id));
+        return selectedOption && (selectedOption.length > 0) && !isNullOrUndefined(selectedOption.find(s => s.id === object.id));
     }
 
-    protected addToSelection(option: any, selection: any[]) {
+    protected addToSelection(option: T, selection: T[]) {
         if (selection) {
             selection.push(option);
         } else {
             selection = [option];
         }
+
         return selection;
     }
 }

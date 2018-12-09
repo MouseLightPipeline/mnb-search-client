@@ -87,7 +87,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
 
         return (
             <Modal open={this.props.show} onClose={this.props.onHide} dimmer="blurring">
-                <Modal.Header closeButton content="Settings"/>
+                <Modal.Header content="Settings"/>
                 <Modal.Content>
                     <Form>
                         <Form.Checkbox width={16} checked={this.state.shouldAutoCollapseOnQuery}
@@ -133,7 +133,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                         </div> : null}
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button bsSize="small" onClick={this.props.onHide}>Close</Button>
+                    <Button onClick={this.props.onHide}>Close</Button>
                 </Modal.Actions>
             </Modal>
         );
