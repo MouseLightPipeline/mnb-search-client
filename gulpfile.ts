@@ -11,9 +11,13 @@ gulp.task("default", ["docker-build"]);
 
 gulp.task("build", buildTask);
 
+gulp.task("tag-only", tagTask);
+
 gulp.task("docker-build", ["build"], tagTask);
 
 gulp.task("docker-push", ["docker-build"], pushTask);
+
+gulp.task("docker-push-only", ["tag-only"], pushTask);
 
 gulp.task("release", ["docker-push"]);
 

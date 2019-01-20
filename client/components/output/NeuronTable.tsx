@@ -15,6 +15,7 @@ interface IOutputTableRowProps {
     neuronViewModel: NeuronViewModel;
 
     onChangeSelectTracing(id: string, b: boolean): void;
+    onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean): void;
     onChangeNeuronColor(neuron: NeuronViewModel, color: any): void;
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
@@ -128,6 +129,12 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                               onChange={(e: any, {value}) => this.onViewModeChange(NEURON_VIEW_MODES[value as number])}/> :
                         <span>Loading...</span>}
                 </td>
+
+                <td style={{verticalAlign: "middle"}}>
+                    <Icon name={v.mirror ? "check square outline" : "square outline"}
+                          style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
+                          onClick={() => this.props.onChangeNeuronMirror(v, !v.mirror)}/>
+                </td>
                 <td style={{verticalAlign: "middle"}}>
                     {v.neuron.idString}
                 </td>
@@ -146,6 +153,7 @@ export interface INeuronTableProps {
 
     onChangeSelectTracing(id: string, b: boolean): void;
     onChangeNeuronColor(neuron: NeuronViewModel, color: any): void;
+    onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean): void;
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
     onChangeSelectAllTracings(selectAll: boolean): void;
     onChangeDefaultStructure(mode: NeuronViewMode): void;
@@ -182,6 +190,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
             return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v}
                                     isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
                                     onChangeNeuronColor={this.props.onChangeNeuronColor}
+                                    onChangeNeuronMirror={this.props.onChangeNeuronMirror}
                                     onChangeSelectTracing={this.props.onChangeSelectTracing}
                                     onChangeNeuronViewMode={this.props.onChangeNeuronViewMode}/>)
         });
@@ -206,6 +215,9 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                            style={{textDecoration: "underline"}}>
                             Structures
                         </a>
+                    </th>
+                    <th>
+                        Mirror
                     </th>
                     <th>Neuron</th>
                     <th>Compartment</th>

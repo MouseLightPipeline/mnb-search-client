@@ -15,6 +15,8 @@ export class NeuronViewModel {
 
     baseColor: string;
 
+    mirror: boolean;
+
     hasAxonTracing: boolean;
     hasDendriteTracing: boolean;
 
@@ -35,6 +37,8 @@ export class NeuronViewModel {
         this.isInHighlightList = false;
 
         this.baseColor = color || "#000000";
+
+        this.mirror = false;
 
         this.hasAxonTracing = false;
         this.hasDendriteTracing = false;

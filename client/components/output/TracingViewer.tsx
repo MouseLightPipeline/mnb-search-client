@@ -145,7 +145,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.swc = null;
             s.mode = "particle";
             s.dom_element = "viewer-container";
-            s.centerpoint = [6688, 3849, 5687];
+            s.centerpoint = [5687.5436, 3849.609985, 6595.3813];
             s.metadata = false;
             s.compartment_path = "/static/allen/obj/";
             s.WIDTH = width;
@@ -324,6 +324,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         if (matches) {
             this.setOpacity(tracing, fadedOpacity);
+            this._viewer.setNeuronMirror(tracing.id, tracing.neuron.mirror);
         } else {
             this._viewer.unloadNeuron(tracing.id);
             this._knownNeurons.delete(tracing.id);
@@ -369,7 +370,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         // Never seen and must create and show
         const toCreate = _.differenceWith(tracings, knownAsArray, (tracing, id) => id === tracing.id);
 
-        // Know, but may have changed.
+        // Known, but may have changed.
         const toVerify = _.intersectionWith(tracings, knownAsArray, (tracing, id) => id === tracing.id);
 
         toVerify.map(obj => {

@@ -1,5 +1,6 @@
 import {NODE_PARTICLE_IMAGE} from "./viewer/util";
 import {PreferencesManager} from "./util/preferencesManager";
+import {handleInputChange} from "react-select/lib/utils";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -843,7 +844,9 @@ export class SharkViewer {
         const neuron = this.createNeuron(nodes, color);
 
         neuron.name = filename;
+
         this.scene.add(neuron);
+
         if (this.centerpoint !== null) {
             neuron.position.set(-this.centerpoint[0], -this.centerpoint[1], -this.centerpoint[2]);
         }
@@ -852,6 +855,18 @@ export class SharkViewer {
     unloadNeuron = function (filename) {
         const neuron = this.scene.getObjectByName(filename);
         this.scene.remove(neuron);
+    };
+
+    setNeuronMirror = function (filename: string, mirror: boolean) {
+        const neuron = this.scene.getObjectByName(filename);
+
+        if (mirror && neuron.scale.x > 0) {
+            neuron.scale.x = -1;
+            neuron.position.x = this.centerpoint[0];
+        } else if (!mirror && neuron.scale.x < 0) {
+            neuron.scale.x = 1;
+            neuron.position.x = -this.centerpoint[0];
+        }
     };
 
     setNeuronVisible = function (id: string, visible: boolean) {
@@ -870,7 +885,6 @@ export class SharkViewer {
         const neuron = this.scene.getObjectByName(id);
 
         if (neuron) {
-            // neuron.visible = visible;
 
             neuron.children.map(c => {
                 if (c.userData.materialShader) {
@@ -933,6 +947,7 @@ export class SharkViewer {
             if (that.centerpoint !== null) {
                 object.position.set(-that.centerpoint[0], -that.centerpoint[1], -that.centerpoint[2]);
             }
+
             that.scene.add(object);
 
         });
@@ -959,6 +974,8 @@ export class SharkViewer {
 
         this.HEIGHT = height;
         this.WIDTH = width;
+
+        this.render();
     };
 
     setBackground = (color) => {

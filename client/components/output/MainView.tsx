@@ -320,6 +320,14 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
         this.setState({neuronViewModels});
     }
 
+    private onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean) {
+        const neuronViewModels = this.state.neuronViewModels.slice();
+
+        neuron.mirror = mirror;
+
+        this.setState({neuronViewModels});
+    }
+
     private onChangeDefaultStructure(mode: NeuronViewMode) {
         this.setState({defaultStructureSelection: mode});
 
@@ -694,6 +702,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             onRequestExport: (f) => this.onExportSelectedTracings(f),
             onChangeSelectTracing: (id: string, b: boolean) => this.onChangeSelectTracing(id, b),
             onChangeNeuronColor: (n: NeuronViewModel, c: any) => this.onChangeNeuronColor(n, c),
+            onChangeNeuronMirror: (n: NeuronViewModel, b: boolean) => this.onChangeNeuronMirror(n, b),
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
             onChangeSelectAllTracings: (b: boolean) => this.onChangeSelectAllTracings(b),
             onChangeDefaultStructure: (mode: NeuronViewMode) => this.onChangeDefaultStructure(mode),
