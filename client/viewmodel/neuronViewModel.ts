@@ -67,7 +67,7 @@ export class NeuronViewModel {
                 }
                 break;
             case TracingStructure.axon:
-                if (!this.hasDendriteTracing) {
+                if (!this.hasAxonTracing) {
                     this.requestedViewMode = NEURON_VIEW_MODE_SOMA;
                 } else {
                     this.requestedViewMode = NEURON_VIEW_MODE_AXON;
