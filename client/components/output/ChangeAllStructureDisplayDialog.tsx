@@ -29,7 +29,7 @@ export class ChangeAllStructureDisplayDialog extends React.Component<IChangeAllS
     public render() {
         return (
             <Modal open={this.props.show} onClose={this.props.onCancel}>
-                <Modal.Header closeButton content="Set Display Structures"/>
+                <Modal.Header content="Set Display Structures"/>
                 <Modal.Content>
                     Update the all neurons to display
                     <TracingViewModeSelect idName="view-mode"
