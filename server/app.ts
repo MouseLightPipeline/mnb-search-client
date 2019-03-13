@@ -66,7 +66,8 @@ if (process.env.NODE_ENV !== "production") {
     app.use(ServerConfiguration.systemEndpoint, (req, res) => {
         res.json({
             systemVersion: version,
-            searchScope: ServerConfiguration.searchScope
+            searchScope: ServerConfiguration.searchScope,
+            exportLimit: ServerConfiguration.exportLimit
         });
     });
 
@@ -132,7 +133,8 @@ function devServer() {
             app.use(ServerConfiguration.systemEndpoint, (req, res) => {
                 res.json({
                     systemVersion: version,
-                    searchScope: ServerConfiguration.searchScope
+                    searchScope: ServerConfiguration.searchScope,
+                    exportLimit: ServerConfiguration.exportLimit
                 });
             });
         },

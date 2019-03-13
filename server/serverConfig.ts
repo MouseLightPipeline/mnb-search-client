@@ -17,7 +17,8 @@ export interface IServiceOptions {
     tracingsService: ServiceLocation,
     staticService: ServiceLocation,
     exportSwcService: ServiceLocation,
-    exportJsonService: ServiceLocation
+    exportJsonService: ServiceLocation,
+    exportLimit: number
 }
 
 const configuration: IServiceOptions = {
@@ -51,7 +52,8 @@ const configuration: IServiceOptions = {
         hostname: "export-api",
         port: 5000,
         endpoint: "/json"
-    }
+    },
+    exportLimit: 20
 };
 
 function loadServerConfiguration() {
@@ -83,6 +85,8 @@ function loadServerConfiguration() {
     options.exportJsonService.hostname = process.env.EXPORT_API_HOST || options.exportJsonService.hostname;
     options.exportJsonService.port = parseInt(process.env.EXPORT_API_PORT) || options.exportJsonService.port;
     options.exportJsonService.endpoint = process.env.EXPORT_API_JSON_ENDPOINT || options.exportJsonService.endpoint;
+
+    options.exportLimit = parseInt(process.env.SEARCH_CLIENT_EXPORT_LIMIT) || options.exportLimit;
 
     return options;
 }

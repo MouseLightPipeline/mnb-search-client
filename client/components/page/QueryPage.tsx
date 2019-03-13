@@ -25,6 +25,8 @@ interface IPageProps {
     neurons: INeuron[];
     shouldAlwaysShowFullTracing: boolean;
     shouldAlwaysShowSoma: boolean;
+    isPublicRelease: boolean;
+    exportLimit: number;
 
     onPerformQuery(): void;
     onResetPage(): void;
@@ -146,6 +148,8 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
             nonce: this.props.queryNonce,
             shouldAlwaysShowFullTracing: this.props.shouldAlwaysShowFullTracing,
             shouldAlwaysShowSoma: this.props.shouldAlwaysShowSoma,
+            isPublicRelease: this.props.isPublicRelease,
+            exportLimit: this.props.exportLimit,
             ref: (r) => this._mainView = r,
             onToggleQueryCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
             populateCustomPredicate: (p: IPositionInput, b: boolean) => this.populateCustomPredicate(p, b),

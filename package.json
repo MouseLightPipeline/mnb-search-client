@@ -1,6 +1,6 @@
 {
   "name": "mnb-search-client",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "server/app.js",
   "private": true,
   "repository": "https://github.com/MouseLightPipeline/mnb-search-client.git",
@@ -9,8 +9,8 @@
   "dockerRepository": "mouselightdatabrowser",
   "dockerImageName": "search-client",
   "scripts": {
-    "debug": "DEBUG=mnb* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
-    "production": "gulp build && DEBUG=mnb* node --trace-warnings $NODE_DEBUG_OPTION dist/app.js",
+    "debug": "DEBUG=mnb*,express:* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
+    "production": "DEBUG=mnb*,express:* node --trace-warnings $NODE_DEBUG_OPTION dist/app.js",
     "docker-build": "gulp docker-build",
     "docker-release": "gulp release"
   },

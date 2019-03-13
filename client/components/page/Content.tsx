@@ -16,8 +16,9 @@ import cuid = require("cuid");
 
 interface IContentProps {
     constants: NdbConstants;
-    searchScope: SearchScope;
-    systemVersion: string;
+    searchScope?: SearchScope;
+    systemVersion?: string;
+    exportLimit?: number;
 }
 
 interface IContentState {
@@ -165,6 +166,8 @@ export class Content extends React.Component<IContentProps, IContentState> {
                                    queryNonce={this.state.queryNonce}
                                    shouldAlwaysShowFullTracing={this.state.shouldAlwaysShowFullTracing}
                                    shouldAlwaysShowSoma={this.state.shouldAlwaysShowSoma}
+                                   isPublicRelease={this.props.searchScope >= SearchScope.Public}
+                                   exportLimit={this.props.exportLimit}
                                    ref={(r) => this._queryPage = r}
                                    onPerformQuery={() => this.onExecuteQuery(client)}
                                    onResetPage={() => this.onResetPage()}/>

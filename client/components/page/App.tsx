@@ -7,8 +7,9 @@ import {CONSTANTS_QUERY, ConstantsQuery} from "../../graphql/constants";
 import {SearchScope} from "../../models/uiQueryPredicate";
 
 export type IAppState = {
-    searchScope: SearchScope;
-    systemVersion: string;
+    searchScope?: SearchScope;
+    systemVersion?: string;
+    exportLimit?: number;
 }
 
 export class App extends React.Component<{}, IAppState> {
@@ -17,7 +18,8 @@ export class App extends React.Component<{}, IAppState> {
 
         this.state = {
             searchScope: null,
-            systemVersion: null
+            systemVersion: null,
+            exportLimit: 20
         };
 
         fetch('/system', {
@@ -32,7 +34,8 @@ export class App extends React.Component<{}, IAppState> {
 
                     this.setState({
                         searchScope: data.searchScope,
-                        systemVersion: data.systemVersion
+                        systemVersion: data.systemVersion,
+                        exportLimit: data.exportLimit
                     })
                 } else {
                     console.log(resp);
