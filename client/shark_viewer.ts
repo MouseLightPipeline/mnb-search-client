@@ -59,6 +59,7 @@ export class SharkViewer {
     private trackControls = null;
     private backgroundColor = 0xffffff;
     private renderer = null;
+    private scene = null;
     private camera = null;
 
     public constructor() {
@@ -743,6 +744,8 @@ export class SharkViewer {
                 }
             }
         });
+
+        this.loadSlice();
     };
 
     addEventHandler = function (handler) {
@@ -964,6 +967,17 @@ export class SharkViewer {
         if (compartment) {
             compartment.visible = visible;
         }
+    };
+
+    loadSlice = () => {
+        const geometry = new THREE.PlaneGeometry( 10400.0076, 7429.3582, 32 );
+        geometry.scale(1, -1, 1);
+        // geometry.translate(587.5394, 132.4309, -6595.3812);
+        geometry.translate(587.5394, 132.4309, 0);
+        const texture =  new THREE.TextureLoader().load(require("file-loader!../assets/coronal.png"));
+        const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide, opacity: 0.5, transparent: true} );
+        const plane = new THREE.Mesh( geometry, material );
+        this.scene.add( plane );
     };
 
     setSize = function (width, height) {
