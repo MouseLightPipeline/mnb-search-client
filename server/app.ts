@@ -127,6 +127,9 @@ function devServer() {
             },
             [ServerConfiguration.exportJsonService.endpoint]: {
                 target: exportJsonUri
+            },
+            ["/slice"]: {
+                target: staticUri
             }
         },
         before: (app) => {

@@ -561,7 +561,7 @@ export class SharkViewer {
         return neuron;
     };
 
-//Sets up three.js scene 
+//Sets up three.js scene
     init = function () {
         this.vertexShader = [
             'uniform float particleScale;',
@@ -969,18 +969,37 @@ export class SharkViewer {
         }
     };
 
-    loadSlice = () => {
+    loadSlice = async () => {
         const geometry = new THREE.PlaneGeometry( 10400.0076, 7429.3582, 32 );
         geometry.scale(1, -1, 1);
         // geometry.translate(587.5394, 132.4309, -6595.3812);
-        geometry.translate(587.5394, 132.4309, 0);
-        const texture =  new THREE.TextureLoader().load(require("file-loader!../assets/coronal.png"));
-        const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide, opacity: 0.5, transparent: true} );
-        const plane = new THREE.Mesh( geometry, material );
+        //geometry.translate(587.5394, 132.4309, 0);
+        // const foo = require("file-loader!../assets/coronal.png");
+        // console.log(foo);
+        // const texture =  new THREE.TextureLoader().load(require("file-loader!../assets/coronal.png"));
+
+        const data = await fetch("/slice/sample-001/coronal/1.png", {
+            method: "GET",
+            headers: {
+            }
+        });
+
+        const image = new Image();
+        const text = await data.text();
+        // console.log(text);
+        image.src =  'data:image/png;base64,'+ text;
+
+        const texture = new THREE.Texture();
+        texture.image = image;
+        texture.needsUpdate = true;
+
+        const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide, opacity: 0.75, transparent: true, depthTest: false} );
+        // const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
+        const plane = new THREE.Mesh(geometry, material);
         this.scene.add( plane );
     };
 
-    setSize = function (width, height) {
+    setSize = (width, height) => {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
 
