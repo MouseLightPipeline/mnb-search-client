@@ -8,6 +8,12 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 const DEFAULT_POINT_THRESHOLD = 50;
 
+enum SlicePlane {
+    Coronal,
+    Horizontal,
+    Sagittal
+}
+
 export class SharkViewer {
     /* swc neuron json object:
      *	{ id : {
@@ -978,22 +984,42 @@ export class SharkViewer {
         // console.log(foo);
         // const texture =  new THREE.TextureLoader().load(require("file-loader!../assets/coronal.png"));
 
-        const data = await fetch("/slice/sample-001/coronal/1.png", {
-            method: "GET",
+        const resp = await fetch("/slice", {
+            method: "POST",
             headers: {
-            }
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                sampleId: "sample-001",
+                plane: SlicePlane.Coronal,
+                coordinates: [0, 0, 6400]
+            })
         });
 
+        if (resp.status !== 200) {
+            return;
+        }
+        const json = await resp.json();
+        console.log(json);
+
         const image = new Image();
-        const text = await data.text();
+        // const text = await resp.text();
         // console.log(text);
-        image.src =  'data:image/png;base64,'+ text;
+        // image.src =  'data:image/png;base64,'+ text;
+        image.src =  'data:image/png;base64,'+ json.texture;
 
         const texture = new THREE.Texture();
         texture.image = image;
         texture.needsUpdate = true;
 
-        const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide, opacity: 0.75, transparent: true, depthTest: false} );
+        const image2 = new Image();
+        image2.src =  'data:image/png;base64,'+ json.mask;
+
+        const texture2 = new THREE.Texture();
+        texture2.image = image2;
+        texture2.needsUpdate = true;
+
+        const material = new THREE.MeshBasicMaterial( {map: texture, alphaMap: texture2, color: 0xffffff, side: THREE.DoubleSide, opacity: 1, transparent: true, depthTest: false} );
         // const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
         const plane = new THREE.Mesh(geometry, material);
         this.scene.add( plane );

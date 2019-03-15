@@ -9,8 +9,8 @@
   "dockerRepository": "mouselightdatabrowser",
   "dockerImageName": "search-client",
   "scripts": {
-    "debug": "DEBUG=mnb*,express:* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
-    "production": "DEBUG=mnb*,express:* node --trace-warnings $NODE_DEBUG_OPTION dist/app.js",
+    "debug": "DEBUG=mnb* node --trace-warnings $NODE_DEBUG_OPTION server/app.js",
+    "production": "DEBUG=mnb* node --trace-warnings $NODE_DEBUG_OPTION dist/app.js",
     "docker-build": "gulp docker-build",
     "docker-release": "gulp release"
   },
