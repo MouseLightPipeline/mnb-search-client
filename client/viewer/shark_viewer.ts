@@ -1,18 +1,12 @@
-import {NODE_PARTICLE_IMAGE} from "./viewer/util";
-import {PreferencesManager} from "./util/preferencesManager";
-import {handleInputChange} from "react-select/lib/utils";
+import {NODE_PARTICLE_IMAGE} from "./util";
+import {PreferencesManager} from "../util/preferencesManager";
+import {requestSlice, SlicePlane} from "../slice/sliceManager";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 const DEFAULT_POINT_THRESHOLD = 50;
-
-enum SlicePlane {
-    Coronal,
-    Horizontal,
-    Sagittal
-}
 
 export class SharkViewer {
     /* swc neuron json object:
@@ -27,7 +21,7 @@ export class SharkViewer {
      *	}
      */
     public swc = {};
-    //html element that will recieve webgl canvas
+    //html element that will receive webgl canvas
     public dom_element = 'container';
     //mode (sphere, particle, skeleton)
     public mode = 'particle';
@@ -67,6 +61,18 @@ export class SharkViewer {
     private renderer = null;
     private scene = null;
     private camera = null;
+
+    private coronalPlane = null;
+    private coronalTexture = null;
+    private coronalMaskTexture = null;
+
+    private horizontalPlane = null;
+    private horizontalTexture = null;
+    private horizontalMaskTexture = null;
+
+    private sagittalPlane = null;
+    private sagittalTexture = null;
+    private sagittalMaskTexture = null;
 
     public constructor() {
     }
@@ -135,7 +141,7 @@ export class SharkViewer {
         return metadiv;
     };
 
-//calculates camera position based on boudning box
+//calculates camera position based on bounding box
     calculateCameraPosition = function (fov, center, boundingBox) {
         const x1 = Math.floor(center[0] - boundingBox.xmin) * 2;
         const x2 = Math.floor(boundingBox.xmax - center[0]) * 2;
@@ -751,7 +757,10 @@ export class SharkViewer {
             }
         });
 
-        this.loadSlice();
+        // this.loadSlice();
+        this.createCoronalSlice();
+        this.createHorizontalSlice();
+        this.createSagittalSlice();
     };
 
     addEventHandler = function (handler) {
@@ -975,54 +984,122 @@ export class SharkViewer {
         }
     };
 
-    loadSlice = async () => {
-        const geometry = new THREE.PlaneGeometry( 10400.0076, 7429.3582, 32 );
-        geometry.scale(1, -1, 1);
-        // geometry.translate(587.5394, 132.4309, -6595.3812);
-        //geometry.translate(587.5394, 132.4309, 0);
-        // const foo = require("file-loader!../assets/coronal.png");
-        // console.log(foo);
-        // const texture =  new THREE.TextureLoader().load(require("file-loader!../assets/coronal.png"));
+    private async createCoronalSlice() {
+        const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
 
-        const resp = await fetch("/slice", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                sampleId: "sample-001",
-                plane: SlicePlane.Coronal,
-                coordinates: [0, 0, 6400]
-            })
+        geometry.scale(1, -1, 1);
+
+        this.coronalTexture = new THREE.Texture();
+        this.coronalMaskTexture = new THREE.Texture();
+
+        const material = this.createSliceMaterial(this.coronalTexture, this.coronalMaskTexture);
+
+        const plane = new THREE.Mesh(geometry, material);
+
+        this.scene.add(plane);
+
+        /*
+        const images = await requestSlice({
+            sampleId: "sample-001",
+            plane: SlicePlane.Coronal,
+            coordinates: [0, 0, 6400]
         });
 
-        if (resp.status !== 200) {
+        if (images === null) {
             return;
         }
-        const json = await resp.json();
-        console.log(json);
 
-        const image = new Image();
-        // const text = await resp.text();
-        // console.log(text);
-        // image.src =  'data:image/png;base64,'+ text;
-        image.src =  'data:image/png;base64,'+ json.texture;
+        this.coronalTexture.image = images[0];
+        this.coronalTexture.needsUpdate = true;
+
+        this.coronalMaskTexture.image = images[1];
+        this.coronalMaskTexture.needsUpdate = true;
+        */
+    }
+
+    private createHorizontalSlice() {
+        const geometry = new THREE.PlaneGeometry(10400.0076, 13187.6221, 32);
+
+        geometry.rotateX(Math.PI/2);
+
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            side: THREE.DoubleSide,
+            opacity: 0.5,
+            transparent: true,
+            depthTest: false
+        });
+
+        const plane = new THREE.Mesh(geometry, material);
+
+        this.scene.add(plane);
+    }
+
+    private createSagittalSlice() {
+        const geometry = new THREE.PlaneGeometry(13187.6221, 7429.3582, 32);
+
+        geometry.rotateY(Math.PI/2);
+
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x0000ff,
+            side: THREE.DoubleSide,
+            opacity: 0.5,
+            transparent: true,
+            depthTest: false
+        });
+
+        const plane = new THREE.Mesh(geometry, material);
+
+        this.scene.add(plane);
+    }
+
+    private createSliceMaterial(texture, maskTexture) {
+        return new THREE.MeshBasicMaterial({
+            map: texture,
+            alphaMap: maskTexture,
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            opacity: 0.9,
+            transparent: true,
+            depthTest: false
+        });
+
+    }
+
+    loadSlice = async () => {
+        const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
+        geometry.scale(1, -1, 1);
+
+        const images = await requestSlice({
+            sampleId: "sample-001",
+            plane: SlicePlane.Coronal,
+            coordinates: [0, 0, 6400]
+        });
+
+        if (images === null) {
+            return;
+        }
 
         const texture = new THREE.Texture();
-        texture.image = image;
+        texture.image = images[0];
         texture.needsUpdate = true;
 
-        const image2 = new Image();
-        image2.src =  'data:image/png;base64,'+ json.mask;
-
         const texture2 = new THREE.Texture();
-        texture2.image = image2;
+        texture2.image = images[1];
         texture2.needsUpdate = true;
 
-        const material = new THREE.MeshBasicMaterial( {map: texture, alphaMap: texture2, color: 0xffffff, side: THREE.DoubleSide, opacity: 1, transparent: true, depthTest: false} );
-        // const material = new THREE.MeshBasicMaterial( {map: texture, color: 0xffffff, side: THREE.DoubleSide} );
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            alphaMap: texture2,
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            opacity: 1,
+            transparent: true,
+            depthTest: false
+        });
+
         const plane = new THREE.Mesh(geometry, material);
-        this.scene.add( plane );
+        this.scene.add(plane);
     };
 
     setSize = (width, height) => {

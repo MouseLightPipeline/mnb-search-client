@@ -7,7 +7,7 @@ import {NdbConstants} from "../../models/constants";
 import {BrainCompartmentViewModel} from "../../viewmodel/brainCompartmentViewModel";
 import {IPositionInput} from "../../models/queryFilter";
 import {ViewerMouseHandler} from "../../viewer/viewMouseHandler";
-import {SharkViewer} from "../../shark_viewer";
+import {SharkViewer} from "../../viewer/shark_viewer";
 import {ViewerSelection} from "./ViewerSelection";
 import {INotificationListener, PreferencesManager} from "../../util/preferencesManager";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
