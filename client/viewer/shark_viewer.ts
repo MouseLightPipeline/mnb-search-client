@@ -1,6 +1,6 @@
 import {NODE_PARTICLE_IMAGE} from "./util";
 import {PreferencesManager} from "../util/preferencesManager";
-import {requestSlice, SlicePlane} from "../slice/sliceManager";
+import {SliceManager} from "./sliceManager";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -61,7 +61,7 @@ export class SharkViewer {
     private renderer = null;
     private scene = null;
     private camera = null;
-
+/*
     private coronalPlane = null;
     private coronalTexture = null;
     private coronalMaskTexture = null;
@@ -73,7 +73,7 @@ export class SharkViewer {
     private sagittalPlane = null;
     private sagittalTexture = null;
     private sagittalMaskTexture = null;
-
+*/
     public constructor() {
     }
 
@@ -757,10 +757,7 @@ export class SharkViewer {
             }
         });
 
-        // this.loadSlice();
-        this.createCoronalSlice();
-        this.createHorizontalSlice();
-        this.createSagittalSlice();
+        const sliceManager = new SliceManager("allen-reference", this.scene);
     };
 
     addEventHandler = function (handler) {
@@ -983,7 +980,7 @@ export class SharkViewer {
             compartment.visible = visible;
         }
     };
-
+/*
     private async createCoronalSlice() {
         const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
 
@@ -998,7 +995,7 @@ export class SharkViewer {
 
         this.scene.add(plane);
 
-        /*
+
         const images = await requestSlice({
             sampleId: "sample-001",
             plane: SlicePlane.Coronal,
@@ -1014,7 +1011,6 @@ export class SharkViewer {
 
         this.coronalMaskTexture.image = images[1];
         this.coronalMaskTexture.needsUpdate = true;
-        */
     }
 
     private createHorizontalSlice() {
@@ -1101,7 +1097,7 @@ export class SharkViewer {
         const plane = new THREE.Mesh(geometry, material);
         this.scene.add(plane);
     };
-
+    */
     setSize = (width, height) => {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
