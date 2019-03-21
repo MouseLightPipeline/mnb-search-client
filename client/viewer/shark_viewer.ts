@@ -1,6 +1,7 @@
 import {NODE_PARTICLE_IMAGE} from "./util";
 import {PreferencesManager} from "../util/preferencesManager";
-import {SliceManager} from "./sliceManager";
+import {SliceManager} from "../slice/sliceManager";
+import {SlicePlane} from "../slice/sliceService";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -61,19 +62,21 @@ export class SharkViewer {
     private renderer = null;
     private scene = null;
     private camera = null;
-/*
-    private coronalPlane = null;
-    private coronalTexture = null;
-    private coronalMaskTexture = null;
+    private sliceManager = null;
 
-    private horizontalPlane = null;
-    private horizontalTexture = null;
-    private horizontalMaskTexture = null;
+    /*
+        private coronalPlane = null;
+        private coronalTexture = null;
+        private coronalMaskTexture = null;
 
-    private sagittalPlane = null;
-    private sagittalTexture = null;
-    private sagittalMaskTexture = null;
-*/
+        private horizontalPlane = null;
+        private horizontalTexture = null;
+        private horizontalMaskTexture = null;
+
+        private sagittalPlane = null;
+        private sagittalTexture = null;
+        private sagittalMaskTexture = null;
+    */
     public constructor() {
     }
 
@@ -757,7 +760,11 @@ export class SharkViewer {
             }
         });
 
-        const sliceManager = new SliceManager("allen-reference", this.scene);
+        this.sliceManager = new SliceManager("allen-reference", this.scene);
+
+        // sliceManager.showSlice(SlicePlane.Sagittal, 5200).then();
+        // sliceManager.showSlice(SlicePlane.Horizontal, 3700).then();
+        // sliceManager.showSlice(SlicePlane.Coronal, 1000).then();
     };
 
     addEventHandler = function (handler) {
@@ -980,124 +987,133 @@ export class SharkViewer {
             compartment.visible = visible;
         }
     };
-/*
-    private async createCoronalSlice() {
-        const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
 
-        geometry.scale(1, -1, 1);
-
-        this.coronalTexture = new THREE.Texture();
-        this.coronalMaskTexture = new THREE.Texture();
-
-        const material = this.createSliceMaterial(this.coronalTexture, this.coronalMaskTexture);
-
-        const plane = new THREE.Mesh(geometry, material);
-
-        this.scene.add(plane);
-
-
-        const images = await requestSlice({
-            sampleId: "sample-001",
-            plane: SlicePlane.Coronal,
-            coordinates: [0, 0, 6400]
-        });
-
-        if (images === null) {
-            return;
+    setSliceVisible = async (plane: SlicePlane, visible: boolean) => {
+        if (visible) {
+            await this.sliceManager.showSlice(plane);
+        } else {
+            this.sliceManager.hideSlice(plane);
         }
-
-        this.coronalTexture.image = images[0];
-        this.coronalTexture.needsUpdate = true;
-
-        this.coronalMaskTexture.image = images[1];
-        this.coronalMaskTexture.needsUpdate = true;
-    }
-
-    private createHorizontalSlice() {
-        const geometry = new THREE.PlaneGeometry(10400.0076, 13187.6221, 32);
-
-        geometry.rotateX(Math.PI/2);
-
-        const material = new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            side: THREE.DoubleSide,
-            opacity: 0.5,
-            transparent: true,
-            depthTest: false
-        });
-
-        const plane = new THREE.Mesh(geometry, material);
-
-        this.scene.add(plane);
-    }
-
-    private createSagittalSlice() {
-        const geometry = new THREE.PlaneGeometry(13187.6221, 7429.3582, 32);
-
-        geometry.rotateY(Math.PI/2);
-
-        const material = new THREE.MeshBasicMaterial({
-            color: 0x0000ff,
-            side: THREE.DoubleSide,
-            opacity: 0.5,
-            transparent: true,
-            depthTest: false
-        });
-
-        const plane = new THREE.Mesh(geometry, material);
-
-        this.scene.add(plane);
-    }
-
-    private createSliceMaterial(texture, maskTexture) {
-        return new THREE.MeshBasicMaterial({
-            map: texture,
-            alphaMap: maskTexture,
-            color: 0xffffff,
-            side: THREE.DoubleSide,
-            opacity: 0.9,
-            transparent: true,
-            depthTest: false
-        });
-
-    }
-
-    loadSlice = async () => {
-        const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
-        geometry.scale(1, -1, 1);
-
-        const images = await requestSlice({
-            sampleId: "sample-001",
-            plane: SlicePlane.Coronal,
-            coordinates: [0, 0, 6400]
-        });
-
-        if (images === null) {
-            return;
-        }
-
-        const texture = new THREE.Texture();
-        texture.image = images[0];
-        texture.needsUpdate = true;
-
-        const texture2 = new THREE.Texture();
-        texture2.image = images[1];
-        texture2.needsUpdate = true;
-
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            alphaMap: texture2,
-            color: 0xffffff,
-            side: THREE.DoubleSide,
-            opacity: 1,
-            transparent: true,
-            depthTest: false
-        });
-
-        const plane = new THREE.Mesh(geometry, material);
-        this.scene.add(plane);
     };
-    */
+
+    /*
+        private async createCoronalSlice() {
+            const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
+
+            geometry.scale(1, -1, 1);
+
+            this.coronalTexture = new THREE.Texture();
+            this.coronalMaskTexture = new THREE.Texture();
+
+            const material = this.createSliceMaterial(this.coronalTexture, this.coronalMaskTexture);
+
+            const plane = new THREE.Mesh(geometry, material);
+
+            this.scene.add(plane);
+
+
+            const images = await requestSlice({
+                sampleId: "sample-001",
+                plane: SlicePlane.Coronal,
+                coordinates: [0, 0, 6400]
+            });
+
+            if (images === null) {
+                return;
+            }
+
+            this.coronalTexture.image = images[0];
+            this.coronalTexture.needsUpdate = true;
+
+            this.coronalMaskTexture.image = images[1];
+            this.coronalMaskTexture.needsUpdate = true;
+        }
+
+        private createHorizontalSlice() {
+            const geometry = new THREE.PlaneGeometry(10400.0076, 13187.6221, 32);
+
+            geometry.rotateX(Math.PI/2);
+
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                side: THREE.DoubleSide,
+                opacity: 0.5,
+                transparent: true,
+                depthTest: false
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+
+            this.scene.add(plane);
+        }
+
+        private createSagittalSlice() {
+            const geometry = new THREE.PlaneGeometry(13187.6221, 7429.3582, 32);
+
+            geometry.rotateY(Math.PI/2);
+
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x0000ff,
+                side: THREE.DoubleSide,
+                opacity: 0.5,
+                transparent: true,
+                depthTest: false
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+
+            this.scene.add(plane);
+        }
+
+        private createSliceMaterial(texture, maskTexture) {
+            return new THREE.MeshBasicMaterial({
+                map: texture,
+                alphaMap: maskTexture,
+                color: 0xffffff,
+                side: THREE.DoubleSide,
+                opacity: 0.9,
+                transparent: true,
+                depthTest: false
+            });
+
+        }
+
+        loadSlice = async () => {
+            const geometry = new THREE.PlaneGeometry(10400.0076, 7429.3582, 32);
+            geometry.scale(1, -1, 1);
+
+            const images = await requestSlice({
+                sampleId: "sample-001",
+                plane: SlicePlane.Coronal,
+                coordinates: [0, 0, 6400]
+            });
+
+            if (images === null) {
+                return;
+            }
+
+            const texture = new THREE.Texture();
+            texture.image = images[0];
+            texture.needsUpdate = true;
+
+            const texture2 = new THREE.Texture();
+            texture2.image = images[1];
+            texture2.needsUpdate = true;
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                alphaMap: texture2,
+                color: 0xffffff,
+                side: THREE.DoubleSide,
+                opacity: 1,
+                transparent: true,
+                depthTest: false
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+            this.scene.add(plane);
+        };
+        */
     setSize = (width, height) => {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();

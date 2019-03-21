@@ -6,7 +6,8 @@
     "module": "commonjs",
     "target": "es6",
     "jsx": "react",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "dist",

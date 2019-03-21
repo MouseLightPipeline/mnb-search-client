@@ -1,4 +1,6 @@
 import * as React from "react";
+import {observe} from "mobx";
+import {observer} from "mobx-react";
 import * as _ from "lodash";
 
 import {ITracingNode} from "../../models/tracingNode";
@@ -12,6 +14,8 @@ import {ViewerSelection} from "./ViewerSelection";
 import {INotificationListener, PreferencesManager} from "../../util/preferencesManager";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
+import {TomographyViewModel} from "../../viewmodel/tomographyViewModel";
+import {SlicePlane} from "../../slice/sliceService";
 
 const ROOT_ID = 997;
 
@@ -37,6 +41,7 @@ export interface ITracingViewerProps {
     displayHighlightedOnly: boolean;
     highlightSelectionMode: HighlightSelectionMode;
     cycleFocusNeuronId: string;
+    tomographyViewModel: TomographyViewModel;
 
     onChangeIsRendering?(isRendering: boolean): void;
     onHighlightTracing(neuron: NeuronViewModel, highlight?: boolean): void;
@@ -59,6 +64,7 @@ interface ITracingViewerState {
     selectedNode?: ITracingNode;
 }
 
+@observer
 export class TracingViewer extends React.Component<ITracingViewerProps, ITracingViewerState> implements INotificationListener {
     private _viewer: any = null;
 
@@ -71,7 +77,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     private _neuronColors = new Map<string, string>();
 
     private _tracingRadiusFactor = PreferencesManager.Instance.TracingRadiusFactor;
-
 
     public constructor(props: ITracingViewerProps) {
         super(props);
@@ -96,6 +101,20 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         PreferencesManager.Instance.addListener(this);
 
         this.prepareAndRenderTracings(this.props);
+
+        observe(this.props.tomographyViewModel, async (change) => {
+            switch (change.name) {
+                case "IsSagittalEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsSagittalEnabled);
+                    break;
+                case "IsHorizontalEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsHorizontalEnabled);
+                    break;
+                case "IsCoronalEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsCoronalEnabled);
+                    break;
+            }
+        });
     }
 
     public componentWillUnmount() {
@@ -138,7 +157,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         this.props.onToggleDisplayHighlighted();
     }
 
-    private createViewer(width: number, height: number) {
+    private async createViewer(width: number, height: number) {
         if (!this._viewer) {
             const s = new SharkViewer();
 
@@ -151,7 +170,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.WIDTH = width;
             s.HEIGHT = height;
             s.on_select_node = (tracingId: string, sampleNumber: number, event) => this.onSelectNode(tracingId, sampleNumber, event);
-            s.on_toggle_node = (tracingId: string, sampleNumber: number) => this.props.onToggleTracing(tracingId);
+            s.on_toggle_node = (tracingId: string) => this.props.onToggleTracing(tracingId);
 
             s.init();
             s.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
@@ -161,6 +180,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.addEventHandler(new ViewerMouseHandler());
 
             this._viewer = s;
+
+            await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsSagittalEnabled);
+            await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.IsHorizontalEnabled);
+            await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.IsCoronalEnabled);
         }
     }
 
@@ -397,10 +420,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         setTimeout(() => this.loadTracings(props), 0.01);
     }
 
-    private loadTracings(props: ITracingViewerProps) {
+    private async loadTracings(props: ITracingViewerProps) {
         const {width, height} = this.calculateDimensions();
 
-        this.createViewer(width, height);
+        await this.createViewer(width, height);
 
         this.renderBrainVolumes(props);
 

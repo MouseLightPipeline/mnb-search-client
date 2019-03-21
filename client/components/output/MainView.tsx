@@ -25,12 +25,15 @@ import {examples} from "../../examples";
 import {isNullOrUndefined} from "../../util/nodeUtil";
 import {CompartmentNode} from "./compartments/CompartmentNode";
 import {Button, Message, Modal} from "semantic-ui-react";
+import {TomographyViewModel} from "../../viewmodel/tomographyViewModel";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
 const tracingNeuronMap = new Map<string, string>();
 
 const tracingViewModelMap2 = new Map<string, TracingViewModel>();
+
+const tomographyViewModel = new TomographyViewModel();
 
 export enum DrawerState {
     Hidden,
@@ -731,6 +734,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             cycleFocusNeuronId: this.state.cycleFocusNeuronId,
             isQueryCollapsed: this.props.isQueryCollapsed,
             fetchState: this.state.fetchState,
+            tomographyViewModel,
             onSetFetchState: (s) => this.onSetFetchState(s),
             onCancelFetch: () => this.onCancelFetch(),
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
@@ -750,6 +754,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         const treeProps = {
             isDocked: this.state.isCompartmentListDocked,
+            tomographyViewModel,
             constants: this.props.constants,
             onChangeLoadedGeometry: this.props.onMutateBrainAreas,
             visibleBrainAreas: this.props.visibleBrainAreas,
