@@ -45,7 +45,12 @@ export class SliceManager {
                 location
             });
 
-            slice.updateTexture(location, images);
+            if (images !== null) {
+                slice.Mesh.visible = true;
+                slice.updateTexture(location, images);
+            } else {
+                slice.Mesh.visible = false;
+            }
         }
     }
 
@@ -59,6 +64,8 @@ export class SliceManager {
 
             this.updateSlice(plane, centerPoint[plane - 1]).then();
         }
+
+        slice.Mesh.visible = true;
 
         this._scene.add(slice.Mesh);
 

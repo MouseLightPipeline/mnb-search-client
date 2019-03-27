@@ -761,10 +761,6 @@ export class SharkViewer {
         });
 
         this.sliceManager = new SliceManager("allen-reference", this.scene);
-
-        // sliceManager.showSlice(SlicePlane.Sagittal, 5200).then();
-        // sliceManager.showSlice(SlicePlane.Horizontal, 3700).then();
-        // sliceManager.showSlice(SlicePlane.Coronal, 1000).then();
     };
 
     addEventHandler = function (handler) {
@@ -994,6 +990,10 @@ export class SharkViewer {
         } else {
             this.sliceManager.hideSlice(plane);
         }
+    };
+
+    updateSlice = async (plane: SlicePlane, location: number) => {
+        await this.sliceManager.updateSlice(plane, location);
     };
 
     /*
