@@ -2,7 +2,7 @@ import {observable} from 'mobx';
 
 export class TomographyViewModel {
     @observable IsSagittalEnabled: boolean = true;
-    @observable IsHorizontalEnabled: boolean = false;
+    @observable IsHorizontalEnabled: boolean = true;
     @observable IsCoronalEnabled: boolean = true;
 
     @observable SagittalSliceLocation: number = 5700;
