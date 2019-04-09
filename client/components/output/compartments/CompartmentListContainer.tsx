@@ -5,7 +5,7 @@ import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCom
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
-import {TomographyController} from "../../tomography/tomographyController";
+import {TomographyPanel} from "../../tomography/tomographyPanel";
 import {TomographyViewModel} from "../../../viewmodel/tomographyViewModel";
 
 type CompartmentHeaderProps = {
@@ -89,7 +89,7 @@ export const CompartmentListContainer = (props: ICompartmentListContainerProps) 
                         textAlign: "center"
                     }}>Tomography</h5>
                 </div>
-                <TomographyController viewModel={props.tomographyViewModel}/>
+                <TomographyPanel viewModel={props.tomographyViewModel}/>
                 <div style={{
                     backgroundColor: color,
                     color: "white",

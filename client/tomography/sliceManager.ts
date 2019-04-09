@@ -2,6 +2,11 @@ import * as THREE from "three";
 
 import {SlicePlane, SliceService} from "./sliceService";
 import {Slice} from "./slice";
+import {TomographyConstants} from "./tomographyConstants";
+
+const tomographyConstants = TomographyConstants.Instance;
+
+const centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
 export class SliceManager {
     private readonly _sampleId: string;
@@ -80,5 +85,3 @@ export class SliceManager {
         this._scene.remove(this._sliceMap.get(plane).Mesh);
     }
 }
-
-const centerPoint = [5687.5436, 3849.609985, 6595.3813];

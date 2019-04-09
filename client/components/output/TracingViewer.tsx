@@ -15,9 +15,12 @@ import {INotificationListener, PreferencesManager} from "../../util/preferencesM
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
 import {TomographyViewModel} from "../../viewmodel/tomographyViewModel";
-import {SlicePlane} from "../../slice/sliceService";
+import {SlicePlane} from "../../tomography/sliceService";
+import {TomographyConstants} from "../../tomography/tomographyConstants";
 
 const ROOT_ID = 997;
+
+const tomographyConstants = TomographyConstants.Instance;
 
 export enum HighlightSelectionMode {
     Normal,
@@ -102,25 +105,35 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         this.prepareAndRenderTracings(this.props);
 
-        observe(this.props.tomographyViewModel, async (change) => {
+        observe(this.props.tomographyViewModel.Sagittal, async (change) => {
             switch (change.name) {
-                case "IsSagittalEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsSagittalEnabled);
+                case "IsEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.IsEnabled);
                     break;
-                case "IsHorizontalEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.IsHorizontalEnabled);
+                case "Location":
+                    await this._viewer.updateSlice(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.Location);
                     break;
-                case "IsCoronalEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.IsCoronalEnabled);
+            }
+        });
+
+        observe(this.props.tomographyViewModel.Horizontal, async (change) => {
+            switch (change.name) {
+                case "IsEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.IsEnabled);
                     break;
-                case "SagittalSliceLocation":
-                    await this._viewer.updateSlice(SlicePlane.Sagittal, this.props.tomographyViewModel.SagittalSliceLocation);
+                case "Location":
+                    await this._viewer.updateSlice(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.Location);
                     break;
-                case "HorizontalSliceLocation":
-                    await this._viewer.updateSlice(SlicePlane.Horizontal, this.props.tomographyViewModel.HorizontalSliceLocation);
+            }
+        });
+
+        observe(this.props.tomographyViewModel.Coronal, async (change) => {
+            switch (change.name) {
+                case "IsEnabled":
+                    await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.IsEnabled);
                     break;
-                case "CoronalSliceLocation":
-                    await this._viewer.updateSlice(SlicePlane.Coronal, this.props.tomographyViewModel.CoronalSliceLocation);
+                case "Location":
+                    await this._viewer.updateSlice(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.Location);
                     break;
             }
         });
@@ -173,7 +186,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.swc = null;
             s.mode = "particle";
             s.dom_element = "viewer-container";
-            s.centerpoint = [5687.5436, 3849.609985, 6595.3813];
+            // s.centerpoint = [5687.5436, 3849.609985, 6595.3813];
+            s.centerpoint =  [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
             s.compartment_path = "/static/allen/obj/";
             s.WIDTH = width;
@@ -190,9 +204,9 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
             this._viewer = s;
 
-            await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.IsSagittalEnabled);
-            await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.IsHorizontalEnabled);
-            await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.IsCoronalEnabled);
+            await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.IsEnabled);
+            await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.IsEnabled);
+            await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.IsEnabled);
         }
     }
 

@@ -7,7 +7,7 @@ export class TracingViewModel {
     id: string;
     tracing: ITracing;
     structure: ITracingStructure;
-    private _neuron: NeuronViewModel;
+    private readonly _neuron: NeuronViewModel;
     soma: ITracingNode;
     // isHighlighted: boolean;
     nodeLookup: Map<number, ITracingNode>;

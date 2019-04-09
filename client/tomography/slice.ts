@@ -1,21 +1,24 @@
 import * as THREE from "three";
 import {SliceImage, SlicePlane} from "./sliceService";
+import {CoronalLimit, HorizontalLimit, SagittalLimit, TomographyConstants} from "./tomographyConstants";
 
 type SliceSize = [number, number];
 
 const SliceSizeMap = new Map<SlicePlane, SliceSize>();
 
-SliceSizeMap.set(SlicePlane.Coronal, [10400.0076, 7429.3582]);
-SliceSizeMap.set(SlicePlane.Horizontal, [10400.0076, 13187.6221]);
-SliceSizeMap.set(SlicePlane.Sagittal, [13187.6221, 7429.3582]);
+SliceSizeMap.set(SlicePlane.Sagittal, [CoronalLimit, HorizontalLimit]);
+SliceSizeMap.set(SlicePlane.Horizontal, [SagittalLimit, CoronalLimit]);
+SliceSizeMap.set(SlicePlane.Coronal, [SagittalLimit, HorizontalLimit]);
 
-const centerPoint = [5687.5436, 3849.609985, 6595.3813];
+const tomographyConstants = TomographyConstants.Instance;
+
+const centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
 export class Slice {
     private readonly _mesh: THREE.Object3D = null;
     private readonly _texture: THREE.Texture = null;
     private readonly _mask: THREE.Texture = null;
-    private readonly _slicePlane = null;
+    private readonly _slicePlane: SlicePlane = null;
 
     private _geometry: THREE.Geometry = null;
     private _location: number;
