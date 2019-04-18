@@ -49,7 +49,7 @@ export class SliceControl extends React.Component<ISliceControlProps, ISliceCont
                     <List.Content style={{padding: "10px 18px 8px 8px"}}>
                         <div style={{display: "flex", alignItems: "center"}}>
                             <Button size="mini" icon="angle left"
-                                    onClick={() => this.props.viewModel.Location -= sliceMovementStep}/>
+                                    onClick={() => this.props.viewModel.Location = Math.min(Math.max(this.props.viewModel.Location - sliceMovementStep, this.props.constants.Min), this.props.constants.Max)}/>
                             <Slider min={this.props.constants.Min} max={this.props.constants.Max}
                                     step={sliceMovementStep}
                                     value={this.state.location}
@@ -57,7 +57,7 @@ export class SliceControl extends React.Component<ISliceControlProps, ISliceCont
                                     onChange={(value: number) => this.setState({location: value})}
                                     onAfterChange={(value: number) => this.props.viewModel.Location = value}/>
                             <Button size="mini" icon="angle right" style={{order: 2}}
-                                    onClick={() => this.props.viewModel.Location += sliceMovementStep}/>
+                                    onClick={() => this.props.viewModel.Location = Math.min(Math.max(this.props.viewModel.Location + sliceMovementStep, this.props.constants.Min), this.props.constants.Max)}/>
                         </div>
                     </List.Content> : null}
             </List.Item>
