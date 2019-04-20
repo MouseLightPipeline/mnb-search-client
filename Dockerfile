@@ -1,10 +1,10 @@
-FROM node:8.12
+FROM node:8.16
 
 WORKDIR /app
 
 COPY dist .
 
-# RUN yarn install --production=true
+RUN yarn install
 
 CMD ["./docker-entry.sh"]
 
