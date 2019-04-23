@@ -1,18 +1,16 @@
-import {observable, computed} from 'mobx';
+import {observable} from 'mobx';
 
-import {TomographyConstants, TomographyPlaneConstants} from "../tomography/tomographyConstants";
+import {TomographyConstants, TomographyPlaneConstants} from "../../tomography/tomographyConstants";
 
 const tomographyConstants = TomographyConstants.Instance;
 
 export class SliceControlViewModel {
-    private _constants: TomographyPlaneConstants;
-
     @observable public IsEnabled: boolean = false;
     @observable public Location: number = 0;
 
-    public constructor(_constants: TomographyPlaneConstants) {
+    public constructor(constants: TomographyPlaneConstants) {
         this.IsEnabled = false;
-        this.Location = _constants.Center;
+        this.Location = constants.Center;
     }
 }
 

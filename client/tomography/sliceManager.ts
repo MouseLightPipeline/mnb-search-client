@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import {SlicePlane, SliceService} from "./sliceService";
+import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
 

@@ -14,9 +14,9 @@ import {ViewerSelection} from "./ViewerSelection";
 import {INotificationListener, PreferencesManager} from "../../util/preferencesManager";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
-import {TomographyViewModel} from "../../viewmodel/tomographyViewModel";
-import {SlicePlane} from "../../tomography/sliceService";
+import {SlicePlane} from "../../services/sliceService";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
+import {rootViewModel} from "../../store/viewModel/systemViewModel";
 
 const ROOT_ID = 997;
 
@@ -34,7 +34,7 @@ export interface ITiming {
     transfer: number;
 }
 
-export interface ITracingViewerProps {
+export interface ITracingViewerBaseProps {
     constants: NdbConstants;
     compartments: BrainCompartmentViewModel[];
     tracings: TracingViewModel[];
@@ -44,7 +44,6 @@ export interface ITracingViewerProps {
     displayHighlightedOnly: boolean;
     highlightSelectionMode: HighlightSelectionMode;
     cycleFocusNeuronId: string;
-    tomographyViewModel: TomographyViewModel;
 
     onChangeIsRendering?(isRendering: boolean): void;
     onHighlightTracing(neuron: NeuronViewModel, highlight?: boolean): void;
@@ -58,6 +57,8 @@ export interface ITracingViewerProps {
     populateCustomPredicate(position: IPositionInput, replace: boolean): void;
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
+
+interface ITracingViewerProps extends ITracingViewerBaseProps {}
 
 interface ITracingViewerState {
     renderWidth?: number;
@@ -105,35 +106,37 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         this.prepareAndRenderTracings(this.props);
 
-        observe(this.props.tomographyViewModel.Sagittal, async (change) => {
+        const tomography = rootViewModel.tomography;
+
+        observe(tomography.Sagittal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.IsEnabled);
+                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, tomography.Sagittal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.Location);
+                    await this._viewer.updateSlice(SlicePlane.Sagittal, tomography.Sagittal.Location);
                     break;
             }
         });
 
-        observe(this.props.tomographyViewModel.Horizontal, async (change) => {
+        observe(tomography.Horizontal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.IsEnabled);
+                    await this._viewer.setSliceVisible(SlicePlane.Horizontal, tomography.Horizontal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.Location);
+                    await this._viewer.updateSlice(SlicePlane.Horizontal, tomography.Horizontal.Location);
                     break;
             }
         });
 
-        observe(this.props.tomographyViewModel.Coronal, async (change) => {
+        observe(tomography.Coronal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.IsEnabled);
+                    await this._viewer.setSliceVisible(SlicePlane.Coronal, tomography.Coronal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.Location);
+                    await this._viewer.updateSlice(SlicePlane.Coronal, tomography.Coronal.Location);
                     break;
             }
         });
@@ -186,7 +189,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.swc = null;
             s.mode = "particle";
             s.dom_element = "viewer-container";
-            // s.centerpoint = [5687.5436, 3849.609985, 6595.3813];
             s.centerpoint =  [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
             s.compartment_path = "/static/allen/obj/";
@@ -203,10 +205,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.addEventHandler(new ViewerMouseHandler());
 
             this._viewer = s;
-
-            await this._viewer.setSliceVisible(SlicePlane.Sagittal, this.props.tomographyViewModel.Sagittal.IsEnabled);
-            await this._viewer.setSliceVisible(SlicePlane.Horizontal, this.props.tomographyViewModel.Horizontal.IsEnabled);
-            await this._viewer.setSliceVisible(SlicePlane.Coronal, this.props.tomographyViewModel.Coronal.IsEnabled);
         }
     }
 

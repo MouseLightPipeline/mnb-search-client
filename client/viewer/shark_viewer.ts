@@ -1,7 +1,7 @@
 import {NODE_PARTICLE_IMAGE} from "./util";
 import {PreferencesManager} from "../util/preferencesManager";
 import {SliceManager} from "../tomography/sliceManager";
-import {SlicePlane} from "../tomography/sliceService";
+import {SlicePlane} from "../services/sliceService";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);

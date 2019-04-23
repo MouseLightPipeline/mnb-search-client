@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {SliceImage, SlicePlane} from "./sliceService";
+import {SliceImage, SlicePlane} from "../services/sliceService";
 import {CoronalLimit, HorizontalLimit, SagittalLimit, TomographyConstants} from "./tomographyConstants";
 
 type SliceSize = [number, number];

@@ -6,7 +6,6 @@ import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentView
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyPanel} from "../../tomography/tomographyPanel";
-import {TomographyViewModel} from "../../../viewmodel/tomographyViewModel";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
@@ -50,7 +49,6 @@ const CompartmentHeader = (props: CompartmentHeaderProps) => {
 
 interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrainAreaGeometryProps {
     isDocked: boolean;
-    tomographyViewModel: TomographyViewModel;
 
     onClickCloseOrPin(state: DrawerState): void;
 }
@@ -89,7 +87,7 @@ export const CompartmentListContainer = (props: ICompartmentListContainerProps) 
                         textAlign: "center"
                     }}>Tomography</h5>
                 </div>
-                <TomographyPanel viewModel={props.tomographyViewModel}/>
+                <TomographyPanel/>
                 <div style={{
                     backgroundColor: color,
                     color: "white",

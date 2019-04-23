@@ -1,11 +1,11 @@
 import * as React from "react";
 
-import {ITracingViewerProps, TracingViewer} from "./TracingViewer";
+import {ITracingViewerBaseProps, TracingViewer} from "./TracingViewer";
 import {FetchState} from "./MainView";
 import {primaryBackground} from "../../util/styles";
 import {Icon} from "semantic-ui-react";
 
-interface IViewerProps extends ITracingViewerProps {
+interface IViewerProps extends ITracingViewerBaseProps {
     isQueryCollapsed: boolean;
     isNeuronListDocked: boolean;
     isCompartmentListDocked: boolean;

@@ -1,5 +1,5 @@
 export enum SlicePlane {
-    Undefined,
+    Undefined = 0,
     Sagittal,
     Horizontal,
     Coronal
@@ -11,7 +11,7 @@ export interface ISliceRequest {
     id?: string;
     plane?: number;
     location?: number;
-    threshold?: [number, number];
+    threshold?: Threshold;
     mask?: boolean;
     invert?: boolean;
 }
