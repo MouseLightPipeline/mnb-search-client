@@ -23,6 +23,10 @@ export const NEURONS_QUERY = gql`query SearchNeurons($context: SearchContext) {
         id
         acronym
       }
+      sample {
+        id
+        idNumber
+      }
       tracings {
         id
         tracingStructure {

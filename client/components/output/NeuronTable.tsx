@@ -140,6 +140,8 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                 </td>
                 <td style={{verticalAlign: "middle"}}>
                     {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
+                    <br/>
+                    {v.neuron.sample.idNumber}
                 </td>
             </tr>
         );

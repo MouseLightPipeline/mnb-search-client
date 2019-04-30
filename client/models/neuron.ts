@@ -1,5 +1,6 @@
 import {IBrainArea} from "./brainArea";
 import {ITracing} from "./tracing";
+import {ISample} from "./sample";
 
 export interface INeuron {
     id: string;
@@ -11,6 +12,7 @@ export interface INeuron {
     y: number;
     z: number;
     brainArea?: IBrainArea;
+    sample?: ISample;
     tracings?: ITracing[];
     createAt: Date;
     updatedAt: Date;
