@@ -143,6 +143,9 @@ class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableR
                     <br/>
                     {v.neuron.sample.idNumber}
                 </td>
+                <td>
+                    <Icon size="small" name="clone"/>
+                </td>
             </tr>
         );
     }
@@ -223,6 +226,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                     </th>
                     <th>Neuron</th>
                     <th>Compartment</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
