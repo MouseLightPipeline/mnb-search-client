@@ -1,11 +1,13 @@
 import * as React from "react";
+import {useState} from "react";
+import {observer} from "mobx-react-lite";
 import {Dropdown, Icon, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {ChangeAllStructureDisplayDialog} from "./ChangeAllStructureDisplayDialog";
-import {useState} from "react";
+import {useViewModel} from "../ApolloApp";
 
 type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fixed" | "static" | "sticky";
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
@@ -20,37 +22,11 @@ interface IOutputTableRowProps {
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
-export const OutputTableRow = (props: IOutputTableRowProps) => {
+export const OutputTableRow = observer((props: IOutputTableRowProps) => {
 
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-    const styles = {
-        swatch: {
-            padding: "4px",
-            background: "#efefef",
-            borderRadius: "2px",
-            boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
-            display: "inline-block",
-            cursor: "pointer"
-        },
-        popover: {
-            position: "absolute" as position,
-            zIndex: "1000" as zIndex
-        },
-        popoverLow: {
-            position: "absolute" as position,
-            zIndex: "1000" as zIndex,
-            top: "-300px",
-            left: "40px"
-        },
-        cover: {
-            position: "fixed" as position,
-            top: "0px",
-            right: "0px",
-            bottom: "0px",
-            left: "-200px"
-        },
-    };
+    const {tomography} = useViewModel();
 
     const v = props.neuronViewModel;
 
@@ -122,11 +98,11 @@ export const OutputTableRow = (props: IOutputTableRowProps) => {
                 {v.neuron.sample.idNumber}
             </td>
             <td>
-                <Icon size="small" name="clone"/>
+                <Icon size="small" name="clone" onClick={() => tomography.Sample = v.neuron.sample}/>
             </td>
         </tr>
     );
-};
+});
 
 export interface INeuronTableProps {
     isAllTracingsSelected: boolean;
@@ -203,7 +179,7 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
                     </th>
                     <th>Neuron</th>
                     <th>Compartment</th>
-                    <th></th>
+                    <th/>
                 </tr>
                 </thead>
                 <tbody>
@@ -213,3 +189,31 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
         );
     }
 }
+
+const styles = {
+    swatch: {
+        padding: "4px",
+        background: "#efefef",
+        borderRadius: "2px",
+        boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
+        display: "inline-block",
+        cursor: "pointer"
+    },
+    popover: {
+        position: "absolute" as position,
+        zIndex: "1000" as zIndex
+    },
+    popoverLow: {
+        position: "absolute" as position,
+        zIndex: "1000" as zIndex,
+        top: "-300px",
+        left: "40px"
+    },
+    cover: {
+        position: "fixed" as position,
+        top: "0px",
+        right: "0px",
+        bottom: "0px",
+        left: "-200px"
+    },
+};

@@ -22,19 +22,12 @@ export type SliceImage = {
 }
 
 export class SliceService {
-    private readonly _sampleId: string;
-
-    private _threshHold: Threshold = undefined;
-
-    public constructor(sampleId: string) {
-        this._sampleId = sampleId;
-    }
 
     public async requestSlice(request: ISliceRequest): Promise<SliceImage> {
         const resp = await fetch("/slice", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(Object.assign({id: this._sampleId, threshold: this._threshHold}, request))
+            body: JSON.stringify(Object.assign({id: "allen-reference"}, request))
         });
 
         if (resp.status !== 200) {

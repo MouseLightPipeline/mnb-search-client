@@ -1,6 +1,7 @@
 import {observable} from 'mobx';
 
 import {TomographyConstants, TomographyPlaneConstants} from "../../tomography/tomographyConstants";
+import {ISample} from "../../models/sample";
 
 const tomographyConstants = TomographyConstants.Instance;
 
@@ -15,6 +16,8 @@ export class SliceControlViewModel {
 }
 
 export class TomographyViewModel {
+    @observable public Sample: ISample = null;
+
     @observable public Sagittal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Sagittal);
     @observable public Horizontal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Horizontal);
     @observable public Coronal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Coronal);

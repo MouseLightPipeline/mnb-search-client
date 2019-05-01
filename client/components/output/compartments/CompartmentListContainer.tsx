@@ -1,4 +1,5 @@
 import * as React from "react";
+import {observer} from "mobx-react-lite";
 import {Icon} from "semantic-ui-react";
 
 import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
@@ -6,6 +7,7 @@ import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentView
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyPanel} from "../../tomography/tomographyPanel";
+import {useViewModel} from "../../ApolloApp";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
@@ -53,8 +55,10 @@ interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrain
     onClickCloseOrPin(state: DrawerState): void;
 }
 
-export const CompartmentListContainer = (props: ICompartmentListContainerProps) => {
+export const CompartmentListContainer = observer((props: ICompartmentListContainerProps) => {
     const color = secondaryBackground;
+
+    const {tomography} = useViewModel();
 
     return (
         <div style={{
@@ -85,7 +89,7 @@ export const CompartmentListContainer = (props: ICompartmentListContainerProps) 
                         color: "white",
                         margin: "auto",
                         textAlign: "center"
-                    }}>Tomography</h5>
+                    }}>{`Tomography - ${tomography.Sample ? `Sample ${tomography.Sample.idNumber}` : "Reference"}`}</h5>
                 </div>
                 <TomographyPanel/>
                 <div style={{
@@ -119,4 +123,4 @@ export const CompartmentListContainer = (props: ICompartmentListContainerProps) 
             </div>
         </div>
     );
-};
+});

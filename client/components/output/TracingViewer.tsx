@@ -58,7 +58,8 @@ export interface ITracingViewerBaseProps {
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
-interface ITracingViewerProps extends ITracingViewerBaseProps {}
+interface ITracingViewerProps extends ITracingViewerBaseProps {
+}
 
 interface ITracingViewerState {
     renderWidth?: number;
@@ -140,6 +141,12 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                     break;
             }
         });
+
+        observe(tomography, async (change) => {
+            if (change.name === "Sample") {
+                await this._viewer.setSliceSample(tomography.Sample ? tomography.Sample.id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
+            }
+        });
     }
 
     public componentWillUnmount() {
@@ -189,7 +196,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.swc = null;
             s.mode = "particle";
             s.dom_element = "viewer-container";
-            s.centerpoint =  [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+            s.centerpoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
             s.compartment_path = "/static/allen/obj/";
             s.WIDTH = width;

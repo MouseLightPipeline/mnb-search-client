@@ -6,10 +6,13 @@ import {TomographyConstants} from "./tomographyConstants";
 
 const tomographyConstants = TomographyConstants.Instance;
 
-const centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+export type LocationArray = [number, number, number];
+
+const centerPoint: LocationArray = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+
 
 export class SliceManager {
-    private readonly _sampleId: string;
+    private _sampleId: string = null;
 
     private _sliceService: SliceService;
 
@@ -17,9 +20,7 @@ export class SliceManager {
 
     private _sliceMap = new Map<SlicePlane, Slice>();
 
-    public constructor(sampleId: string, scene?: THREE.Scene) {
-        this._sampleId = sampleId;
-
+    public constructor(scene?: THREE.Scene) {
         this.setScene(scene);
 
         this.initializeSliceService();
@@ -27,6 +28,14 @@ export class SliceManager {
 
     public get Scene(): THREE.Scene {
         return this._scene;
+    }
+
+    public async setSampleId(id: string, locations: LocationArray) {
+        this._sampleId = id;
+
+        await this.updateSlice(SlicePlane.Sagittal, locations[0]);
+        await this.updateSlice(SlicePlane.Horizontal, locations[1]);
+        await this.updateSlice(SlicePlane.Coronal, locations[2]);
     }
 
     private setScene(scene: THREE.Scene) {
@@ -38,16 +47,18 @@ export class SliceManager {
     }
 
     private initializeSliceService() {
-        this._sliceService = new SliceService(this._sampleId);
+        this._sliceService = new SliceService();
     }
 
-    public async updateSlice(plane: SlicePlane, location: number) {
+    public async updateSlice(plane: SlicePlane, location: number = null) {
         let slice = this._sliceMap.get(plane);
 
         if (slice !== undefined) {
+            console.log(slice.Location);
             const images = await this._sliceService.requestSlice({
+                id: this._sampleId || "allen-reference",
                 plane,
-                location
+                location: location === null ? slice.Location : location
             });
 
             if (images !== null) {

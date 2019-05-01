@@ -38,11 +38,11 @@ export class Slice {
         return this._mesh;
     }
 
-    private get Location(): number {
+    public get Location(): number {
         return this._location;
     }
 
-    private set Location(location: number) {
+    private setLocation(location: number) {
         switch (this._slicePlane) {
             case SlicePlane.Sagittal:
                 this._mesh.position.set(location - centerPoint[0], 0, 0);
@@ -58,7 +58,7 @@ export class Slice {
 
     public updateTexture(location, image: SliceImage) {
         if (location !== null) {
-            this.Location = location;
+            this.setLocation(location);
         }
 
         if (image !== null) {
