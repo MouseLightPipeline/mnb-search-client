@@ -3,9 +3,9 @@ import {Dropdown, Icon, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
-import {TracingViewModeSelect} from "../editors/TracingViewModeSelect";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {ChangeAllStructureDisplayDialog} from "./ChangeAllStructureDisplayDialog";
+import {useState} from "react";
 
 type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fixed" | "static" | "sticky";
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
@@ -20,136 +20,113 @@ interface IOutputTableRowProps {
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
-interface IOutputTableRowState {
-    displayColorPicker: boolean;
-}
+export const OutputTableRow = (props: IOutputTableRowProps) => {
 
-class OutputTableRow extends React.Component<IOutputTableRowProps, IOutputTableRowState> {
-    public constructor(props: IOutputTableRowProps) {
-        super(props);
+    const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-        this.state = {
-            displayColorPicker: false
-        };
-    }
+    const styles = {
+        swatch: {
+            padding: "4px",
+            background: "#efefef",
+            borderRadius: "2px",
+            boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
+            display: "inline-block",
+            cursor: "pointer"
+        },
+        popover: {
+            position: "absolute" as position,
+            zIndex: "1000" as zIndex
+        },
+        popoverLow: {
+            position: "absolute" as position,
+            zIndex: "1000" as zIndex,
+            top: "-300px",
+            left: "40px"
+        },
+        cover: {
+            position: "fixed" as position,
+            top: "0px",
+            right: "0px",
+            bottom: "0px",
+            left: "-200px"
+        },
+    };
 
-    private handleClick() {
-        this.setState({displayColorPicker: !this.state.displayColorPicker})
-    }
+    const v = props.neuronViewModel;
 
-    private handleClose() {
-        this.setState({displayColorPicker: false})
-    }
-
-    private onViewModeChange(viewMode: NeuronViewMode) {
-        this.props.onChangeNeuronViewMode(this.props.neuronViewModel, viewMode);
-    }
-
-    public render() {
-        const styles = {
-            swatch: {
-                padding: "4px",
-                background: "#efefef",
-                borderRadius: "2px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
-                display: "inline-block",
-                cursor: "pointer"
-            },
-            popover: {
-                position: "absolute" as position,
-                zIndex: "1000" as zIndex
-            },
-            popoverLow: {
-                position: "absolute" as position,
-                zIndex: "1000" as zIndex,
-                top: "-300px",
-                left: "40px"
-            },
-            cover: {
-                position: "fixed" as position,
-                top: "0px",
-                right: "0px",
-                bottom: "0px",
-                left: "-200px"
-            },
-        };
-
-        const v = this.props.neuronViewModel;
-
-        const rowStyles = {
-            color: {
-                width: "16px",
-                height: "16px",
-                borderRadius: "2px",
-                background: v.baseColor
-            }
-        };
-
-        const options = NEURON_VIEW_MODES.slice();
-
-        if (!v.hasDendriteTracing) {
-            options.splice(2, 1);
+    const rowStyles = {
+        color: {
+            width: "16px",
+            height: "16px",
+            borderRadius: "2px",
+            background: v.baseColor
         }
+    };
 
-        if (!v.hasAxonTracing) {
-            options.splice(1, 1);
-        }
+    const options = NEURON_VIEW_MODES.slice();
 
-        if (options.length < 4) {
-            options.splice(0, 1);
-        }
+    if (!v.hasDendriteTracing) {
+        options.splice(2, 1);
+    }
 
-        return (
-            <tr>
-                <td>
-                    <div style={{display: "flex"}}>
-                        <Icon name={v.isSelected ? "check square outline" : "square outline"}
-                              style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
-                              onClick={() => this.props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
-                        <div style={{order: 1}}>
-                            <div style={styles.swatch} onClick={() => this.handleClick()}>
-                                <div style={rowStyles.color}/>
-                            </div>
-                            {this.state.displayColorPicker ?
-                                <div style={{position: "relative"}}>
-                                    <div style={this.props.isEnd ? styles.popoverLow : styles.popover}>
-                                        <div style={styles.cover} onClick={() => this.handleClose()}/>
-                                        <SketchPicker color={v.baseColor}
-                                                      onChange={(color: any) => this.props.onChangeNeuronColor(v, color)}/>
-                                    </div>
-                                </div>
-                                : null}
-                        </div>
-                    </div>
-                </td>
-                <td style={{verticalAlign: "middle"}}>
-                    {this.props.neuronViewModel.RequestedViewMode === null ?
-                    <Dropdown search fluid inline options={options}
-                              value={this.props.neuronViewModel.CurrentViewMode.value}
-                              onChange={(e: any, {value}) => this.onViewModeChange(NEURON_VIEW_MODES[value as number])}/> :
-                        <span>Loading...</span>}
-                </td>
+    if (!v.hasAxonTracing) {
+        options.splice(1, 1);
+    }
 
-                <td style={{verticalAlign: "middle"}}>
-                    <Icon name={v.mirror ? "check square outline" : "square outline"}
+    if (options.length < 4) {
+        options.splice(0, 1);
+    }
+
+    return (
+        <tr>
+            <td>
+                <div style={{display: "flex"}}>
+                    <Icon name={v.isSelected ? "check square outline" : "square outline"}
                           style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
-                          onClick={() => this.props.onChangeNeuronMirror(v, !v.mirror)}/>
-                </td>
-                <td style={{verticalAlign: "middle"}}>
-                    {v.neuron.idString}
-                </td>
-                <td style={{verticalAlign: "middle"}}>
-                    {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
-                    <br/>
-                    {v.neuron.sample.idNumber}
-                </td>
-                <td>
-                    <Icon size="small" name="clone"/>
-                </td>
-            </tr>
-        );
-    }
-}
+                          onClick={() => props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
+                    <div style={{order: 1}}>
+                        <div style={styles.swatch} onClick={() => setDisplayColorPicker(!displayColorPicker)}>
+                            <div style={rowStyles.color}/>
+                        </div>
+                        {displayColorPicker ?
+                            <div style={{position: "relative"}}>
+                                <div style={props.isEnd ? styles.popoverLow : styles.popover}>
+                                    <div style={styles.cover} onClick={() => setDisplayColorPicker(false)}/>
+                                    <SketchPicker color={v.baseColor}
+                                                  onChange={(color: any) => props.onChangeNeuronColor(v, color)}/>
+                                </div>
+                            </div>
+                            : null}
+                    </div>
+                </div>
+            </td>
+            <td style={{verticalAlign: "middle"}}>
+                {props.neuronViewModel.RequestedViewMode === null ?
+                    <Dropdown search fluid inline options={options}
+                              value={props.neuronViewModel.CurrentViewMode.value}
+                              onChange={(e: any, {value}) => props.onChangeNeuronViewMode(props.neuronViewModel, NEURON_VIEW_MODES[value as number])}/> :
+                    <span>Loading...</span>}
+            </td>
+
+            <td style={{verticalAlign: "middle"}}>
+                <Icon name={v.mirror ? "check square outline" : "square outline"}
+                      style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
+                      onClick={() => props.onChangeNeuronMirror(v, !v.mirror)}/>
+            </td>
+            <td style={{verticalAlign: "middle"}}>
+                {v.neuron.idString}
+            </td>
+            <td style={{verticalAlign: "middle"}}>
+                {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
+                <br/>
+                {v.neuron.sample.idNumber}
+            </td>
+            <td>
+                <Icon size="small" name="clone"/>
+            </td>
+        </tr>
+    );
+};
 
 export interface INeuronTableProps {
     isAllTracingsSelected: boolean;
