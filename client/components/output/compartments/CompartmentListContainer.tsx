@@ -79,16 +79,20 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
             <CompartmentHeader {...props}/>
             <div style={{order: 2, flexGrow: 1, width: "100%", overflow: "auto"}}>
                 <div style={{
+                    display: "flex",
                     backgroundColor: "#00a450",
                     color: "white",
                     height: "30px",
                     margin: 0,
                     padding: "6px"
                 }}>
+                    <Icon style={{order: 0, flexGrow: 0, verticalAlign: "middle"}} size="small" name="undo" onClick={() => tomography.Sample = null}/>
                     <h5 style={{
                         color: "white",
                         margin: "auto",
-                        textAlign: "center"
+                        textAlign: "center",
+                        order: 1,
+                        flexGrow: 1
                     }}>{`Tomography - ${tomography.Sample ? `Sample ${tomography.Sample.idNumber}` : "Reference"}`}</h5>
                 </div>
                 <TomographyPanel/>
