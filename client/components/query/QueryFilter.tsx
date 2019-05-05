@@ -234,6 +234,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                      selectedOption={this.props.queryFilter.filter.operator}
                                                      disabled={!this.props.queryFilter.filter.CanHaveThreshold}
                                                      searchable={false}
+                                                     clearable={true}
                                                      placeholder="any"
                                                      onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
                             </Form.Field>
