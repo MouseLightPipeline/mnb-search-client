@@ -215,7 +215,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                        onChange={(evt: any) => this.onArbSizeChanged(evt)}/>
                             </Form.Field>
 
-                            <Form.Field width={3}>
+                            <Form.Field width={2}>
                                 <label>Structure</label>
                                 <NeuronalStructureSelect idName="neuronal-structure"
                                                          options={this.props.constants.NeuronStructures}
@@ -226,7 +226,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                          onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
                             </Form.Field>
 
-                            <Form.Field width={1}
+                            <Form.Field width={2}
                                         style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                 <label>Threshold</label>
                                 <QueryOperatorSelect idName="query-operator"
@@ -312,7 +312,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                             </Form.Field>
 
 
-                            <Form.Field width={8}>
+                            <Form.Field width={7}>
                                 <label>Source or Target Locations (multiple treated as or condition)</label>
                                 <BrainAreaMultiSelect compartments={this.props.constants.BrainAreasWithGeometry}
                                                       selection={filter.brainAreas}
@@ -331,13 +331,14 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                          onSelect={(ns: NeuronalStructure) => this.onNeuronalStructureChange(ns)}/>
                             </Form.Field>
 
-                            <Form.Field width={1} style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
+                            <Form.Field width={2} style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                 <label>Threshold</label>
                                 <QueryOperatorSelect idName="query-operator"
                                                      options={this.props.queryOperators}
                                                      selectedOption={filter.operator}
                                                      disabled={!filter.CanHaveThreshold}
                                                      searchable={false}
+                                                     clearable={true}
                                                      placeholder="any"
                                                      onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
                             </Form.Field>
