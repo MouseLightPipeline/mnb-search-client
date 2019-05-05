@@ -14,6 +14,8 @@ const tomographyConstants = TomographyConstants.Instance;
 
 const centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
+THREE.Math.nearestPowerOfTwo = THREE.Math.nextPowerOfTwo;
+
 export class Slice {
     private readonly _mesh: THREE.Object3D = null;
     private readonly _texture: THREE.Texture = null;
@@ -27,7 +29,16 @@ export class Slice {
         this._slicePlane = plane;
 
         this._texture = new THREE.Texture();
+        this._texture.generateMipmaps = false;
+        this._texture.wrapS = this._texture.wrapT = THREE.ClampToEdgeWrapping;
+        this._texture.magFilter = THREE.NearestFilter;
+        this._texture.minFilter = THREE.NearestFilter;
+
         this._mask = new THREE.Texture();
+        this._mask.generateMipmaps = false;
+        this._mask.wrapS = this._texture.wrapT = THREE.ClampToEdgeWrapping;
+        this._texture.magFilter = THREE.NearestFilter;
+        this._mask.minFilter = THREE.NearestFilter;
 
         const material = Slice.createSliceMaterial(this._texture, this._mask);
 

@@ -54,7 +54,6 @@ export class SliceManager {
         let slice = this._sliceMap.get(plane);
 
         if (slice !== undefined) {
-            console.log(slice.Location);
             const images = await this._sliceService.requestSlice({
                 id: this._sampleId || "allen-reference",
                 plane,
