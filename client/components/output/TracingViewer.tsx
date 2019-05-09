@@ -17,6 +17,7 @@ import {NeuronViewMode} from "../../viewmodel/neuronViewMode";
 import {SlicePlane} from "../../services/sliceService";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
 import {rootViewModel} from "../../store/viewModel/systemViewModel";
+import {LocationArray, SliceManager} from "../../tomography/sliceManager";
 
 const ROOT_ID = 997;
 
@@ -83,6 +84,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private _tracingRadiusFactor = PreferencesManager.Instance.TracingRadiusFactor;
 
+    private _sliceManager = null;
+
     public constructor(props: ITracingViewerProps) {
         super(props);
 
@@ -107,15 +110,15 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         this.prepareAndRenderTracings(this.props);
 
-        const tomography = rootViewModel.tomography;
+        const tomography = rootViewModel.Tomography;
 
         observe(tomography.Sagittal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Sagittal, tomography.Sagittal.IsEnabled);
+                    await this.setSliceVisible(SlicePlane.Sagittal, tomography.Sagittal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Sagittal, tomography.Sagittal.Location);
+                    await this.updateSlice(SlicePlane.Sagittal, tomography.Sagittal.Location);
                     break;
             }
         });
@@ -123,10 +126,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         observe(tomography.Horizontal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Horizontal, tomography.Horizontal.IsEnabled);
+                    await this.setSliceVisible(SlicePlane.Horizontal, tomography.Horizontal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Horizontal, tomography.Horizontal.Location);
+                    await this.updateSlice(SlicePlane.Horizontal, tomography.Horizontal.Location);
                     break;
             }
         });
@@ -134,17 +137,19 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         observe(tomography.Coronal, async (change) => {
             switch (change.name) {
                 case "IsEnabled":
-                    await this._viewer.setSliceVisible(SlicePlane.Coronal, tomography.Coronal.IsEnabled);
+                    await this.setSliceVisible(SlicePlane.Coronal, tomography.Coronal.IsEnabled);
                     break;
                 case "Location":
-                    await this._viewer.updateSlice(SlicePlane.Coronal, tomography.Coronal.Location);
+                    await this.updateSlice(SlicePlane.Coronal, tomography.Coronal.Location);
                     break;
             }
         });
 
         observe(tomography, async (change) => {
             if (change.name === "Sample") {
-                await this._viewer.setSliceSample(tomography.Sample ? tomography.Sample.id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
+                await this.setSliceSample(tomography.Sample ? tomography.Sample.id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
+            } else if (change.name === "UseCustomThreshold" || change.name == "Threshold") {
+                await this._sliceManager.setThreshold(tomography.UseCustomThreshold ? tomography.Threshold : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
             }
         });
     }
@@ -212,6 +217,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.addEventHandler(new ViewerMouseHandler());
 
             this._viewer = s;
+
+            this._sliceManager = new SliceManager(this._viewer.Scene);
         }
     }
 
@@ -530,6 +537,23 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             </div>
         );
     }
+
+
+    private setSliceSample = async (id: string, locations: LocationArray) => {
+        await this._sliceManager.setSampleId(id, locations);
+    };
+
+    private setSliceVisible = async (plane: SlicePlane, visible: boolean) => {
+        if (visible) {
+            await this._sliceManager.showSlice(plane);
+        } else {
+            this._sliceManager.hideSlice(plane);
+        }
+    };
+
+    private updateSlice = async (plane: SlicePlane, location: number) => {
+        await this._sliceManager.updateSlice(plane, location);
+    };
 }
 
 const relative: "relative" = "relative";

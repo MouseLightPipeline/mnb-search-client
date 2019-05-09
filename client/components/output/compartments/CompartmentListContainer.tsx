@@ -58,7 +58,7 @@ interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrain
 export const CompartmentListContainer = observer((props: ICompartmentListContainerProps) => {
     const color = secondaryBackground;
 
-    const {tomography} = useViewModel();
+    const {Tomography, CompartmentHistory} = useViewModel();
 
     return (
         <div style={{
@@ -86,17 +86,19 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                     margin: 0,
                     padding: "6px"
                 }}>
-                    <Icon style={{order: 0, flexGrow: 0, verticalAlign: "middle"}} size="small" name="undo" onClick={() => tomography.Sample = null}/>
+                    <Icon style={{order: 0, flexGrow: 0, verticalAlign: "middle", paddingTop: "2px"}} size="small" name="undo" onClick={() => Tomography.Sample = null}/>
                     <h5 style={{
                         color: "white",
                         margin: "auto",
                         textAlign: "center",
                         order: 1,
                         flexGrow: 1
-                    }}>{`Tomography - ${tomography.Sample ? `Sample ${tomography.Sample.idNumber}` : "Reference"}`}</h5>
+                    }}>{`Tomography - ${Tomography.Sample ? `Sample ${Tomography.Sample.idNumber}` : "Reference"}`}</h5>
+                    <Icon style={{order: 2, flexGrow: 0, verticalAlign: "middle"}} name={Tomography.IsVisible ? "angle up" : "angle down"} onClick={() => Tomography.IsVisible = !Tomography.IsVisible}/>
                 </div>
-                <TomographyPanel/>
+                {Tomography.IsVisible ? <TomographyPanel/> : null}
                 <div style={{
+                    display: "flex",
                     backgroundColor: color,
                     color: "white",
                     height: "30px",
@@ -106,10 +108,13 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                     <h5 style={{
                         color: "white",
                         margin: "auto",
-                        textAlign: "center"
+                        textAlign: "center",
+                        order: 0,
+                        flexGrow: 1
                     }}>History</h5>
+                    <Icon style={{order: 1, flexGrow: 0, verticalAlign: "middle"}} name={CompartmentHistory.IsVisible ? "angle up" : "angle down"} onClick={() => CompartmentHistory.IsVisible = !CompartmentHistory.IsVisible}/>
                 </div>
-                <BrainVolumesTable {...props}/>
+                {CompartmentHistory.IsVisible ? <BrainVolumesTable {...props}/> : null}
                 <div style={{
                     backgroundColor: color,
                     color: "white",

@@ -1,12 +1,13 @@
-import {computed, observable} from "mobx";
+import {observable} from "mobx";
 
 import {TomographyViewModel} from "./tomographyViewModel";
-import {NeuronsViewModel} from "./neuronsViewModel";
+import {CompartmentHistoryViewModel} from "./compartmentHistoryViewModel";
 
 export class SystemViewModel {
-    @observable tomography: TomographyViewModel = new TomographyViewModel();
+    @observable Tomography: TomographyViewModel = new TomographyViewModel();
+    @observable CompartmentHistory: CompartmentHistoryViewModel = new CompartmentHistoryViewModel();
 
-    @observable neurons: NeuronsViewModel = new NeuronsViewModel();
+    // @observable neurons: NeuronsViewModel = new NeuronsViewModel();
 }
 
 export const rootViewModel: SystemViewModel = new SystemViewModel();

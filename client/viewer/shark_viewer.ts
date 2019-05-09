@@ -1,8 +1,7 @@
 import {NODE_PARTICLE_IMAGE} from "./util";
 import {PreferencesManager} from "../util/preferencesManager";
-import {LocationArray, SliceManager} from "../tomography/sliceManager";
-import {SlicePlane} from "../services/sliceService";
 
+import * as THREEM from "three";
 const THREE = require("three");
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
@@ -51,7 +50,6 @@ export class SharkViewer {
     public on_toggle_node = null;
 
     private show_cones = true;
-    private brainboundingbox = null;
     private last_anim_timestamp = null;
     private mouseHandler = null;
     private nodeParticleTexture = NODE_PARTICLE_IMAGE;
@@ -62,22 +60,12 @@ export class SharkViewer {
     private renderer = null;
     private scene = null;
     private camera = null;
-    private sliceManager = null;
 
-    /*
-        private coronalPlane = null;
-        private coronalTexture = null;
-        private coronalMaskTexture = null;
-
-        private horizontalPlane = null;
-        private horizontalTexture = null;
-        private horizontalMaskTexture = null;
-
-        private sagittalPlane = null;
-        private sagittalTexture = null;
-        private sagittalMaskTexture = null;
-    */
     public constructor() {
+    }
+
+    public get Scene(): THREEM.Scene {
+        return this.scene;
     }
 
     calculateBoundingBox = function (swc_json) {
@@ -759,8 +747,6 @@ export class SharkViewer {
                 }
             }
         });
-
-        this.sliceManager = new SliceManager(this.scene);
     };
 
     addEventHandler = function (handler) {
@@ -982,22 +968,6 @@ export class SharkViewer {
         if (compartment) {
             compartment.visible = visible;
         }
-    };
-
-    setSliceSample = async (id: string, locations: LocationArray) => {
-        await this.sliceManager.setSampleId(id, locations);
-    };
-
-    setSliceVisible = async (plane: SlicePlane, visible: boolean) => {
-        if (visible) {
-            await this.sliceManager.showSlice(plane);
-        } else {
-            this.sliceManager.hideSlice(plane);
-        }
-    };
-
-    updateSlice = async (plane: SlicePlane, location: number) => {
-        await this.sliceManager.updateSlice(plane, location);
     };
 
     setSize = (width, height) => {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import {SlicePlane, SliceService} from "../services/sliceService";
+import {SlicePlane, SliceService, Threshold} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
 
@@ -10,9 +10,10 @@ export type LocationArray = [number, number, number];
 
 const centerPoint: LocationArray = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
-
 export class SliceManager {
     private _sampleId: string = null;
+
+    private _threshold: Threshold = null;
 
     private _sliceService: SliceService;
 
@@ -38,6 +39,14 @@ export class SliceManager {
         await this.updateSlice(SlicePlane.Coronal, locations[2]);
     }
 
+    public async setThreshold(threshold: Threshold, locations: LocationArray) {
+        this._threshold = threshold;
+
+        await this.updateSlice(SlicePlane.Sagittal, locations[0]);
+        await this.updateSlice(SlicePlane.Horizontal, locations[1]);
+        await this.updateSlice(SlicePlane.Coronal, locations[2]);
+    }
+
     private setScene(scene: THREE.Scene) {
         if (this._scene !== null) {
             // TODO Cleanup existing geometry.
@@ -57,6 +66,7 @@ export class SliceManager {
             const images = await this._sliceService.requestSlice({
                 id: this._sampleId || "allen-reference",
                 plane,
+                threshold: this._threshold,
                 location: location === null ? slice.Location : location
             });
 

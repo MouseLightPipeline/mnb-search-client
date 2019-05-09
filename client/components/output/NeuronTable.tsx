@@ -26,7 +26,7 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
 
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-    const {tomography} = useViewModel();
+    const {Tomography} = useViewModel();
 
     const v = props.neuronViewModel;
 
@@ -98,7 +98,7 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
                 {v.neuron.sample.idNumber}
             </td>
             <td>
-                <Icon size="small" name="clone" onClick={() => tomography.Sample = v.neuron.sample}/>
+                <Icon size="small" name="clone" onClick={() => Tomography.Sample = v.neuron.sample}/>
             </td>
         </tr>
     );

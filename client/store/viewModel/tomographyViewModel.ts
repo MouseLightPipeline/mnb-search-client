@@ -2,6 +2,7 @@ import {observable} from 'mobx';
 
 import {TomographyConstants, TomographyPlaneConstants} from "../../tomography/tomographyConstants";
 import {ISample} from "../../models/sample";
+import {Threshold} from "../../services/sliceService";
 
 const tomographyConstants = TomographyConstants.Instance;
 
@@ -16,7 +17,12 @@ export class SliceControlViewModel {
 }
 
 export class TomographyViewModel {
+    @observable public IsVisible: boolean = true;
+
     @observable public Sample: ISample = null;
+
+    @observable public UseCustomThreshold: boolean = false;
+    @observable public Threshold: Threshold = [0, 16384];
 
     @observable public Sagittal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Sagittal);
     @observable public Horizontal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Horizontal);
