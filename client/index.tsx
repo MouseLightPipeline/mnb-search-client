@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import {ApolloApp} from "./components/ApolloApp";
+import {App} from "./components/app/App";
 
 import "rc-slider/assets/index.css";
 import "../assets/style.css";
@@ -12,5 +12,5 @@ require("file-loader?name=loaderio-733b1ac1a51b46b4d1097d9b6970dbdb.txt!../loade
 const rootEl = document.getElementById("root");
 
 ReactDOM.render(
-    <ApolloApp/>, rootEl
+    <App/>, rootEl
 );

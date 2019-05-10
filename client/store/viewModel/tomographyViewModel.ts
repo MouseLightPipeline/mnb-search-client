@@ -16,13 +16,18 @@ export class SliceControlViewModel {
     }
 }
 
+export class ThresholdViewModel {
+    @observable public UseCustom: boolean = false;
+    @observable public Current: Threshold = [0, 16384];
+    @observable public CurrentSampleBounds: Threshold = [0, 16384];
+}
+
 export class TomographyViewModel {
     @observable public IsVisible: boolean = true;
 
     @observable public Sample: ISample = null;
 
-    @observable public UseCustomThreshold: boolean = false;
-    @observable public Threshold: Threshold = [0, 16384];
+    @observable public Threshold: ThresholdViewModel = new ThresholdViewModel();
 
     @observable public Sagittal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Sagittal);
     @observable public Horizontal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Horizontal);

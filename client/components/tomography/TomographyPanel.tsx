@@ -4,7 +4,7 @@ import {observer} from "mobx-react-lite";
 
 import {SliceControl} from "./SliceControl";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
-import {useViewModel} from "../ApolloApp";
+import {useViewModel} from "../app/App";
 import {UserThreshold} from "./UserThreshold";
 
 const tomographyConstants = TomographyConstants.Instance;

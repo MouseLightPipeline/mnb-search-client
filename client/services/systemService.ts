@@ -10,7 +10,7 @@ export const querySystemSettings = async (): Promise<void> => {
 
     try {
         if (resp.status === 200) {
-            rootDataStore.systemConfiguration.update(await resp.json());
+            rootDataStore.SystemConfiguration.update(await resp.json());
         } else {
             setTimeout(() => querySystemSettings(), 10000);
         }

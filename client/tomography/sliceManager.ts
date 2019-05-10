@@ -59,7 +59,7 @@ export class SliceManager {
         this._sliceService = new SliceService();
     }
 
-    public async updateSlice(plane: SlicePlane, location: number = null) {
+    public async updateSlice(plane: SlicePlane, location: number) {
         let slice = this._sliceMap.get(plane);
 
         if (slice !== undefined) {

@@ -1,5 +1,4 @@
 import gql from "graphql-tag";
-import {Query} from "react-apollo";
 
 import {ITracingStructure} from "../models/tracingStructure";
 import {IStructureIdentifier} from "../models/structureIdentifier";
@@ -40,9 +39,10 @@ export const CONSTANTS_QUERY = gql`query ConstantsQuery($searchScope: Int) {
     geometryFile
     geometryEnable
   }
+  systemMessage
 }`;
 
-type SystemSettingsVariables = {
+export type SystemSettingsVariables = {
     searchScope: number;
 }
 
@@ -58,7 +58,4 @@ export interface ConstantsQueryResponse {
     structureIdentifiers: IStructureIdentifier[];
     queryOperators: IQueryOperator[];
     brainAreas: IBrainArea[];
-}
-
-export class ConstantsQuery extends Query<ConstantsQueryResponse, SystemSettingsVariables> {
 }

@@ -8,6 +8,6 @@ export const useLoadSystemConfiguration = () => {
             await querySystemSettings();
         };
 
-        fetchSystemInfo().then();
+        fetchSystemInfo().then().catch((err) => console.log(err));
     }, []);
 };

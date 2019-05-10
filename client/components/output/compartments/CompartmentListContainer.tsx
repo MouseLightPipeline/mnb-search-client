@@ -7,7 +7,7 @@ import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentView
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyPanel} from "../../tomography/tomographyPanel";
-import {useViewModel} from "../../ApolloApp";
+import {useViewModel} from "../../app/App";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
