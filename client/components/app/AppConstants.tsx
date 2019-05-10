@@ -1,6 +1,6 @@
 import * as React from "react";
-import {useQuery} from "react-apollo-hooks";
 import {observer} from "mobx-react-lite";
+import {useQuery} from "react-apollo-hooks";
 import {Message} from "semantic-ui-react";
 
 import {NdbConstants} from "../../models/constants";
@@ -9,8 +9,6 @@ import {useStore} from "./App";
 import {AppLoading} from "./AppLoading";
 
 export const AppConstants = observer((props: any) => {
-    console.log("render 1");
-
     const Store = useStore();
 
     const {data, error, loading} = useQuery<ConstantsQueryResponse, SystemSettingsVariables>(CONSTANTS_QUERY, {variables: {searchScope: Store.SystemConfiguration.searchScope}});

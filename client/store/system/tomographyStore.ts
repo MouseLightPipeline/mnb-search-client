@@ -47,4 +47,8 @@ export class TomographyStore {
 
         tomography.map(t => this.Samples.set(t.id, SampleTomography.fromSource(t)));
     }
+
+    public get ReferenceSample(): SampleTomography {
+        return this.Samples.get("64f40090-1e7f-411e-bed1-497060dbd2be");
+    }
 }

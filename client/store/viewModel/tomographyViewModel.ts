@@ -2,9 +2,24 @@ import {observable} from 'mobx';
 
 import {TomographyConstants, TomographyPlaneConstants} from "../../tomography/tomographyConstants";
 import {ISample} from "../../models/sample";
-import {Threshold} from "../../services/sliceService";
 
 const tomographyConstants = TomographyConstants.Instance;
+
+const padding = Math.floor((300 - 35) * 0.2);
+
+export class Threshold {
+    @observable public Min = 0;
+    @observable public Max = 1;
+
+    public constructor(min, max) {
+        this.Min = min;
+        this.Max = max;
+    }
+
+    public get Values(): [number, number] {
+        return [this.Min.valueOf(), this.Max.valueOf()];
+    }
+}
 
 export class SliceControlViewModel {
     @observable public IsEnabled: boolean = false;
@@ -18,8 +33,11 @@ export class SliceControlViewModel {
 
 export class ThresholdViewModel {
     @observable public UseCustom: boolean = false;
-    @observable public Current: Threshold = [0, 16384];
-    @observable public CurrentSampleBounds: Threshold = [0, 16384];
+    @observable public Current: Threshold = new Threshold(35, 300);
+    @observable public CurrentSampleBounds: Threshold = new Threshold(Math.max(0, 35 - padding), Math.min(16384, 300 + padding));
+
+    public ActualMin = 35;
+    public ActualMax = 300;
 }
 
 export class TomographyViewModel {
