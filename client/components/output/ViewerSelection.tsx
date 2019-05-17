@@ -41,19 +41,22 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, {}>
         if (soma) {
             const somaBrainArea = this.props.lookupBrainArea(soma.brainAreaId);
 
-            let somaDisplayBrainArea = somaBrainArea;
+            if (somaBrainArea) {
+                let somaDisplayBrainArea = somaBrainArea;
 
-            while (!somaDisplayBrainArea.geometryEnable) {
-                somaDisplayBrainArea = this.props.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
+                while (!somaDisplayBrainArea.geometryEnable) {
+                    somaDisplayBrainArea = this.props.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
+                }
+
+                const somaBrainAreaTrigger = <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
+                    {` ${somaBrainArea.acronym}`}
+                </a>;
+
+                somaBrainAreaLabel = (
+                    <Popup trigger={somaBrainAreaTrigger}
+                           style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
+                );
             }
-
-            const somaBrainAreaTrigger = <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
-                {` ${somaBrainArea.acronym}`}
-            </a>;
-
-            somaBrainAreaLabel = (
-                <Popup trigger={somaBrainAreaTrigger} style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
-            );
         }
 
         let structureLabel = " - (soma only)";
@@ -170,8 +173,10 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
 
         let displayBrainArea = brainArea;
 
-        while (!displayBrainArea.geometryEnable) {
-            displayBrainArea = this.lookupBrainArea(displayBrainArea.parentStructureId);
+        if (displayBrainArea) {
+            while (!displayBrainArea.geometryEnable) {
+                displayBrainArea = this.lookupBrainArea(displayBrainArea.parentStructureId);
+            }
         }
 
         let structureName = "path";
@@ -205,19 +210,21 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
 
             let somaDisplayBrainArea = somaBrainArea;
 
-            while (!somaDisplayBrainArea.geometryEnable) {
-                somaDisplayBrainArea = this.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
+            if (somaDisplayBrainArea) {
+                while (!somaDisplayBrainArea.geometryEnable) {
+                    somaDisplayBrainArea = this.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
+                }
             }
 
-            const somaBrainAreaTrigger = (
+            const somaBrainAreaTrigger = somaBrainArea ? (
                 <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
                     {` ${somaBrainArea.acronym}`}
                 </a>
-            );
+            ): null;
 
-            const somaBrainAreaPopup = (
+            const somaBrainAreaPopup = somaBrainArea ? (
                 <Popup trigger={somaBrainAreaTrigger} style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
-            );
+            ) : null;
 
             somaBrainAreaLabel = (
                 <span>
@@ -229,15 +236,15 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             );
         }
 
-        const nodeBrainAreaTrigger = (
+        const nodeBrainAreaTrigger = displayBrainArea ?  (
             <a onClick={() => this.props.onToggleLoadedGeometry(displayBrainArea.id)}>
                 {`${brainArea.acronym}`}
             </a>
-        );
+        ) : null;
 
-        const nodeBrainAreaPopup = (
+        const nodeBrainAreaPopup = brainArea ?  (
             <Popup trigger={nodeBrainAreaTrigger} style={{maxHeight: "30px"}}>{brainArea.name}</Popup>
-        );
+        ) : null;
 
         return (
             <div style={{display: "flex", flexFlow: "column nowrap"}}>

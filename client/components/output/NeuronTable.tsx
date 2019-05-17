@@ -94,8 +94,6 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
             </td>
             <td style={{verticalAlign: "middle"}}>
                 {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
-                <br/>
-                {v.neuron.sample.idNumber}
             </td>
             <td>
                 <Icon size="small" name="clone" onClick={() => Tomography.Sample = v.neuron.sample}/>
