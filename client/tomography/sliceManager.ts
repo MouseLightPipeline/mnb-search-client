@@ -71,8 +71,10 @@ export class SliceManager {
             });
 
             if (images !== null) {
-                slice.Mesh.visible = true;
-                slice.updateTexture(location, images);
+                if (images.sampleId === this._sampleId) {
+                    slice.Mesh.visible = true;
+                    slice.updateTexture(location, images);
+                }
             } else {
                 slice.Mesh.visible = false;
             }

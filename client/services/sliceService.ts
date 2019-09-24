@@ -17,13 +17,13 @@ export interface ISliceRequest {
 }
 
 export type SliceImage = {
+    sampleId: string;
     image: HTMLImageElement;
     mask: HTMLImageElement;
 }
 
 export class SliceService {
-
-    public async requestSlice(request: ISliceRequest): Promise<SliceImage> {
+    public async requestSlice(request: ISliceRequest): Promise<SliceImage | null> {
         const resp = await fetch("/slice", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -33,7 +33,6 @@ export class SliceService {
         if (resp.status !== 200) {
             return null;
         }
-
         const json = await resp.json();
 
         const image = new Image();
@@ -43,6 +42,7 @@ export class SliceService {
         mask.src = 'data:image/png;base64,' + json.mask;
 
         return {
+            sampleId: request.id === "allen-reference" ? null : request.id,
             image,
             mask
         }
