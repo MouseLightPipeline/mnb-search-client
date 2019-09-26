@@ -1,4 +1,4 @@
-import {observable} from 'mobx';
+import {action, computed, observable} from 'mobx';
 
 import {TomographyConstants, TomographyPlaneConstants} from "../../tomography/tomographyConstants";
 import {ISample} from "../../models/sample";
@@ -36,18 +36,40 @@ export class ThresholdViewModel {
     @observable public Current: Threshold = new Threshold(35, 300);
     @observable public CurrentSampleBounds: Threshold = new Threshold(Math.max(0, 35 - padding), Math.min(16384, 300 + padding));
 
-    public ActualMin = 35;
-    public ActualMax = 300;
+    @observable public ActualMin = 35;
+    @observable public ActualMax = 300;
+
+    @computed get IsCustomThreshold(): boolean {
+        return this.UseCustom && (this.Current.Min !== this.ActualMin || this.Current.Max !== this.ActualMax)
+    }
 }
 
 export class TomographyViewModel {
-    @observable public IsVisible: boolean = true;
+    @observable public AreControlsVisible: boolean = true;
 
     @observable public Sample: ISample = null;
+    @observable public LastSample: ISample = null;
 
     @observable public Threshold: ThresholdViewModel = new ThresholdViewModel();
 
     @observable public Sagittal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Sagittal);
     @observable public Horizontal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Horizontal);
     @observable public Coronal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Coronal);
+
+    @computed get IsReferenceSample(): boolean {
+        return this.Sample === null;
+    }
+
+    @computed get CanSwapSample(): boolean {
+        return this.Sample !== null || this.LastSample !== null;
+    }
+
+    @action public swapSample() {
+        if (this.Sample !== null) {
+            this.LastSample = this.Sample;
+            this.Sample = null;
+        } else if (this.LastSample !== null) {
+            this.Sample = this.LastSample
+        }
+    }
 }

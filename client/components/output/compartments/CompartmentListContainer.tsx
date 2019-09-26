@@ -6,7 +6,7 @@ import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCom
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
-import {TomographyPanel} from "../../tomography/tomographyPanel";
+import {TomographyControls} from "../../tomography/tomographyPanel";
 import {useViewModel} from "../../app/App";
 
 type CompartmentHeaderProps = {
@@ -78,25 +78,7 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
         }}>
             <CompartmentHeader {...props}/>
             <div style={{order: 2, flexGrow: 1, width: "100%", overflow: "auto"}}>
-                <div style={{
-                    display: "flex",
-                    backgroundColor: "#00a450",
-                    color: "white",
-                    height: "30px",
-                    margin: 0,
-                    padding: "6px"
-                }}>
-                    <Icon style={{order: 0, flexGrow: 0, verticalAlign: "middle", paddingTop: "2px"}} size="small" name="undo" onClick={() => Tomography.Sample = null}/>
-                    <h5 style={{
-                        color: "white",
-                        margin: "auto",
-                        textAlign: "center",
-                        order: 1,
-                        flexGrow: 1
-                    }}>{`Tomography - ${Tomography.Sample ? `Sample ${Tomography.Sample.idNumber}` : "Reference"}`}</h5>
-                    <Icon style={{order: 2, flexGrow: 0, verticalAlign: "middle"}} name={Tomography.IsVisible ? "angle up" : "angle down"} onClick={() => Tomography.IsVisible = !Tomography.IsVisible}/>
-                </div>
-                {Tomography.IsVisible ? <TomographyPanel/> : null}
+                <TomographyControls tomography={Tomography}/>
                 <div style={{
                     display: "flex",
                     backgroundColor: color,
@@ -112,7 +94,9 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                         order: 0,
                         flexGrow: 1
                     }}>History</h5>
-                    <Icon style={{order: 1, flexGrow: 0, verticalAlign: "middle"}} name={CompartmentHistory.IsVisible ? "angle up" : "angle down"} onClick={() => CompartmentHistory.IsVisible = !CompartmentHistory.IsVisible}/>
+                    <Icon style={{order: 1, flexGrow: 0, verticalAlign: "middle"}}
+                          name={CompartmentHistory.IsVisible ? "angle up" : "angle down"}
+                          onClick={() => CompartmentHistory.IsVisible = !CompartmentHistory.IsVisible}/>
                 </div>
                 {CompartmentHistory.IsVisible ? <BrainVolumesTable {...props}/> : null}
                 <div style={{
