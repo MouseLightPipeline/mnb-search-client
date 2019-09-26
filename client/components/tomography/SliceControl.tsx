@@ -16,6 +16,8 @@ export interface ISliceControlProps {
 }
 
 export const SliceControl = observer((props: ISliceControlProps) => {
+    // Tracks the slider value while it is in the process of being changed.  Using the view model value directly would
+    // result in several requests for intermediate slices the user is not requesting.
     const [location, setLocation] = useState(props.viewModel.Location);
 
     return (
