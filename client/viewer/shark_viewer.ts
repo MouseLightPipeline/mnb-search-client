@@ -2,6 +2,8 @@ import {NODE_PARTICLE_IMAGE} from "./util";
 import {PreferencesManager} from "../util/preferencesManager";
 
 import * as THREEM from "three";
+import {SystemShader} from "./shaders/shaders";
+import {StandardShader} from "./shaders/standardShader";
 const THREE = require("three");
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
@@ -9,26 +11,15 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 const DEFAULT_POINT_THRESHOLD = 50;
 
 export class SharkViewer {
-    /* swc neuron json object:
-     *	{ id : {
-     *		type: <type number of node (string)>,
-     *		x: <x position of node (float)>,
-     *		y: <y position of node (float)>,
-     *		z: <z position of node (float)>,
-     *		parent: <id number of node's parent (-1 if no parent)>,
-     *		radius: <radius of node (float)>,
-     *		}
-     *	}
-     */
-    public swc = {};
-    //html element that will receive webgl canvas
     public dom_element = 'container';
-    //mode (sphere, particle, skeleton)
-    public mode = 'particle';
+
     //height of canvas
     public HEIGHT = window.innerHeight;
     //width of canvas
     public WIDTH = window.innerWidth;
+
+    public Shader: SystemShader = new StandardShader();
+
     //flip y axis
     public flip = true;
     //color array, nodes of type 0 show as first color, etc.
@@ -49,6 +40,9 @@ export class SharkViewer {
     public on_select_node = null;
     public on_toggle_node = null;
 
+    private three_colors = [];
+    private three_materials = [];
+    private fov: number = 1;
     private show_cones = true;
     private last_anim_timestamp = null;
     private mouseHandler = null;
@@ -61,146 +55,20 @@ export class SharkViewer {
     private scene = null;
     private camera = null;
 
-    public constructor() {
-    }
-
     public get Scene(): THREEM.Scene {
         return this.scene;
     }
 
-    calculateBoundingBox = function (swc_json) {
-        const boundingBox = {
-            xmin: Infinity,
-            xmax: -Infinity,
-            ymin: Infinity,
-            ymax: -Infinity,
-            zmin: Infinity,
-            zmax: -Infinity
-        };
-
-        for (const node in swc_json) {
-            if (swc_json.hasOwnProperty(node)) {
-                if (swc_json[node].x < boundingBox.xmin) boundingBox.xmin = swc_json[node].x;
-                if (swc_json[node].x > boundingBox.xmax) boundingBox.xmax = swc_json[node].x;
-                if (swc_json[node].y < boundingBox.ymin) boundingBox.ymin = swc_json[node].y;
-                if (swc_json[node].y > boundingBox.ymax) boundingBox.ymax = swc_json[node].y;
-                if (swc_json[node].z < boundingBox.zmin) boundingBox.zmin = swc_json[node].z;
-                if (swc_json[node].z > boundingBox.zmax) boundingBox.zmax = swc_json[node].z;
-            }
-        }
-        return boundingBox;
-    };
-
-    createMetadataElement = function (metadata, colors) {
-        function convertToHexColor(i) {
-            let result = "#000000";
-            if (i >= 0 && i <= 15) {
-                result = "#00000" + i.toString(16);
-            } else if (i >= 16 && i <= 255) {
-                result = "#0000" + i.toString(16);
-            } else if (i >= 256 && i <= 4095) {
-                result = "#000" + i.toString(16);
-            } else if (i >= 4096 && i <= 65535) {
-                result = "#00" + i.toString(16);
-            } else if (i >= 65536 && i <= 1048575) {
-                result = "#0" + i.toString(16);
-            } else if (i >= 1048576 && i <= 16777215) {
-                result = "#" + i.toString(16);
-            }
-            return result;
-        }
-
-        const metadiv = document.createElement('div');
-        metadiv.id = 'node_key';
-        metadiv.style.position = 'absolute';
-        metadiv.style.top = '0px';
-        metadiv.style.right = '10px';
-        metadiv.style.border = "solid 1px #aaaaaa";
-        metadiv.style.borderRadius = "5px";
-        metadiv.style.padding = "2px";
-
-        let toinnerhtml = "";
-        metadata.forEach(function (m) {
-            const mtype = parseInt(m.type);
-            const three_color = (mtype < colors.length) ? colors[mtype] : colors[0];
-            let css_color = three_color;
-            if (typeof three_color !== 'string') css_color = convertToHexColor(three_color);
-            toinnerhtml += "<div><span style='height:10px;width:10px;background:" + css_color +
-                ";display:inline-block;'></span> : " + m.label + "</div>";
-        });
-        metadiv.innerHTML = toinnerhtml;
-        return metadiv;
-    };
-
-//calculates camera position based on bounding box
-    calculateCameraPosition = function (fov, center, boundingBox) {
-        const x1 = Math.floor(center[0] - boundingBox.xmin) * 2;
-        const x2 = Math.floor(boundingBox.xmax - center[0]) * 2;
-        const y1 = Math.floor(center[1] - boundingBox.ymin) * 2;
-        const y2 = Math.floor(boundingBox.ymax - center[1]) * 2;
-        const max_bb = Math.max(x1, x2, y1, y2);
-        //fudge factor 1.15 to ensure whole neuron fits
-        return (max_bb / (Math.tan(fov * (Math.PI / 180.0) / 2) * 2)) * 1.15;
-    };
-
-//calculates color based on node type
-    nodeColor = function (node) {
+    private nodeColor(node) {
         if (node.type < this.three_colors.length) return this.three_colors[node.type];
         return this.three_colors[0];
-    };
+    }
 
-//generates sphere mesh
-    generateSphere = function (node) {
-        const sphereMaterial = this.three_materials[node.type];
-        const r1 = node.radius || 0.01;
-        const geometry = new THREE.SphereGeometry(r1);
-        const mesh = new THREE.Mesh(geometry, sphereMaterial);
-        mesh.position.x = node.x;
-        mesh.position.y = node.y;
-        mesh.position.z = node.z;
-        return mesh;
-    };
-
-//generates cones connecting spheres
-    generateConeGeometry = function (node, node_parent) {
-        const coneMaterial = this.three_materials[node_parent.type];
-        const node_vec = new THREE.Vector3(node.x, node.y, node.z);
-        const node_parent_vec = new THREE.Vector3(node_parent.x, node_parent.y, node_parent.z);
-        const dist = node_vec.distanceTo(node_parent_vec);
-        const cylAxis = new THREE.Vector3().subVectors(node_vec, node_parent_vec);
-        cylAxis.normalize();
-        const theta = Math.acos(cylAxis.y);
-        const rotationAxis = new THREE.Vector3();
-        rotationAxis.crossVectors(cylAxis, new THREE.Vector3(0, 1, 0));
-        rotationAxis.normalize();
-        const r1 = node.radius || 0.01;
-        const r2 = node_parent.radius || 0.01;
-        const geometry = new THREE.CylinderGeometry(r1, r2, dist);
-        const mesh = new THREE.Mesh(geometry, coneMaterial);
-        mesh.matrixAutoUpdate = false;
-        mesh.matrix.makeRotationAxis(rotationAxis, -theta);
-        const position = new THREE.Vector3((node.x + node_parent.x) / 2, (node.y + node_parent.y) / 2, (node.z + node_parent.z) / 2);
-        mesh.matrix.setPosition(position);
-        return mesh;
-    };
-
-//generates particle vertices
-    generateParticle = function (node) {
+    private static generateParticle(node) {
         return new THREE.Vector3(node.x, node.y, node.z);
-    };
+    }
 
-//generates skeleton vertices
-    generateSkeleton = function (node, node_parent) {
-        const vertex = new THREE.Vector3(node.x, node.y, node.z);
-        const vertex_parent = new THREE.Vector3(node_parent.x, node_parent.y, node_parent.z);
-        return {
-            'child': vertex,
-            'parent': vertex_parent
-        };
-    };
-
-//generates cone properties for node, parent pair
-    generateCone = function (node, node_parent, color) {
+    private generateCone(node, node_parent, color) {
         const cone_child: any = {};
         const cone_parent: any = {};
 
@@ -230,14 +98,13 @@ export class SharkViewer {
             'normal1': n1,
             'normal2': n2
         };
-    };
+    }
 
-    createNeuron = function (swc_json, color = undefined) {
+    private createNeuron(swc_json, color = undefined) {
         //neuron is object 3d which ensures all components move together
         const neuron = new THREE.Object3D();
         let geometry, material;
-        //particle mode uses vertex info to place texture image, very fast
-        if (this.mode === 'particle') {
+
             // special imposter image contains:
             // 1 - colorizable sphere image in red channel
             // 2 - specular highlight in green channel
@@ -278,7 +145,7 @@ export class SharkViewer {
                         node_color = new THREE.Color(color);
                     }
 
-                    let particle_vertex = this.generateParticle(swc_json[node]);
+                    let particle_vertex = SharkViewer.generateParticle(swc_json[node]);
 
                     let radius = swc_json[node].radius * this.radius_scale_factor;
 
@@ -304,8 +171,8 @@ export class SharkViewer {
             material = new THREE.ShaderMaterial(
                 {
                     uniforms: customUniforms,
-                    vertexShader: this.vertexShader,
-                    fragmentShader: this.fragementShader,
+                    vertexShader: this.Shader.NodeShader.VertexShader,
+                    fragmentShader: this.Shader.NodeShader.FragmentShader,
                     transparent: true,
                     alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5,
                 });
@@ -361,12 +228,10 @@ export class SharkViewer {
                     if (swc_json.hasOwnProperty(node)) {
                         if (swc_json[node].parent !== -1) {
 
-                            const cnode = swc_json[node];
-                            const pnode = swc_json[swc_json[node].parent];
-
                             // Paint two triangles to make a cone-imposter quadrilateral
                             // Triangle #1
                             const cone = this.generateCone(swc_json[node], swc_json[swc_json[node].parent], color);
+
                             let node_color = cone.child.color;
                             if (color) {
                                 node_color = new THREE.Color(color);
@@ -499,8 +364,8 @@ export class SharkViewer {
                 const coneMaterial = new THREE.ShaderMaterial(
                     {
                         uniforms: coneUniforms,
-                        vertexShader: this.vertexShaderCone,
-                        fragmentShader: this.fragmentShaderCone,
+                        vertexShader: this.Shader.PathShader.VertexShader,
+                        fragmentShader: this.Shader.PathShader.FragmentShader,
                         transparent: true,
                         depthTest: true,
                         side: THREE.DoubleSide,
@@ -528,152 +393,11 @@ export class SharkViewer {
 
                 neuron.add(coneMesh);
             }
-        }
-        /*
-        //sphere mode renders 3d sphere
-        else if (this.mode === 'sphere') {
-            for (const node in swc_json) {
-                if (swc_json.hasOwnProperty(node)) {
-                    const sphere = this.generateSphere(swc_json[node]);
-                    neuron.add(sphere);
-                    if (this.show_cones) {
-                        if (swc_json[node].parent != -1) {
-                            const cone = this.generateConeGeometry(swc_json[node], swc_json[swc_json[node].parent]);
-                            neuron.add(cone);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (this.mode === 'skeleton' || this.show_cones === false) {
-            material = new THREE.LineBasicMaterial({color: this.colors[this.colors.length - 1]});
-            if (this.mode === 'skeleton') material.color.set(this.colors[0]);
-            geometry = new THREE.Geometry();
-            for (const node in swc_json) {
-                if (swc_json.hasOwnProperty(node)) {
-                    if (swc_json[node].parent !== -1) {
-                        const vertices = this.generateSkeleton(swc_json[node], swc_json[swc_json[node].parent]);
-                        geometry.vertices.push(vertices.child);
-                        geometry.vertices.push(vertices.parent);
-                    }
-                }
-            }
-            const line = new THREE.LineSegments(geometry, material);
-            neuron.add(line);
-        }
-         */
 
         return neuron;
-    };
+    }
 
-//Sets up three.js scene
-    init = function () {
-        this.vertexShader = [
-            'uniform float particleScale;',
-            'attribute float radius;',
-            'attribute vec3 typeColor;',
-            '//attribute float alpha;',
-            'varying vec3 vColor;',
-            '// varying vec4 mvPosition;',
-            'varying float vAlpha;',
-            'void main() ',
-            '{',
-            'vColor = vec3(typeColor); // set RGB color associated to vertex; use later in fragment shader.',
-            'vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
-            'vAlpha = alpha;',
-            '// gl_PointSize = size;',
-            'gl_PointSize = radius * ((particleScale*2.0) / length(mvPosition.z));',
-            'gl_Position = projectionMatrix * mvPosition;',
-            '}'
-        ].join("\n");
-
-        this.fragementShader = [
-            'uniform sampler2D sphereTexture; // Imposter image of sphere',
-            'uniform mat4 projectionMatrix;',
-            'varying vec3 vColor; // colors associated to vertices; assigned by vertex shader',
-            '//varying vec4 mvPosition;',
-            'varying float vAlpha;',
-            'void main() ',
-            '{',
-            '// what part of the sphere image?',
-            'vec2 uv = vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y);',
-            'vec4 sphereColors = texture2D(sphereTexture, uv);',
-            '// avoid further computation at invisible corners',
-            'if (sphereColors.a < 0.3) discard;',
-            'if (vAlpha < 0.05) discard;',
-
-            '// calculates a color for the particle',
-            '// gl_FragColor = vec4(vColor, 1.0);',
-            '// sets a white particle texture to desired color',
-            '// gl_FragColor = sqrt(gl_FragColor * texture2D(sphereTexture, uv)) + vec4(0.1, 0.1, 0.1, 0.0);',
-            '// red channel contains colorizable sphere image',
-            'vec3 baseColor = vColor * sphereColors.r;',
-            '// green channel contains (white?) specular highlight',
-            'vec3 highlightColor = baseColor + sphereColors.ggg;',
-            'gl_FragColor = vec4(highlightColor, sphereColors.a * vAlpha);',
-            '// TODO blue channel contains depth offset, but we cannot use gl_FragDepth in webgl?',
-            '#ifdef GL_EXT_frag_depth',
-            '// gl_FragDepthExt = 0.5;',
-            '#endif',
-            '}'
-        ].join("\n");
-
-        this.vertexShaderCone = [
-            'attribute float radius;',
-            'attribute vec3 typeColor;',
-            '// attribute float alpha;',
-            'varying vec3 vColor;',
-            'varying vec2 sphereUv;',
-            'varying float vAlpha;',
-            'void main() ',
-            '{',
-            '   vAlpha = alpha;',
-            '	// TODO - offset cone position for different sphere sizes',
-            '	// TODO - implement depth buffer on Chrome',
-            '	vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
-            '	// Expand quadrilateral perpendicular to both view/screen direction and cone axis',
-            '	vec3 cylAxis = (modelViewMatrix * vec4(normal, 0.0)).xyz; // convert cone axis to camera space',
-            '	vec3 sideDir = normalize(cross(vec3(0.0,0.0,-1.0), cylAxis));',
-            '	mvPosition += vec4(radius * sideDir, 0.0);',
-            '	gl_Position = projectionMatrix * mvPosition;',
-            '	// Pass and interpolate color',
-            '	vColor = typeColor;',
-            '	// Texture coordinates',
-            '	sphereUv = uv - vec2(0.5, 0.5); // map from [0,1] range to [-.5,.5], before rotation',
-            '	// If sideDir is "up" on screen, make sure u is positive',
-            '	float q = sideDir.y * sphereUv.y;',
-            '	sphereUv.y = sign(q) * sphereUv.y;',
-            '	// rotate texture coordinates to match cone orientation about z',
-            '	float angle = atan(sideDir.x/sideDir.y);',
-            '	float c = cos(angle);',
-            '	float s = sin(angle);',
-            '	mat2 rotMat = mat2(',
-            '		c, -s, ',
-            '		s,  c);',
-            '	sphereUv = rotMat * sphereUv;',
-            '	sphereUv += vec2(0.5, 0.5); // map back from [-.5,.5] => [0,1]',
-            '}'
-        ].join("\n");
-
-        this.fragmentShaderCone = [
-            'uniform sampler2D sphereTexture; // Imposter image of sphere',
-            'varying vec3 vColor;',
-            'varying vec2 sphereUv;',
-            'varying float vAlpha;',
-            'void main() ',
-            '{',
-            '   if (vAlpha < 0.05) discard;',
-            '	vec4 sphereColors = texture2D(sphereTexture, sphereUv);',
-            '	if (sphereColors.a < 0.3) discard;',
-            '	vec3 baseColor = vColor * sphereColors.r;',
-            '	vec3 highlightColor = baseColor + sphereColors.ggg;',
-            '	gl_FragColor = vec4(highlightColor, sphereColors.a * vAlpha);',
-            '}'
-        ].join("\n");
-
-        if (this.effect === 'noeffect') this.effect = false;
-
+    public init() {
         //set up colors and materials based on color array
         this.three_colors = [];
         for (const color in this.colors) {
@@ -688,10 +412,8 @@ export class SharkViewer {
             }
         }
 
-
-        //setup render
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,	// to get smoother output
+            antialias: true
         });
         this.renderer.setClearColor(this.backgroundColor, 1);
         this.renderer.setSize(this.WIDTH, this.HEIGHT);
@@ -702,28 +424,19 @@ export class SharkViewer {
 
         // put a camera in the scene
         this.fov = 45;
-        //const cameraPosition = this.calculateCameraPosition(fov);
+
         const cameraPosition = -20000;
         this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
-        // const cameraPosition = -2000;
-        // this.camera = new THREE.OrthographicCamera(-5000, 5000, 5000, -5000, 1, cameraPosition * 5);
+
         this.scene.add(this.camera);
 
         this.camera.position.z = cameraPosition;
-
-        // this.axes = buildAxes(10000);
-        // this.scene.add(this.axes);
 
         if (this.flip === true) {
             this.camera.up.setY(-1);
         }
 
-        this.neuron = this.createNeuron(this.swc);
-        this.scene.add(this.neuron);
-
-
         //Lights
-        //doesn't actually work with any of the current shaders
         let light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0, 10000);
         this.scene.add(light);
@@ -731,11 +444,6 @@ export class SharkViewer {
         light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0, -10000);
         this.scene.add(light);
-
-        if (this.metadata) {
-            const mElement = this.createMetadataElement(this.metadata, this.colors);
-            document.getElementById(this.dom_element).appendChild(mElement);
-        }
 
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.dom_element));
         this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
@@ -750,25 +458,26 @@ export class SharkViewer {
                 }
             }
         });
-    };
+    }
 
-    addEventHandler = function (handler) {
+    public addEventHandler(handler) {
         this.mouseHandler = handler;
+
         this.mouseHandler.DomElement = document.getElementById(this.dom_element);
         this.mouseHandler.addListeners();
-        this.mouseHandler.ClickHandler = this.onClick.bind(this);
 
+        this.mouseHandler.ClickHandler = this.onClick;
         this.mouseHandler.ResetHandler = this.onResetView;
-    };
+    }
 
-    onResetView = (r1, r2) => {
+    public onResetView = (r1, r2) => {
         this.trackControls.reset();
         this.trackControls.rotateLeft(r1);
         this.trackControls.rotateUp(r2);
         this.trackControls.update();
     };
 
-    onClick = function (event) {
+    private onClick = (event) => {
         const rect = document.getElementById(this.dom_element).getBoundingClientRect();
 
         const mouse = new THREE.Vector2();
@@ -828,8 +537,7 @@ export class SharkViewer {
         }
     };
 
-// animation loop
-    animate = function (timestamp = null) {
+    public animate = (timestamp = null) => {
         if (!this.last_anim_timestamp) {
             this.last_anim_timestamp = timestamp;
             this.render();
@@ -839,15 +547,15 @@ export class SharkViewer {
             this.render();
         }
 
-        window.requestAnimationFrame(this.animate.bind(this));
+        window.requestAnimationFrame(this.animate);
     };
 
-// render the scene
-    render = function () {
+
+    private render() {
         this.renderer.render(this.scene, this.camera);
-    };
+    }
 
-    loadNeuron = function (filename, color, nodes) {
+    public loadNeuron(filename, color, nodes) {
         const neuron = this.createNeuron(nodes, color);
 
         neuron.name = filename;
@@ -859,12 +567,12 @@ export class SharkViewer {
         }
     };
 
-    unloadNeuron = function (filename) {
+    public unloadNeuron(filename) {
         const neuron = this.scene.getObjectByName(filename);
         this.scene.remove(neuron);
     };
 
-    setNeuronMirror = function (filename: string, mirror: boolean) {
+    public setNeuronMirror(filename: string, mirror: boolean) {
         const neuron = this.scene.getObjectByName(filename);
 
         if (mirror && neuron.scale.x > 0) {
@@ -876,7 +584,7 @@ export class SharkViewer {
         }
     };
 
-    setNeuronVisible = function (id: string, visible: boolean) {
+    public setNeuronVisible(id: string, visible: boolean) {
         const neuron = this.scene.getObjectByName(id);
 
         if (neuron) {
@@ -888,7 +596,7 @@ export class SharkViewer {
         }
     };
 
-    setNeuronDisplayLevel = function (id: string, opacity: number) {
+    public setNeuronDisplayLevel(id: string, opacity: number) {
         const neuron = this.scene.getObjectByName(id);
 
         if (neuron) {
@@ -901,7 +609,7 @@ export class SharkViewer {
         }
     };
 
-    loadCompartment = function (id: string, geometryFile: string, color) {
+    public loadCompartment(id: string, geometryFile: string, color) {
         const loader = new THREE.OBJLoader();
 
         const that = this;
@@ -909,39 +617,13 @@ export class SharkViewer {
         const path = this.compartment_path + geometryFile;
 
         loader.load(path, (object) => {
-            object.traverse(function (child) {
+            object.traverse( (child) => {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
                         color: {type: 'c', value: new THREE.Color('#' + color)},
                     },
-                    vertexShader: `
-					#line 585
-					varying vec3 normal_in_camera;
-					varying vec3 view_direction;
-
-					void main() {
-						vec4 pos_in_camera = modelViewMatrix * vec4(position, 1.0);
-						gl_Position = projectionMatrix * pos_in_camera;
-						normal_in_camera = normalize(mat3(modelViewMatrix) * normal);
-						view_direction = normalize(pos_in_camera.xyz);
-					}
-				`,
-                    fragmentShader: `
-                	#line 597
-                	uniform vec3 color;
-					varying vec3 normal_in_camera;
-					varying vec3 view_direction;
-
-					void main() {
-						// Make edges more opaque than center
-						float edginess = 1.0 - abs(dot(normal_in_camera, view_direction));
-						float opacity = clamp(edginess - 0.30, 0.0, 0.5);
-						// Darken compartment at the very edge
-						float blackness = pow(edginess, 4.0) - 0.3;
-						vec3 c = mix(color, vec3(0,0,0), blackness);
-						gl_FragColor = vec4(c, opacity);
-					}
-				`,
+                    vertexShader: this.Shader.CompartmentShader.VertexShader,
+                    fragmentShader: this.Shader.CompartmentShader.FragmentShader,
                     transparent: true,
                     depthTest: true,
                     depthWrite: false,
@@ -960,12 +642,12 @@ export class SharkViewer {
         });
     };
 
-    unloadCompartment = function (id: string) {
+    public unloadCompartment(id: string) {
         const selectedObj = this.scene.getObjectByName(id);
         this.scene.remove(selectedObj);
     };
 
-    setCompartmentVisible = function (id: string, visible: boolean) {
+    public setCompartmentVisible(id: string, visible: boolean) {
         const compartment = this.scene.getObjectByName(id);
 
         if (compartment) {
@@ -973,7 +655,7 @@ export class SharkViewer {
         }
     };
 
-    setSize = (width, height) => {
+    public setSize(width, height) {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
 
@@ -985,7 +667,7 @@ export class SharkViewer {
         this.render();
     };
 
-    setBackground = (color) => {
+    public setBackground(color) {
         this.backgroundColor = color;
         this.renderer.setClearColor(this.backgroundColor, 1);
     }

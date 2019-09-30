@@ -234,8 +234,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         if (!this._viewer) {
             const s = new SharkViewer();
 
-            s.swc = null;
-            s.mode = "particle";
             s.dom_element = "viewer-container";
             s.centerpoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
