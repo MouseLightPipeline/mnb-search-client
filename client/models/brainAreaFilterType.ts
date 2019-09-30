@@ -28,9 +28,9 @@ export class BrainAreaFilterType {
     }
 }
 
-export let BRAIN_AREA_FILTER_TYPE_COMPARTMENT: BrainAreaFilterType = null;
-export let BRAIN_AREA_FILTER_TYPE_SPHERE: BrainAreaFilterType = null;
-export let BRAIN_AREA_FILTER_TYPE_ID: BrainAreaFilterType = null;
+export let BRAIN_AREA_FILTER_TYPE_COMPARTMENT: BrainAreaFilterType | null = null;
+export let BRAIN_AREA_FILTER_TYPE_SPHERE: BrainAreaFilterType | null = null;
+export let BRAIN_AREA_FILTER_TYPE_ID: BrainAreaFilterType | null = null;
 
 const brainAreaFilterTypeLookup = new Map<number, BrainAreaFilterType>();
 

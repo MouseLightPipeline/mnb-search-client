@@ -24,9 +24,9 @@ export class NeuronViewModel {
     tracings: TracingViewModel[];
 
     private viewMode: NeuronViewMode;
-    private requestedViewMode: NeuronViewMode;
+    private requestedViewMode: NeuronViewMode | null;
 
-    public constructor(neuron: INeuron, color: string = null) {
+    public constructor(neuron: INeuron, color: string | null = null) {
         this.neuron = neuron;
 
         this.viewMode = NEURON_VIEW_MODE_ALL;

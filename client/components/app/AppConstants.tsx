@@ -26,7 +26,7 @@ export const AppConstants = observer((props: any) => {
         );
     }
 
-    NdbConstants.DefaultConstants.load(data);
+    NdbConstants.DefaultConstants.load(data!);
 
     return props.children;
 });

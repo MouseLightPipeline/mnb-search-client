@@ -8,8 +8,8 @@ export class SystemConfigurationStore {
     @observable exportLimit: number;
 
     public constructor() {
-        this.searchScope = null;
-        this.systemVersion = null;
+        this.searchScope = SearchScope.Unset;
+        this.systemVersion = "";
         this.exportLimit = 0;
     }
 

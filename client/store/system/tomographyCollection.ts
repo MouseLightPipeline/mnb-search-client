@@ -28,7 +28,7 @@ export class Threshold {
     @observable public Min = 0;
     @observable public Max = 1;
 
-    public constructor(min, max) {
+    public constructor(min: number, max: number) {
         this.Min = min;
         this.Max = max;
     }
@@ -81,7 +81,7 @@ export class TomographyCollection {
     }
 
     @computed
-    public get ReferenceTomography(): SampleTomography {
-        return this.SampleTomographyMap.get(ReferenceTomographyId);
+    public get ReferenceTomography(): SampleTomography | null {
+        return this.SampleTomographyMap.get(ReferenceTomographyId) || null;
     }
 }

@@ -14,10 +14,10 @@ export class NeuronViewMode {
     }
 }
 
-export let NEURON_VIEW_MODE_ALL: NeuronViewMode = null;
-export let NEURON_VIEW_MODE_AXON: NeuronViewMode = null;
-export let NEURON_VIEW_MODE_DENDRITE: NeuronViewMode = null;
-export let NEURON_VIEW_MODE_SOMA: NeuronViewMode = null;
+export let NEURON_VIEW_MODE_ALL: NeuronViewMode | null = null;
+export let NEURON_VIEW_MODE_AXON: NeuronViewMode | null = null;
+export let NEURON_VIEW_MODE_DENDRITE: NeuronViewMode | null = null;
+export let NEURON_VIEW_MODE_SOMA: NeuronViewMode | null = null;
 
 export const NEURON_VIEW_MODES: NeuronViewMode[] = makeTracingViewModes();
 

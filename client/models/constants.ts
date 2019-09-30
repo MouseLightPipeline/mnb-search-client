@@ -68,7 +68,7 @@ export class NdbConstants {
         return this._NeuronStructures;
     }
 
-    public findBrainArea(id: string | number): IBrainArea {
+    public findBrainArea(id: string | number): IBrainArea | undefined {
         if (typeof(id) === "string")
             return this._brainAreaIdMap.get(id);
         else

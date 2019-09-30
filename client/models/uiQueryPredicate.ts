@@ -10,6 +10,7 @@ import {FilterContents, IPosition, IPositionInput} from "./queryFilter";
 import cuid = require("cuid");
 
 export enum SearchScope {
+    Unset = -1,
     Private = 0,
     Team = 1,
     Division = 2,

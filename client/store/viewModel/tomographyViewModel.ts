@@ -20,7 +20,7 @@ export class SliceControlViewModel {
 }
 
 export class TomographyViewModel {
-    private readonly _sampleTomography: SampleTomography = null;
+    private readonly _sampleTomography: SampleTomography;
 
     public constructor(tomography: SampleTomography) {
         this._sampleTomography = tomography;
@@ -47,7 +47,7 @@ export class TomographyViewModel {
     }
 
     @computed get IsCustomThreshold(): boolean {
-        return this.UseCustomThreshold && (this.CustomThreshold.Min !== this._sampleTomography.DefaultThreshold[0] || this.CustomThreshold.Max !== this._sampleTomography.DefaultThreshold[1]);
+        return this.UseCustomThreshold && (this.CustomThreshold.Min !== this._sampleTomography.DefaultThreshold.Min || this.CustomThreshold.Max !== this._sampleTomography.DefaultThreshold.Max);
     }
 
     @action
@@ -82,14 +82,20 @@ export class TomographyViewModel {
     }
 }
 
+/**
+ * The collection of all known tomography view models and general tomography user interface status (are controls
+ * collapsed or shown, etc).
+ */
 export class TomographyCollectionViewModel {
     @observable private readonly _tomographyDataStore: TomographyCollection;
 
     private _viewModels: Map<string, TomographyViewModel> = new Map<string, TomographyViewModel>();
 
-    private _lastTomography: TomographyViewModel = null;
+    private _lastTomography: TomographyViewModel | null = null;
 
-    @observable private _selection: TomographyViewModel = null;
+    @observable private _selection: TomographyViewModel | null = null;
+
+    @observable private _refTomography: TomographyViewModel;
 
     public constructor(tomographyDataStore: TomographyCollection) {
         this._tomographyDataStore = tomographyDataStore;
@@ -108,26 +114,6 @@ export class TomographyCollectionViewModel {
     @observable public Horizontal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Horizontal);
     @observable public Coronal: SliceControlViewModel = new SliceControlViewModel(tomographyConstants.Coronal);
 
-    @computed
-    public get title(): string {
-        return this.Selection != null ? this.Selection.IsReferenceSample ? "Reference" : `Sample ${this.Selection.SampleIdNumber}` : "No Selection";
-    }
-
-    @computed get SelectedId(): string | null {
-        return this._selection != null ? this._selection.SampleTomography.Id : null;
-    }
-
-    @computed
-    public get Selection(): TomographyViewModel {
-        return this._selection;
-    };
-
-    @computed get CanSwapSample(): boolean {
-        return this.Selection !== null && (this.Selection !== this._refTomography || this._lastTomography !== null);
-    }
-
-    @observable private _refTomography: TomographyViewModel;
-
     @computed get ReferenceSampleTomography(): TomographyViewModel | null {
 
         if (this._refTomography == null && this._tomographyDataStore.ReferenceTomography != null) {
@@ -137,12 +123,26 @@ export class TomographyCollectionViewModel {
         return this._refTomography;
     }
 
+    @computed
+    public get title(): string {
+        return this.Selection != null ? this.Selection.IsReferenceSample ? "Reference" : `Sample ${this.Selection.SampleIdNumber}` : "No Selection";
+    }
+
+    @computed
+    public get Selection(): TomographyViewModel | null {
+        return this._selection;
+    };
+
+    @computed get CanSwapSample(): boolean {
+        return this.Selection !== null && (this.Selection !== this._refTomography || this._lastTomography !== null);
+    }
+
     @action
     public setSample(sample: ISample) {
         if (this._viewModels.has(sample.id)) {
-            this._selection = this._viewModels.get(sample.id);
+            this._selection = this._viewModels.get(sample.id)!;
         } else if (this._tomographyDataStore.SampleTomographyMap.has(sample.id)) {
-            this._selection = new TomographyViewModel(this._tomographyDataStore.SampleTomographyMap.get(sample.id));
+            this._selection = new TomographyViewModel(this._tomographyDataStore.SampleTomographyMap.get(sample.id)!);
             this._viewModels.set(sample.id, this._selection);
         } else {
             this._selection = this._refTomography; // May or may not exist at this time.

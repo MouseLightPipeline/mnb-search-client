@@ -7,12 +7,12 @@ import {isNullOrUndefined} from "util";
 //
 // To date, this particular choice of combinations is exclusively for presentation in this interface
 export class NeuronalStructure {
-    private _id: string;
+    private readonly _id: string;
 
-    public structureIdentifier: ITracingStructure;
-    public tracingStructure: ITracingStructure;
+    public structureIdentifier: ITracingStructure | null;
+    public tracingStructure: ITracingStructure | null;
 
-    public constructor(id: string, structureIdentifier: ITracingStructure, tracingStructure: ITracingStructure) {
+    public constructor(id: string, structureIdentifier: ITracingStructure | null, tracingStructure: ITracingStructure | null) {
         this._id = id;
         this.structureIdentifier = structureIdentifier;
         this.tracingStructure = tracingStructure;
