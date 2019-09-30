@@ -529,6 +529,7 @@ export class SharkViewer {
                 neuron.add(coneMesh);
             }
         }
+        /*
         //sphere mode renders 3d sphere
         else if (this.mode === 'sphere') {
             for (const node in swc_json) {
@@ -561,6 +562,8 @@ export class SharkViewer {
             const line = new THREE.LineSegments(geometry, material);
             neuron.add(line);
         }
+         */
+
         return neuron;
     };
 

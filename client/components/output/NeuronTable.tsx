@@ -96,7 +96,7 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
                 {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
             </td>
             <td>
-                <Icon size="small" name="clone" onClick={() => Tomography.Sample = v.neuron.sample}/>
+                <Icon size="small" name="clone" onClick={() => Tomography.setSample(v.neuron.sample)}/>
             </td>
         </tr>
     );

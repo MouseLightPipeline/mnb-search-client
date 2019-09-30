@@ -5,58 +5,57 @@ import {observer} from "mobx-react-lite";
 import {SliceControl} from "./SliceControl";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
 import {UserThreshold} from "./UserThreshold";
-import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
+import {TomographyCollectionViewModel, TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 
 const tomographyConstants = TomographyConstants.Instance;
+
+type TomographyCollectionViewModelProps = {
+    tomography: TomographyCollectionViewModel;
+}
 
 export type TomographyViewModelProps = {
     tomography: TomographyViewModel;
 }
 
-export const TomographyControls = observer<TomographyViewModelProps>(({tomography}) => {
-    return (
-        <div>
-            <TomographyHeader tomography={tomography}/>
-            {tomography.AreControlsVisible ? <TomographyPanel tomography={tomography}/> : null}
-        </div>
-    )
-});
+export const TomographyControls = observer<TomographyCollectionViewModelProps>(({tomography}) => (
+    <div>
+        <TomographyHeader tomography={tomography}/>
+        {tomography.AreControlsVisible && tomography.Selection != null ? <TomographyPanel tomography={tomography}/> : null}
+    </div>
+));
 
-const TomographyPanel = observer<TomographyViewModelProps>(({tomography}) => {
-    return (
-        <List divided relaxed>
-            <SliceControl viewModel={tomography.Sagittal} constants={tomographyConstants.Sagittal}/>
-            <SliceControl viewModel={tomography.Horizontal} constants={tomographyConstants.Horizontal}/>
-            <SliceControl viewModel={tomography.Coronal} constants={tomographyConstants.Coronal}/>
-            <UserThreshold tomography={tomography}/>
-        </List>
-    );
-});
+const TomographyPanel = observer<TomographyCollectionViewModelProps>(({tomography}) => (
+    <List divided relaxed>
+        <SliceControl viewModel={tomography.Sagittal} constants={tomographyConstants.Sagittal}/>
+        <SliceControl viewModel={tomography.Horizontal} constants={tomographyConstants.Horizontal}/>
+        <SliceControl viewModel={tomography.Coronal} constants={tomographyConstants.Coronal}/>
+        <UserThreshold tomography={tomography.Selection}/>
+    </List>
+));
 
-const TomographySwapSampleButton = observer<TomographyViewModelProps>(({tomography}) => {
+const TomographySwapSampleButton = observer<TomographyCollectionViewModelProps>(({tomography}) => {
     const style = {
         order: 0,
         flexGrow: 0,
         verticalAlign: "middle",
         paddingTop: "2px",
-        visibility: tomography.CanSwapSample ? "visible" : "hidden"
+        visible: tomography.CanSwapSample ? "visible" : "hidden"
     };
 
-    return (<Icon style={style} size="small" name={tomography.IsReferenceSample ? "redo" : "undo"}
-                  onClick={() => tomography.swapSample()}/>)
+    return tomography.CanSwapSample ? (<Icon style={style} size="small" name={tomography.Selection.IsReferenceSample ? "redo" : "undo"}
+                  onClick={() => tomography.swapSample()}/>) : null;
 });
 
-const TomographyHeader = observer<TomographyViewModelProps>(({tomography}) => {
+const TomographyHeader = observer<TomographyCollectionViewModelProps>(({tomography}) => {
     return (
         <div style={HeaderContainerStyle}>
             <TomographySwapSampleButton tomography={tomography}/>
-            <h5 style={HeaderStyle}>{`Tomography - ${tomography.Sample ? `Sample ${tomography.Sample.idNumber}` : "Reference"}`}</h5>
+            <h5 style={HeaderStyle}>{tomography.title}</h5>
             <Icon style={{order: 2, flexGrow: 0, verticalAlign: "middle"}}
                   name={tomography.AreControlsVisible ? "angle up" : "angle down"}
                   onClick={() => tomography.AreControlsVisible = !tomography.AreControlsVisible}/>
         </div>)
 });
-
 
 const HeaderContainerStyle = {
     display: "flex",

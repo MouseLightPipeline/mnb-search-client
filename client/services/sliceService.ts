@@ -1,3 +1,5 @@
+import {Range2D} from "../store/system/tomographyCollection";
+
 export enum SlicePlane {
     Undefined = 0,
     Sagittal,
@@ -5,13 +7,11 @@ export enum SlicePlane {
     Coronal
 }
 
-export type Threshold = [number, number];
-
 export interface ISliceRequest {
     id?: string;
     plane?: number;
     location?: number;
-    threshold?: Threshold;
+    threshold?: Range2D;
     mask?: boolean;
     invert?: boolean;
 }

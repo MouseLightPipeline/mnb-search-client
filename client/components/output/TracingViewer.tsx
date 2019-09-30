@@ -2,6 +2,7 @@ import * as React from "react";
 import {observe} from "mobx";
 import {observer} from "mobx-react";
 import * as _ from "lodash";
+import Color = require("color");
 
 import {ITracingNode} from "../../models/tracingNode";
 import {TracingViewModel} from "../../viewmodel/tracingViewModel";
@@ -18,8 +19,8 @@ import {SlicePlane} from "../../services/sliceService";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
 import {rootViewModel} from "../../store/viewModel/systemViewModel";
 import {SliceManager} from "../../tomography/sliceManager";
-import {rootDataStore} from "../../store/system/systemDataStore";
-import {Threshold} from "../../store/viewModel/tomographyViewModel";
+import {TomographyCollectionViewModel} from "../../store/viewModel/tomographyViewModel";
+import {TracingStructure} from "../../models/tracingStructure";
 
 const ROOT_ID = 997;
 
@@ -88,6 +89,9 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private _sliceManager = null;
 
+    private _disposer1 = null;
+    private _disposer2 = null;
+
     public constructor(props: ITracingViewerProps) {
         super(props);
 
@@ -103,7 +107,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         return this.props.constants.findBrainArea(id);
     }
 
-    public componentDidMount() {
+    public async componentDidMount() {
         this.updateDimensions();
 
         window.addEventListener("resize", () => this.updateDimensions());
@@ -148,47 +152,42 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         });
 
         observe(tomography, async (change: any) => {
-            if (change.name === "Sample") {
-                if (change.oldValue === null && change.newValue === null) {
-                    return;
+            if (change.name === "_selection") {
+                await this._sliceManager.setSampleId(tomography.Selection ? tomography.Selection.SampleTomography.Id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
+
+                await this.registerSelectionObservers(tomography);
+
+                await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
+            }
+        });
+
+        await this.registerSelectionObservers(tomography);
+    }
+
+    private async registerSelectionObservers(tomography: TomographyCollectionViewModel) {
+        if (this._disposer1) {
+            this._disposer1();
+            this._disposer1 = null;
+        }
+
+        if (this._disposer2) {
+            this._disposer2();
+            this._disposer2 = null;
+        }
+
+        if (tomography.Selection != null) {
+            this._disposer1 = observe(tomography.Selection, async (change) => {
+                if (tomography.Selection) {
+                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
                 }
+            });
 
-                if (change.oldValue !== null && change.newValue !== null && (change.oldValue.id === change.newValue.id)) {
-                    return;
+            this._disposer2 = observe(tomography.Selection.CustomThreshold, async (change) => {
+                if (tomography.Selection) {
+                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
                 }
-
-                const rootStore = rootDataStore;
-
-                let threshold = tomography.Sample && rootStore.Tomography.Samples.has(tomography.Sample.id) ? rootStore.Tomography.Samples.get(tomography.Sample.id).Threshold : rootStore.Tomography.ReferenceSample.Threshold;
-                threshold = [threshold[0], threshold[1]];
-
-                const padding = Math.floor((threshold[1] - threshold[0]) * 0.2);
-                const threshold2: [number, number] = [Math.max(0, threshold[0] - padding), Math.min(16384, threshold[1] + padding)];
-
-                tomography.Threshold.CurrentSampleBounds.Min = threshold2[0];
-                tomography.Threshold.CurrentSampleBounds.Max = threshold2[1];
-
-                tomography.Threshold.Current.Min = threshold[0];
-                tomography.Threshold.Current.Max = threshold[1];
-
-                tomography.Threshold.ActualMin = threshold[0];
-                tomography.Threshold.ActualMax = threshold[1];
-
-                await this._sliceManager.setSampleId(tomography.Sample ? tomography.Sample.id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
-            }
-        });
-
-        observe(tomography.Threshold, async (change) => {
-            if (change.name === "UseCustom" || change.name == "Current") {
-                await this._sliceManager.setThreshold(tomography.Threshold.UseCustom ? tomography.Threshold.Current.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
-            }
-        });
-
-        observe(tomography.Threshold.Current, async (change) => {
-            if (change.name === "Min" || change.name == "Max") {
-                await this._sliceManager.setThreshold(tomography.Threshold.UseCustom ? tomography.Threshold.Current.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
-            }
-        });
+            });
+        }
     }
 
     public componentWillUnmount() {
@@ -407,7 +406,13 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         this._neuronColors.set(tracing.id, tracing.neuron.baseColor);
 
-        this._viewer.loadNeuron(tracing.id, tracing.neuron.baseColor, nodes);
+        let color = Color(tracing.neuron.baseColor);
+
+        if (tracing.structure.value === TracingStructure.dendrite) {
+            color = color.darken(0.75);
+        }
+
+        this._viewer.loadNeuron(tracing.id, color.hex(), nodes);
 
         this.setOpacity(tracing, fadedOpacity);
 

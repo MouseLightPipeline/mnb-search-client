@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
-import {SlicePlane, SliceService, Threshold} from "../services/sliceService";
+import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
+import {Range2D} from "../store/system/tomographyCollection";
 
 const tomographyConstants = TomographyConstants.Instance;
 
@@ -13,7 +14,7 @@ const centerPoint: LocationArray = [tomographyConstants.Sagittal.Center, tomogra
 export class SliceManager {
     private _sampleId: string = null;
 
-    private _threshold: Threshold = null;
+    private _threshold: Range2D = null;
 
     private _sliceService: SliceService;
 
@@ -32,14 +33,16 @@ export class SliceManager {
     }
 
     public async setSampleId(id: string, locations: LocationArray) {
-        this._sampleId = id;
+        if (id !== this._sampleId) {
+            this._sampleId = id;
 
-        await this.updateSlice(SlicePlane.Sagittal, locations[0]);
-        await this.updateSlice(SlicePlane.Horizontal, locations[1]);
-        await this.updateSlice(SlicePlane.Coronal, locations[2]);
+            await this.updateSlice(SlicePlane.Sagittal, locations[0]);
+            await this.updateSlice(SlicePlane.Horizontal, locations[1]);
+            await this.updateSlice(SlicePlane.Coronal, locations[2]);
+        }
     }
 
-    public async setThreshold(threshold: Threshold, locations: LocationArray) {
+    public async setThreshold(threshold: Range2D, locations: LocationArray) {
         this._threshold = threshold;
 
         await this.updateSlice(SlicePlane.Sagittal, locations[0]);
