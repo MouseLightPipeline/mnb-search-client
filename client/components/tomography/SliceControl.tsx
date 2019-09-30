@@ -1,8 +1,7 @@
 import * as React from "react";
 import {useState} from "react";
-import {Button, Checkbox, List} from "semantic-ui-react";
 import {observer} from "mobx-react-lite";
-
+import {Button, Checkbox, List} from "semantic-ui-react";
 const Slider = require("rc-slider").default;
 
 import {TomographyPlaneConstants} from "../../tomography/tomographyConstants";

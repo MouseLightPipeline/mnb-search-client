@@ -20,7 +20,8 @@ export type TomographyViewModelProps = {
 export const TomographyControls = observer<TomographyCollectionViewModelProps>(({tomography}) => (
     <div>
         <TomographyHeader tomography={tomography}/>
-        {tomography.AreControlsVisible && tomography.Selection != null ? <TomographyPanel tomography={tomography}/> : null}
+        {tomography.AreControlsVisible && tomography.Selection != null ?
+            <TomographyPanel tomography={tomography}/> : null}
     </div>
 ));
 
@@ -34,16 +35,9 @@ const TomographyPanel = observer<TomographyCollectionViewModelProps>(({tomograph
 ));
 
 const TomographySwapSampleButton = observer<TomographyCollectionViewModelProps>(({tomography}) => {
-    const style = {
-        order: 0,
-        flexGrow: 0,
-        verticalAlign: "middle",
-        paddingTop: "2px",
-        visible: tomography.CanSwapSample ? "visible" : "hidden"
-    };
-
-    return tomography.CanSwapSample ? (<Icon style={style} size="small" name={tomography.Selection.IsReferenceSample ? "redo" : "undo"}
-                  onClick={() => tomography.swapSample()}/>) : null;
+    return tomography.CanSwapSample ? (
+        <Icon style={SwapButtonLayoutStyle(tomography)} size="small" name={tomography.Selection.IsReferenceSample ? "redo" : "undo"}
+              onClick={() => tomography.swapSample()}/>) : null;
 });
 
 const TomographyHeader = observer<TomographyCollectionViewModelProps>(({tomography}) => {
@@ -72,4 +66,14 @@ const HeaderStyle = {
     textAlign: "center" as "center",
     order: 1,
     flexGrow: 1
+};
+
+const SwapButtonLayoutStyle = (tomography: TomographyCollectionViewModel) => {
+    return {
+        order: 0,
+        flexGrow: 0,
+        verticalAlign: "middle",
+        paddingTop: "2px",
+        visible: tomography.CanSwapSample ? "visible" : "hidden"
+    }
 };
