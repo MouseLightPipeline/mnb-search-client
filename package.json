@@ -1,6 +1,6 @@
 {
   "name": "mnb-search-client",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "main": "server/app.js",
   "private": true,
   "repository": "https://github.com/MouseLightPipeline/mnb-search-client.git",
