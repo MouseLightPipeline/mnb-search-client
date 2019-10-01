@@ -53,6 +53,20 @@ export class Slice {
         return this._location;
     }
 
+    public updateTextureAndLocation(location, image: SliceResponse) {
+        if (location !== null) {
+            this.setLocation(location);
+        }
+
+        if (image !== null) {
+            this._texture.image = image.image;
+            this._texture.needsUpdate = true;
+
+            this._mask.image = image.mask;
+            this._mask.needsUpdate = true;
+        }
+    }
+
     private setLocation(location: number) {
         switch (this._slicePlane) {
             case SlicePlane.Sagittal:
@@ -64,20 +78,6 @@ export class Slice {
             case SlicePlane.Coronal:
                 this._mesh.position.set(0, 0, location - centerPoint[2]);
                 break;
-        }
-    }
-
-    public updateTexture(location, image: SliceResponse) {
-        if (location !== null) {
-            this.setLocation(location);
-        }
-
-        if (image !== null) {
-            this._texture.image = image.image;
-            this._texture.needsUpdate = true;
-
-            this._mask.image = image.mask;
-            this._mask.needsUpdate = true;
         }
     }
 

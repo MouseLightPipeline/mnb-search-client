@@ -76,7 +76,7 @@ export class SliceManager {
             if (images !== null) {
                 if (images.sampleId === this._sampleId) {
                     slice.Mesh.visible = true;
-                    slice.updateTexture(location, images);
+                    slice.updateTextureAndLocation(location, images);
                 }
             } else {
                 slice.Mesh.visible = false;
