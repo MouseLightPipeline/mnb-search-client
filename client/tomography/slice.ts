@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {SliceImage, SlicePlane} from "../services/sliceService";
+import {SliceResponse, SlicePlane} from "../services/sliceService";
 import {CoronalLimit, HorizontalLimit, SagittalLimit, TomographyConstants} from "./tomographyConstants";
 
 type SliceSize = [number, number];
@@ -67,7 +67,7 @@ export class Slice {
         }
     }
 
-    public updateTexture(location, image: SliceImage) {
+    public updateTexture(location, image: SliceResponse) {
         if (location !== null) {
             this.setLocation(location);
         }

@@ -3,7 +3,7 @@ import * as THREE from "three";
 import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
-import {Range2D} from "../store/system/tomographyCollection";
+import {Range2D} from "../util/viewerTypes";
 
 const tomographyConstants = TomographyConstants.Instance;
 
@@ -65,9 +65,9 @@ export class SliceManager {
     public async updateSlice(plane: SlicePlane, location: number) {
         let slice = this._sliceMap.get(plane);
 
-        if (slice !== undefined) {
+        if (slice != null && this._sampleId != null) {
             const images = await this._sliceService.requestSlice({
-                id: this._sampleId || "allen-reference",
+                id: this._sampleId,
                 plane,
                 threshold: this._threshold,
                 location: location === null ? slice.Location : location

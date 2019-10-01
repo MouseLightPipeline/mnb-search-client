@@ -2,8 +2,6 @@ import * as React from "react";
 import {CSSProperties} from "react";
 import Select from "react-select";
 
-import {isNullOrUndefined} from "../../util/nodeUtil";
-
 // Indicators cause the vertical height to be 38 with default font settings and the default
 // vertical padding of 8.
 
@@ -196,7 +194,7 @@ export class DynamicMultiSelect<T extends IDynamicSelectOption, U> extends Dynam
     }
 
     protected isSelectedOption(object: T, selectedOption: T[]) {
-        return selectedOption && (selectedOption.length > 0) && !isNullOrUndefined(selectedOption.find(s => s.id === object.id));
+        return selectedOption && (selectedOption.length > 0) && (selectedOption.find(s => s.id === object.id)) !=null;
     }
 
     protected addToSelection(option: T, selection: T[]) {

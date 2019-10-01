@@ -2,7 +2,6 @@ import {IQueryOperator} from "./queryOperator";
 import {IBrainArea} from "./brainArea";
 import {NeuronalStructure} from "./neuronalStructure";
 import {NdbConstants} from "./constants";
-import {isNullOrUndefined} from "../util/nodeUtil";
 
 export enum FilterComposition {
     and = 1,
@@ -78,7 +77,7 @@ export class FilterContents {
         const filter = new FilterContents();
 
         filter.tracingIdsOrDOIs = data.tracingIdsOrDOIs || "";
-        filter.tracingIdsOrDOIsExactMatch = isNullOrUndefined(data.tracingIdsOrDOIsExactMatch) ? true : data.tracingIdsOrDOIsExactMatch;
+        filter.tracingIdsOrDOIsExactMatch = data.tracingIdsOrDOIsExactMatch == null ? true : data.tracingIdsOrDOIsExactMatch;
         filter.neuronalStructure = constants.findNeuronalStructure(data.neuronalStructureId);
         filter.operator = constants.findQueryOperator(data.operatorId);
         filter.amount = data.amount;

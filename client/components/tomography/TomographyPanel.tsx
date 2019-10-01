@@ -5,16 +5,16 @@ import {observer} from "mobx-react-lite";
 import {SliceControl} from "./SliceControl";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
 import {UserThreshold} from "./UserThreshold";
-import {TomographyCollectionViewModel, TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
+import {TomographyViewModel, SampleTomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 
 const tomographyConstants = TomographyConstants.Instance;
 
 type TomographyCollectionViewModelProps = {
-    tomography: TomographyCollectionViewModel;
+    tomography: TomographyViewModel;
 }
 
 export type TomographyViewModelProps = {
-    tomography: TomographyViewModel;
+    tomography: SampleTomographyViewModel;
 }
 
 export const TomographyControls = observer<TomographyCollectionViewModelProps>(({tomography}) => (
@@ -68,7 +68,7 @@ const HeaderStyle = {
     flexGrow: 1
 };
 
-const SwapButtonLayoutStyle = (tomography: TomographyCollectionViewModel) => {
+const SwapButtonLayoutStyle = (tomography: TomographyViewModel) => {
     return {
         order: 0,
         flexGrow: 0,

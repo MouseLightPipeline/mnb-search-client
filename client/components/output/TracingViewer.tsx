@@ -19,7 +19,7 @@ import {SlicePlane} from "../../services/sliceService";
 import {TomographyConstants} from "../../tomography/tomographyConstants";
 import {rootViewModel} from "../../store/viewModel/systemViewModel";
 import {SliceManager} from "../../tomography/sliceManager";
-import {TomographyCollectionViewModel} from "../../store/viewModel/tomographyViewModel";
+import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
 
 const ROOT_ID = 997;
@@ -153,18 +153,20 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         observe(tomography, async (change: any) => {
             if (change.name === "_selection") {
-                await this._sliceManager.setSampleId(tomography.Selection ? tomography.Selection.SampleTomography.Id : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location]);
+                if (tomography.Selection) {
+                    await this._sliceManager.setSampleId(tomography.Selection.SampleTomography.Id, tomography.CurrentLocation);
 
-                await this.registerSelectionObservers(tomography);
+                    await this.registerSelectionObservers(tomography);
 
-                await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
+                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, tomography.CurrentLocation)
+                }
             }
         });
 
         await this.registerSelectionObservers(tomography);
     }
 
-    private async registerSelectionObservers(tomography: TomographyCollectionViewModel) {
+    private async registerSelectionObservers(tomography: TomographyViewModel) {
         if (this._disposer1) {
             this._disposer1();
             this._disposer1 = null;
@@ -178,13 +180,13 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         if (tomography.Selection != null) {
             this._disposer1 = observe(tomography.Selection, async (change) => {
                 if (tomography.Selection) {
-                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
+                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, tomography.CurrentLocation)
                 }
             });
 
             this._disposer2 = observe(tomography.Selection.CustomThreshold, async (change) => {
                 if (tomography.Selection) {
-                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, [tomography.Sagittal.Location, tomography.Horizontal.Location, tomography.Coronal.Location])
+                    await this._sliceManager.setThreshold(tomography.Selection.UseCustomThreshold ? tomography.Selection.CustomThreshold.Values : null, tomography.CurrentLocation)
                 }
             });
         }
@@ -253,6 +255,12 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             this._viewer = s;
 
             this._sliceManager = new SliceManager(this._viewer.Scene);
+
+            const tomography = rootViewModel.Tomography;
+
+            if (tomography.Selection) {
+                await this._sliceManager.setSampleId(tomography.Selection.SampleTomography.Id, tomography.CurrentLocation);
+            }
         }
     }
 

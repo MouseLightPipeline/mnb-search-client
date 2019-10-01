@@ -1,5 +1,7 @@
 import gql from "graphql-tag";
 
+import {Point3D, Range2D} from "../util/viewerTypes";
+
 export const TOMOGRAPHY_QUERY = gql`query TomographyQuery {
   tomographyMetadata {
     id
@@ -15,21 +17,21 @@ export const TOMOGRAPHY_QUERY = gql`query TomographyQuery {
   }
 }`;
 
-export interface ISamplePlaneLimits {
-    horizontal: [number, number];
-    sagittal: [number, number];
-    coronal: [number, number];
+export type ApiTomographyPlaneExtents = {
+    horizontal: Range2D;
+    sagittal: Range2D;
+    coronal: Range2D;
 }
 
-export interface ISampleTomography {
+export type ApiSampleTomography = {
     id: string;
     name: string;
-    origin: [number, number, number];
-    pixelSize: [number, number, number];
-    threshold: [number, number];
-    limits: ISamplePlaneLimits;
+    origin: Point3D;
+    pixelSize: Point3D;
+    threshold: Range2D;
+    limits: ApiTomographyPlaneExtents;
 }
 
-export interface TomographyQueryResponse {
-    tomographyMetadata: ISampleTomography[]
+export type TomographyApiResponse = {
+    tomographyMetadata: ApiSampleTomography[]
 }

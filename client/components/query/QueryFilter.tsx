@@ -17,7 +17,6 @@ import {
 } from "../../models/brainAreaFilterType";
 import {CompositionSelect} from "../editors/CompositionSelect";
 import {UIQueryPredicate} from "../../models/uiQueryPredicate";
-import {isNullOrUndefined} from "../../util/nodeUtil";
 
 interface IQueryFilterProps {
     constants: NdbConstants;
@@ -239,7 +238,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                      onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
                             </Form.Field>
 
-                            {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
+                            {this.props.queryFilter.filter.operator != null ?
                                 <Form.Field width={1} error={!this.props.queryFilter.filter.IsAmountValid}
                                             style={{visibility: this.props.queryFilter.filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                     <label>&nbsp;</label>
@@ -344,7 +343,7 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
                                                      onSelect={(operator: IQueryOperator) => this.onQueryOperatorChange(operator)}/>
                             </Form.Field>
 
-                            {!isNullOrUndefined(this.props.queryFilter.filter.operator) ?
+                            {this.props.queryFilter.filter.operator != null ?
                                 <Form.Field width={1} error={!filter.IsAmountValid}
                                             style={{visibility: filter.CanHaveThreshold ? "visible" : "hidden"}}>
                                     <label>&nbsp;</label>

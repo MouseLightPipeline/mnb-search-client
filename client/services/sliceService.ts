@@ -1,4 +1,4 @@
-import {Range2D} from "../store/system/tomographyCollection";
+import {Range2D} from "../util/viewerTypes";
 
 export enum SlicePlane {
     Undefined = 0,
@@ -7,7 +7,7 @@ export enum SlicePlane {
     Coronal
 }
 
-export interface ISliceRequest {
+export type SliceRequest = {
     id?: string;
     plane?: number;
     location?: number;
@@ -16,35 +16,45 @@ export interface ISliceRequest {
     invert?: boolean;
 }
 
-export type SliceImage = {
+export type SliceResponse = {
     sampleId: string;
     image: HTMLImageElement;
     mask: HTMLImageElement;
 }
 
 export class SliceService {
-    public async requestSlice(request: ISliceRequest): Promise<SliceImage | null> {
+    public async requestSlice(request: SliceRequest): Promise<SliceResponse | null> {
         const resp = await fetch("/slice", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(Object.assign({id: "allen-reference"}, request))
+            body: JSON.stringify(request)
         });
 
-        if (resp.status !== 200) {
-            return null;
-        }
-        const json = await resp.json();
+        try {
+            if (resp.status !== 200) {
+                errorResponse(request.id);
+            }
+            const json = await resp.json();
 
-        const image = new Image();
-        image.src = 'data:image/png;base64,' + json.texture;
+            const image = new Image();
+            image.src = 'data:image/png;base64,' + json.texture;
 
-        const mask = new Image();
-        mask.src = 'data:image/png;base64,' + json.mask;
+            const mask = new Image();
+            mask.src = 'data:image/png;base64,' + json.mask;
 
-        return {
-            sampleId: request.id === "allen-reference" ? null : request.id,
-            image,
-            mask
+            return {
+                sampleId: request.id,
+                image,
+                mask
+            }
+        } catch {
+            return errorResponse(request.id);
         }
     }
 }
+
+const errorResponse = (id: string): SliceResponse => ({
+    sampleId: id,
+    image: null,
+    mask: null
+});

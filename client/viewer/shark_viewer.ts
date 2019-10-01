@@ -4,6 +4,7 @@ import {PreferencesManager} from "../util/preferencesManager";
 import * as THREEM from "three";
 import {SystemShader} from "./shaders/shaders";
 import {StandardShader} from "./shaders/standardShader";
+
 const THREE = require("three");
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
@@ -20,8 +21,6 @@ export class SharkViewer {
 
     public Shader: SystemShader = new StandardShader();
 
-    //flip y axis
-    public flip = true;
     //color array, nodes of type 0 show as first color, etc.
     public colors = [
         0x31ffdc,
@@ -105,86 +104,277 @@ export class SharkViewer {
         const neuron = new THREE.Object3D();
         let geometry, material;
 
-            // special imposter image contains:
-            // 1 - colorizable sphere image in red channel
-            // 2 - specular highlight in green channel
-            // 3 - depth offset in blue channel (currently unused)
-            const image = document.createElement('img');
-            const sphereImg = new THREE.Texture(image);
-            image.onload = function () {
-                sphereImg.needsUpdate = true;
+        // special imposter image contains:
+        // 1 - colorizable sphere image in red channel
+        // 2 - specular highlight in green channel
+        // 3 - depth offset in blue channel (currently unused)
+        const image = document.createElement('img');
+        const sphereImg = new THREE.Texture(image);
+        image.onload = function () {
+            sphereImg.needsUpdate = true;
+        };
+        image.src = this.nodeParticleTexture;
+
+        geometry = new THREE.BufferGeometry();
+        // properties that may consty from particle to particle. only accessible in vertex shaders!
+        //	(can pass color info to fragment shader via vColor.)
+        // compute scale for particles, in pixels
+        const particleScale = (0.5 * this.HEIGHT / this.renderer.getPixelRatio()) / Math.tan(0.5 * this.fov * Math.PI / 180.0);
+
+        const customAttributes =
+            {
+                radius: {type: "fv1", value: []},
+                typeColor: {type: "c", value: []},
+                vertices: {type: "f", value: []},
             };
-            image.src = this.nodeParticleTexture;
 
-            geometry = new THREE.BufferGeometry();
-            // properties that may consty from particle to particle. only accessible in vertex shaders!
-            //	(can pass color info to fragment shader via vColor.)
-            // compute scale for particles, in pixels
-            const particleScale = (0.5 * this.HEIGHT / this.renderer.getPixelRatio()) / Math.tan(0.5 * this.fov * Math.PI / 180.0);
+        const customUniforms =
+            {
+                particleScale: {type: 'f', value: particleScale},
+                sphereTexture: {type: 't', value: sphereImg},
+            };
 
-            const customAttributes =
+        const indexLookup = {};
+
+        for (const node in swc_json) {
+            if (swc_json.hasOwnProperty(node)) {
+                let node_color = this.nodeColor(swc_json[node]);
+
+                if (color) {
+                    node_color = new THREE.Color(color);
+                }
+
+                let particle_vertex = SharkViewer.generateParticle(swc_json[node]);
+
+                let radius = swc_json[node].radius * this.radius_scale_factor;
+
+                if (this.min_radius && radius < this.min_radius) {
+                    radius = this.min_radius;
+                }
+
+                customAttributes.radius.value.push(radius);
+                customAttributes.typeColor.value.push(node_color.r);
+                customAttributes.typeColor.value.push(node_color.g);
+                customAttributes.typeColor.value.push(node_color.b);
+                customAttributes.vertices.value.push(particle_vertex.x);
+                customAttributes.vertices.value.push(particle_vertex.y);
+                customAttributes.vertices.value.push(particle_vertex.z);
+
+                indexLookup[customAttributes.radius.value.length - 1] = swc_json[node].sampleNumber;
+            }
+        }
+        geometry.addAttribute('position', new THREE.Float32BufferAttribute(customAttributes.vertices.value, 3));
+        geometry.addAttribute('radius', new THREE.Float32BufferAttribute(customAttributes.radius.value, 1));
+        geometry.addAttribute('typeColor', new THREE.Float32BufferAttribute(customAttributes.typeColor.value, 3));
+
+        material = new THREE.ShaderMaterial(
+            {
+                uniforms: customUniforms,
+                vertexShader: this.Shader.NodeShader.VertexShader,
+                fragmentShader: this.Shader.NodeShader.FragmentShader,
+                transparent: true,
+                alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5,
+            });
+        material.extensions.fragDepth = true;
+
+
+        let materialShader = null;
+
+        const particles = new THREE.Points(geometry, material);
+        particles.userData = {indexLookup, materialShader};
+
+        material.onBeforeCompile = function (shader) {
+            shader.uniforms.alpha = {value: 0};
+            shader.vertexShader = 'uniform float alpha;\n' + shader.vertexShader;
+            shader.vertexShader = shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                [
+                    'vAlpha = alpha'
+                ].join('\n')
+            );
+            materialShader = shader;
+
+            materialShader.uniforms.alpha.value = 0.9;
+
+            particles.userData.materialShader = materialShader;
+        };
+
+        neuron.add(particles);
+
+        if (this.show_cones) {
+            // Cone quad imposters, to link spheres together
+            const coneAttributes =
                 {
                     radius: {type: "fv1", value: []},
+                    indices: {type: "iv1", value: []},
                     typeColor: {type: "c", value: []},
                     vertices: {type: "f", value: []},
+                    normals: {type: "f", value: []},
+                    uv: {type: "f", value: []}
                 };
-
-            const customUniforms =
+            const coneUniforms =
                 {
-                    particleScale: {type: 'f', value: particleScale},
                     sphereTexture: {type: 't', value: sphereImg},
                 };
-
-            const indexLookup = {};
-
+            const uvs = [
+                new THREE.Vector2(0.5, 0),
+                new THREE.Vector2(0.5, 1),
+                new THREE.Vector2(0.5, 1)
+            ];
+            const coneGeom = new THREE.BufferGeometry();
+            let ix21 = 0;
             for (const node in swc_json) {
                 if (swc_json.hasOwnProperty(node)) {
-                    let node_color = this.nodeColor(swc_json[node]);
+                    if (swc_json[node].parent !== -1) {
 
-                    if (color) {
-                        node_color = new THREE.Color(color);
+                        // Paint two triangles to make a cone-imposter quadrilateral
+                        // Triangle #1
+                        const cone = this.generateCone(swc_json[node], swc_json[swc_json[node].parent], color);
+
+                        let node_color = cone.child.color;
+                        if (color) {
+                            node_color = new THREE.Color(color);
+                        }
+
+                        let child_radius = cone.child.radius * this.radius_scale_factor;
+
+                        if (this.min_radius && child_radius < this.min_radius) {
+                            child_radius = this.min_radius;
+                        }
+
+                        // vertex 1
+                        coneAttributes.vertices.value.push(cone.child.vertex.x);
+                        coneAttributes.vertices.value.push(cone.child.vertex.y);
+                        coneAttributes.vertices.value.push(cone.child.vertex.z);
+                        coneAttributes.radius.value.push(child_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal1.x);
+                        coneAttributes.normals.value.push(cone.normal1.y);
+                        coneAttributes.normals.value.push(cone.normal1.z);
+                        coneAttributes.uv.value.push(uvs[0].x);
+                        coneAttributes.uv.value.push(uvs[0].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
+
+                        // vertex 2
+                        coneAttributes.vertices.value.push(cone.child.vertex.x);
+                        coneAttributes.vertices.value.push(cone.child.vertex.y);
+                        coneAttributes.vertices.value.push(cone.child.vertex.z);
+                        coneAttributes.radius.value.push(child_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal2.x);
+                        coneAttributes.normals.value.push(cone.normal2.y);
+                        coneAttributes.normals.value.push(cone.normal2.z);
+                        coneAttributes.uv.value.push(uvs[1].x);
+                        coneAttributes.uv.value.push(uvs[1].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
+
+                        // vertex 3
+                        coneAttributes.vertices.value.push(cone.parent.vertex.x);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.y);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.z);
+                        coneAttributes.radius.value.push(child_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal2.x);
+                        coneAttributes.normals.value.push(cone.normal2.y);
+                        coneAttributes.normals.value.push(cone.normal2.z);
+                        coneAttributes.uv.value.push(uvs[2].x);
+                        coneAttributes.uv.value.push(uvs[2].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
+
+                        // Triangle #2
+                        // Parent
+                        node_color = cone.parent.color;
+                        if (color) {
+                            node_color = new THREE.Color(color);
+                        }
+
+                        let parent_radius = cone.parent.radius * this.radius_scale_factor;
+                        if (this.min_radius && parent_radius < this.min_radius) {
+                            parent_radius = this.min_radius;
+                        }
+
+                        // vertex 1
+                        coneAttributes.vertices.value.push(cone.parent.vertex.x);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.y);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.z);
+                        coneAttributes.radius.value.push(parent_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal1.x);
+                        coneAttributes.normals.value.push(cone.normal1.y);
+                        coneAttributes.normals.value.push(cone.normal1.z);
+                        coneAttributes.uv.value.push(uvs[0].x);
+                        coneAttributes.uv.value.push(uvs[0].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
+
+                        // vertex 2
+                        coneAttributes.vertices.value.push(cone.parent.vertex.x);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.y);
+                        coneAttributes.vertices.value.push(cone.parent.vertex.z);
+                        coneAttributes.radius.value.push(parent_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal2.x);
+                        coneAttributes.normals.value.push(cone.normal2.y);
+                        coneAttributes.normals.value.push(cone.normal2.z);
+                        coneAttributes.uv.value.push(uvs[1].x);
+                        coneAttributes.uv.value.push(uvs[1].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
+
+                        // vertex 3
+                        coneAttributes.vertices.value.push(cone.child.vertex.x);
+                        coneAttributes.vertices.value.push(cone.child.vertex.y);
+                        coneAttributes.vertices.value.push(cone.child.vertex.z);
+                        coneAttributes.radius.value.push(parent_radius);
+                        coneAttributes.typeColor.value.push(node_color.r);
+                        coneAttributes.typeColor.value.push(node_color.g);
+                        coneAttributes.typeColor.value.push(node_color.b);
+                        coneAttributes.normals.value.push(cone.normal1.x);
+                        coneAttributes.normals.value.push(cone.normal1.y);
+                        coneAttributes.normals.value.push(cone.normal1.z);
+                        coneAttributes.uv.value.push(uvs[2].x);
+                        coneAttributes.uv.value.push(uvs[2].y);
+                        coneAttributes.indices.value.push(ix21);
+                        ix21++;
                     }
-
-                    let particle_vertex = SharkViewer.generateParticle(swc_json[node]);
-
-                    let radius = swc_json[node].radius * this.radius_scale_factor;
-
-                    if (this.min_radius && radius < this.min_radius) {
-                        radius = this.min_radius;
-                    }
-
-                    customAttributes.radius.value.push(radius);
-                    customAttributes.typeColor.value.push(node_color.r);
-                    customAttributes.typeColor.value.push(node_color.g);
-                    customAttributes.typeColor.value.push(node_color.b);
-                    customAttributes.vertices.value.push(particle_vertex.x);
-                    customAttributes.vertices.value.push(particle_vertex.y);
-                    customAttributes.vertices.value.push(particle_vertex.z);
-
-                    indexLookup[customAttributes.radius.value.length - 1] = swc_json[node].sampleNumber;
                 }
             }
-            geometry.addAttribute('position', new THREE.Float32BufferAttribute(customAttributes.vertices.value, 3));
-            geometry.addAttribute('radius', new THREE.Float32BufferAttribute(customAttributes.radius.value, 1));
-            geometry.addAttribute('typeColor', new THREE.Float32BufferAttribute(customAttributes.typeColor.value, 3));
 
-            material = new THREE.ShaderMaterial(
+            coneGeom.setIndex(new THREE.Uint32BufferAttribute(coneAttributes.indices.value, 1));
+            coneGeom.addAttribute('position', new THREE.Float32BufferAttribute(coneAttributes.vertices.value, 3));
+            coneGeom.addAttribute('radius', new THREE.Float32BufferAttribute(coneAttributes.radius.value, 1));
+            coneGeom.addAttribute('typeColor', new THREE.Float32BufferAttribute(coneAttributes.typeColor.value, 3));
+            coneGeom.addAttribute('normal', new THREE.Float32BufferAttribute(coneAttributes.normals.value, 3));
+            coneGeom.addAttribute('uv', new THREE.Float32BufferAttribute(coneAttributes.uv.value, 2));
+
+            const coneMaterial = new THREE.ShaderMaterial(
                 {
-                    uniforms: customUniforms,
-                    vertexShader: this.Shader.NodeShader.VertexShader,
-                    fragmentShader: this.Shader.NodeShader.FragmentShader,
+                    uniforms: coneUniforms,
+                    vertexShader: this.Shader.PathShader.VertexShader,
+                    fragmentShader: this.Shader.PathShader.FragmentShader,
                     transparent: true,
+                    depthTest: true,
+                    side: THREE.DoubleSide,
                     alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5,
                 });
-            material.extensions.fragDepth = true;
 
+            const coneMesh = new THREE.Mesh(coneGeom, coneMaterial);
 
-            let materialShader = null;
-
-            const particles = new THREE.Points(geometry, material);
-            particles.userData = {indexLookup, materialShader};
-
-            material.onBeforeCompile = function (shader) {
+            coneMaterial.onBeforeCompile = function (shader) {
+                // console.log( shader )
                 shader.uniforms.alpha = {value: 0};
                 shader.vertexShader = 'uniform float alpha;\n' + shader.vertexShader;
                 shader.vertexShader = shader.vertexShader.replace(
@@ -197,202 +387,11 @@ export class SharkViewer {
 
                 materialShader.uniforms.alpha.value = 0.9;
 
-                particles.userData.materialShader = materialShader;
+                coneMesh.userData = {materialShader};
             };
 
-            neuron.add(particles);
-
-            if (this.show_cones) {
-                // Cone quad imposters, to link spheres together
-                const coneAttributes =
-                    {
-                        radius: {type: "fv1", value: []},
-                        indices: {type: "iv1", value: []},
-                        typeColor: {type: "c", value: []},
-                        vertices: {type: "f", value: []},
-                        normals: {type: "f", value: []},
-                        uv: {type: "f", value: []}
-                    };
-                const coneUniforms =
-                    {
-                        sphereTexture: {type: 't', value: sphereImg},
-                    };
-                const uvs = [
-                    new THREE.Vector2(0.5, 0),
-                    new THREE.Vector2(0.5, 1),
-                    new THREE.Vector2(0.5, 1)
-                ];
-                const coneGeom = new THREE.BufferGeometry();
-                let ix21 = 0;
-                for (const node in swc_json) {
-                    if (swc_json.hasOwnProperty(node)) {
-                        if (swc_json[node].parent !== -1) {
-
-                            // Paint two triangles to make a cone-imposter quadrilateral
-                            // Triangle #1
-                            const cone = this.generateCone(swc_json[node], swc_json[swc_json[node].parent], color);
-
-                            let node_color = cone.child.color;
-                            if (color) {
-                                node_color = new THREE.Color(color);
-                            }
-
-                            let child_radius = cone.child.radius * this.radius_scale_factor;
-
-                            if (this.min_radius && child_radius < this.min_radius) {
-                                child_radius = this.min_radius;
-                            }
-
-                            // vertex 1
-                            coneAttributes.vertices.value.push(cone.child.vertex.x);
-                            coneAttributes.vertices.value.push(cone.child.vertex.y);
-                            coneAttributes.vertices.value.push(cone.child.vertex.z);
-                            coneAttributes.radius.value.push(child_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal1.x);
-                            coneAttributes.normals.value.push(cone.normal1.y);
-                            coneAttributes.normals.value.push(cone.normal1.z);
-                            coneAttributes.uv.value.push(uvs[0].x);
-                            coneAttributes.uv.value.push(uvs[0].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-
-                            // vertex 2
-                            coneAttributes.vertices.value.push(cone.child.vertex.x);
-                            coneAttributes.vertices.value.push(cone.child.vertex.y);
-                            coneAttributes.vertices.value.push(cone.child.vertex.z);
-                            coneAttributes.radius.value.push(child_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal2.x);
-                            coneAttributes.normals.value.push(cone.normal2.y);
-                            coneAttributes.normals.value.push(cone.normal2.z);
-                            coneAttributes.uv.value.push(uvs[1].x);
-                            coneAttributes.uv.value.push(uvs[1].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-
-                            // vertex 3
-                            coneAttributes.vertices.value.push(cone.parent.vertex.x);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.y);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.z);
-                            coneAttributes.radius.value.push(child_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal2.x);
-                            coneAttributes.normals.value.push(cone.normal2.y);
-                            coneAttributes.normals.value.push(cone.normal2.z);
-                            coneAttributes.uv.value.push(uvs[2].x);
-                            coneAttributes.uv.value.push(uvs[2].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-
-                            // Triangle #2
-                            // Parent
-                            node_color = cone.parent.color;
-                            if (color) {
-                                node_color = new THREE.Color(color);
-                            }
-
-                            let parent_radius = cone.parent.radius * this.radius_scale_factor;
-                            if (this.min_radius && parent_radius < this.min_radius) {
-                                parent_radius = this.min_radius;
-                            }
-
-                            // vertex 1
-                            coneAttributes.vertices.value.push(cone.parent.vertex.x);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.y);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.z);
-                            coneAttributes.radius.value.push(parent_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal1.x);
-                            coneAttributes.normals.value.push(cone.normal1.y);
-                            coneAttributes.normals.value.push(cone.normal1.z);
-                            coneAttributes.uv.value.push(uvs[0].x);
-                            coneAttributes.uv.value.push(uvs[0].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-
-                            // vertex 2
-                            coneAttributes.vertices.value.push(cone.parent.vertex.x);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.y);
-                            coneAttributes.vertices.value.push(cone.parent.vertex.z);
-                            coneAttributes.radius.value.push(parent_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal2.x);
-                            coneAttributes.normals.value.push(cone.normal2.y);
-                            coneAttributes.normals.value.push(cone.normal2.z);
-                            coneAttributes.uv.value.push(uvs[1].x);
-                            coneAttributes.uv.value.push(uvs[1].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-
-                            // vertex 3
-                            coneAttributes.vertices.value.push(cone.child.vertex.x);
-                            coneAttributes.vertices.value.push(cone.child.vertex.y);
-                            coneAttributes.vertices.value.push(cone.child.vertex.z);
-                            coneAttributes.radius.value.push(parent_radius);
-                            coneAttributes.typeColor.value.push(node_color.r);
-                            coneAttributes.typeColor.value.push(node_color.g);
-                            coneAttributes.typeColor.value.push(node_color.b);
-                            coneAttributes.normals.value.push(cone.normal1.x);
-                            coneAttributes.normals.value.push(cone.normal1.y);
-                            coneAttributes.normals.value.push(cone.normal1.z);
-                            coneAttributes.uv.value.push(uvs[2].x);
-                            coneAttributes.uv.value.push(uvs[2].y);
-                            coneAttributes.indices.value.push(ix21);
-                            ix21++;
-                        }
-                    }
-                }
-
-                coneGeom.setIndex(new THREE.Uint32BufferAttribute(coneAttributes.indices.value, 1));
-                coneGeom.addAttribute('position', new THREE.Float32BufferAttribute(coneAttributes.vertices.value, 3));
-                coneGeom.addAttribute('radius', new THREE.Float32BufferAttribute(coneAttributes.radius.value, 1));
-                coneGeom.addAttribute('typeColor', new THREE.Float32BufferAttribute(coneAttributes.typeColor.value, 3));
-                coneGeom.addAttribute('normal', new THREE.Float32BufferAttribute(coneAttributes.normals.value, 3));
-                coneGeom.addAttribute('uv', new THREE.Float32BufferAttribute(coneAttributes.uv.value, 2));
-
-                const coneMaterial = new THREE.ShaderMaterial(
-                    {
-                        uniforms: coneUniforms,
-                        vertexShader: this.Shader.PathShader.VertexShader,
-                        fragmentShader: this.Shader.PathShader.FragmentShader,
-                        transparent: true,
-                        depthTest: true,
-                        side: THREE.DoubleSide,
-                        alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5,
-                    });
-
-                const coneMesh = new THREE.Mesh(coneGeom, coneMaterial);
-
-                coneMaterial.onBeforeCompile = function (shader) {
-                    // console.log( shader )
-                    shader.uniforms.alpha = {value: 0};
-                    shader.vertexShader = 'uniform float alpha;\n' + shader.vertexShader;
-                    shader.vertexShader = shader.vertexShader.replace(
-                        '#include <begin_vertex>',
-                        [
-                            'vAlpha = alpha'
-                        ].join('\n')
-                    );
-                    materialShader = shader;
-
-                    materialShader.uniforms.alpha.value = 0.9;
-
-                    coneMesh.userData = {materialShader};
-                };
-
-                neuron.add(coneMesh);
-            }
+            neuron.add(coneMesh);
+        }
 
         return neuron;
     }
@@ -432,9 +431,7 @@ export class SharkViewer {
 
         this.camera.position.z = cameraPosition;
 
-        if (this.flip === true) {
-            this.camera.up.setY(-1);
-        }
+        this.camera.up.setY(-1);
 
         //Lights
         let light = new THREE.DirectionalLight(0xffffff);
@@ -506,25 +503,6 @@ export class SharkViewer {
             } else {
                 if (!event.shiftKey && !event.altKey && !event.ctrlKey) {
                     this.trackControls.target = points[0].point;
-
-                    /*
-                    const v1 = points[0].point.clone().project(this.camera);
-                    const v2 = this.trackControls.target.clone().project(this.camera);
-
-                    const wx = (v1.x + 1) / 2;
-                    const wy = (-v1.y + 1) / 2;
-
-                    const wl = wx * this.WIDTH;
-                    const wt = wy * this.HEIGHT;
-
-                    const yx = (v2.x + 1) / 2;
-                    const yy = (-v2.y + 1) / 2;
-
-                    const yl = yx * this.WIDTH;
-                    const yt = yy * this.HEIGHT;
-
-                    this.trackControls.pan(yl - wl, yt - wt);
-                    */
                 }
 
                 if (this.on_select_node) {
@@ -617,7 +595,7 @@ export class SharkViewer {
         const path = this.compartment_path + geometryFile;
 
         loader.load(path, (object) => {
-            object.traverse( (child) => {
+            object.traverse((child) => {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
                         color: {type: 'c', value: new THREE.Color('#' + color)},

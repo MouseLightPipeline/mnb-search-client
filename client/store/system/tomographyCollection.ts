@@ -1,26 +1,19 @@
 import {action, computed, observable} from "mobx";
 
-import {ISamplePlaneLimits, ISampleTomography} from "../../graphql/tomography";
-
-export type Point3D = [number, number, number];
-export type Range2D = [number, number];
+import {ApiTomographyPlaneExtents, ApiSampleTomography} from "../../graphql/tomography";
+import {Point3D, Range2D} from "../../util/viewerTypes";
 
 const ReferenceTomographyId = "64f40090-1e7f-411e-bed1-497060dbd2be";
 
-export class TomographyPlaneLimits {
+export class TomographyPlaneExtents {
     @observable public readonly Horizontal: Range2D;
     @observable public readonly Sagittal: Range2D;
     @observable public readonly Coronal: Range2D;
 
-    public constructor(limits: ISamplePlaneLimits) {
+    public constructor(limits: ApiTomographyPlaneExtents) {
         this.Horizontal = limits.horizontal;
         this.Sagittal = limits.sagittal;
         this.Coronal = limits.coronal;
-    }
-
-    @action
-    public static fromSource(limits: ISamplePlaneLimits) {
-        return new TomographyPlaneLimits(limits);
     }
 }
 
@@ -45,43 +38,44 @@ export class SampleTomography {
     @observable public Origin: Point3D;
     @observable public PixelSize: Point3D;
     @observable public DefaultThreshold: Threshold;
-    @observable public Limits: TomographyPlaneLimits;
+    @observable public Limits: TomographyPlaneExtents;
 
     @observable public readonly IsReferenceTomography: boolean;
 
-    private constructor(tomography: ISampleTomography) {
+    public constructor(tomography: ApiSampleTomography) {
         this.Id = tomography.id;
         this.Name = tomography.name;
         this.Origin = tomography.origin;
         this.PixelSize = tomography.pixelSize;
         this.DefaultThreshold = new Threshold(...tomography.threshold);
-        this.Limits = TomographyPlaneLimits.fromSource(tomography.limits);
+        this.Limits = new TomographyPlaneExtents(tomography.limits);
 
         this.IsReferenceTomography = this.Id === ReferenceTomographyId;
-    }
-
-    @action
-    public static fromSource(tomography: ISampleTomography) {
-        return new SampleTomography(tomography);
     }
 }
 
 export class TomographyCollection {
     @observable public SampleTomographyMap: Map<string, SampleTomography> = new Map<string, SampleTomography>();
 
-    @observable public count: number;
-
-    @action
-    public fromSource(tomography: ISampleTomography[]) {
-        this.SampleTomographyMap.clear();
-
-        tomography.map(t => this.SampleTomographyMap.set(t.id, SampleTomography.fromSource(t)));
-
-        this.count = this.SampleTomographyMap.size;
-    }
+    @observable _referenceTomography: SampleTomography = null;
 
     @computed
     public get ReferenceTomography(): SampleTomography | null {
-        return this.SampleTomographyMap.get(ReferenceTomographyId) || null;
+        return this._referenceTomography;
+    }
+
+    @action
+    public fromSource(tomography: ApiSampleTomography[]) {
+        this.SampleTomographyMap = observable.map(new Map<string, SampleTomography>());
+
+        tomography.forEach(t => {
+            const sampleTomography = new SampleTomography(t);
+
+            this.SampleTomographyMap.set(t.id, sampleTomography);
+
+            if (sampleTomography.IsReferenceTomography) {
+                this._referenceTomography = sampleTomography;
+            }
+        });
     }
 }

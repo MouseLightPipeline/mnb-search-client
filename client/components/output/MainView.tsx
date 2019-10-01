@@ -22,7 +22,6 @@ import {fullRowStyle} from "../../util/styles";
 import {QueryStatus} from "../query/QueryHeader";
 import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
-import {isNullOrUndefined} from "../../util/nodeUtil";
 import {CompartmentNode} from "./compartments/CompartmentNode";
 import {Button, Message, Modal} from "semantic-ui-react";
 
@@ -285,7 +284,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
     }
 
     private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
-        neuronViewModel.isInHighlightList = isNullOrUndefined(shouldHighlight) ? !neuronViewModel.isInHighlightList : shouldHighlight;
+        neuronViewModel.isInHighlightList = shouldHighlight == null ? !neuronViewModel.isInHighlightList : shouldHighlight;
 
         const tracingsToDisplay = this.state.tracingsToDisplay.slice();
 
