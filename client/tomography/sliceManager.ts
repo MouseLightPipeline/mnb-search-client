@@ -3,13 +3,11 @@ import * as THREE from "three";
 import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
-import {Range2D} from "../util/viewerTypes";
+import {Point3D, Range2D} from "../util/viewerTypes";
 
 const tomographyConstants = TomographyConstants.Instance;
 
-export type LocationArray = [number, number, number];
-
-const centerPoint: LocationArray = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+const centerPoint: Point3D = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
 export class SliceManager {
     private _sampleId: string = null;
@@ -32,7 +30,7 @@ export class SliceManager {
         return this._scene;
     }
 
-    public async setSampleId(id: string, locations: LocationArray) {
+    public async setSampleId(id: string, locations: Point3D) {
         if (id !== this._sampleId) {
             this._sampleId = id;
 
@@ -42,7 +40,7 @@ export class SliceManager {
         }
     }
 
-    public async setThreshold(threshold: Range2D, locations: LocationArray) {
+    public async setThreshold(threshold: Range2D, locations: Point3D) {
         this._threshold = threshold;
 
         await this.updateSlice(SlicePlane.Sagittal, locations[0]);

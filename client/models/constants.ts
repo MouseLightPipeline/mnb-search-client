@@ -4,6 +4,9 @@ import {NeuronalStructure} from "./neuronalStructure";
 import {ConstantsQueryResponse} from "../graphql/constants";
 import {ITracingStructure, TracingStructure} from "./tracingStructure";
 import {IQueryOperator} from "./queryOperator";
+import {PreferencesManager} from "../util/preferencesManager";
+
+const ROOT_ID = 997;
 
 export class NdbConstants {
     private _QueryOperators: IQueryOperator[] = [];
@@ -89,6 +92,9 @@ export class NdbConstants {
 
     private loadBrainAreas(brainAreas: IBrainArea[]): void {
         brainAreas.map(b => {
+            if (b.structureId === ROOT_ID) {
+                b.geometryColor = PreferencesManager.Instance.RootCompartmentColor;
+            }
             this._brainAreaIdMap.set(b.id, b);
             this._brainAreaStructureIdMap.set(b.structureId, b);
         });

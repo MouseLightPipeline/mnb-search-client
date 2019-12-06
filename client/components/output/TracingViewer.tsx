@@ -21,8 +21,7 @@ import {rootViewModel} from "../../store/viewModel/systemViewModel";
 import {SliceManager} from "../../tomography/sliceManager";
 import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
-
-const ROOT_ID = 997;
+import {CompartmentManager} from "../../viewer/compartmentManager";
 
 const tomographyConstants = TomographyConstants.Instance;
 
@@ -77,8 +76,8 @@ interface ITracingViewerState {
 export class TracingViewer extends React.Component<ITracingViewerProps, ITracingViewerState> implements INotificationListener {
     private _viewer: any = null;
 
-    private _loadedVolumes: string[] = [];
-    private _knownVolumes = new Set<string>();
+    // private _loadedVolumes: string[] = [];
+    // private _knownVolumes = new Set<string>();
 
     private _loadedNeurons: string[] = [];
     private _knownNeurons = new Set<string>();
@@ -88,6 +87,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     private _tracingRadiusFactor = PreferencesManager.Instance.TracingRadiusFactor;
 
     private _sliceManager = null;
+
+    private _compartmentManager = null;
 
     private _disposer1 = null;
     private _disposer2 = null;
@@ -236,16 +237,12 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         if (!this._viewer) {
             const s = new SharkViewer();
 
-            s.dom_element = "viewer-container";
-            s.centerpoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
-            s.metadata = false;
-            s.compartment_path = "/static/allen/obj/";
-            s.WIDTH = width;
-            s.HEIGHT = height;
-            s.on_select_node = (tracingId: string, sampleNumber: number, event) => this.onSelectNode(tracingId, sampleNumber, event);
-            s.on_toggle_node = (tracingId: string) => this.props.onToggleTracing(tracingId);
+            s.ElementName = "viewer-container";
+            s.CenterPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+            s.OnSelectNode = (tracingId: string, sampleNumber: number, event) => this.onSelectNode(tracingId, sampleNumber, event);
+            s.OnToggleNode = (tracingId: string) => this.props.onToggleTracing(tracingId);
 
-            s.init();
+            s.init(width, height);
             s.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
 
             s.animate();
@@ -255,6 +252,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             this._viewer = s;
 
             this._sliceManager = new SliceManager(this._viewer.Scene);
+
+            this._compartmentManager = new CompartmentManager("/static/allen/obj/", this._viewer.Scene, this._viewer.Shader);
 
             const tomography = rootViewModel.Tomography;
 
@@ -300,18 +299,18 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             this._viewer.setSize(width, height);
         }
     }
-
+/*
     private renderBrainVolumes(props: ITracingViewerProps) {
+
         if (!this._viewer) {
             return;
         }
 
         const displayCompartments = props.compartments.filter(c => c.isDisplayed);
 
+
         if (displayCompartments.length === 0) {
-            this._loadedVolumes.map(id => {
-                this._viewer.setCompartmentVisible(id, false);
-            });
+            this._compartmentManager.hideAll();
         } else if (this._loadedVolumes.length === 0) {
             displayCompartments.map(v => {
                 if (this._knownVolumes.has(v.compartment.id)) {
@@ -335,8 +334,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             const toLoad = _.difference(compartmentsToDisplayIds, unChanged);
 
             toUnload.map(id => {
-                // const brainArea = this.lookupBrainArea(v);
-                // this._viewer.unloadCompartment(brainArea.geometryFile)
                 this._viewer.setCompartmentVisible(id, false);
             });
 
@@ -356,7 +353,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         this._loadedVolumes = displayCompartments.map(c => c.compartment.id);
     }
-
+*/
     private createNeuron(tracing: TracingViewModel, fadedOpacity: number) {
         const nodes: any = {};
 
@@ -508,7 +505,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         await this.createViewer(width, height);
 
-        this.renderBrainVolumes(props);
+        // this.renderBrainVolumes(props);
+        this._compartmentManager?.renderCompartments(props.compartments.filter(c => c.isDisplayed));
 
         this.renderNeurons(props.tracings);
 
