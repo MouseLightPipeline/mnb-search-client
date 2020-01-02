@@ -3,10 +3,13 @@ import {observer} from "mobx-react-lite";
 import {useQuery} from "react-apollo-hooks";
 import { Message} from "semantic-ui-react";
 
-import {useStore, useViewModel} from "./App";
-import {TOMOGRAPHY_QUERY, TomographyApiResponse} from "../../graphql/tomography";
+import {useStore} from "./App";
 import {AppLoading} from "./AppLoading";
+import {TOMOGRAPHY_QUERY, TomographyApiResponse} from "../../graphql/tomography";
 
+/**
+ * Component that requires tomography data be loaded before rendering children.
+ */
 export const AppTomography = observer((props: any) => {
     const Store = useStore();
 

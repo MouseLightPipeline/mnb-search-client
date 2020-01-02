@@ -4,7 +4,8 @@ import {difference} from "lodash"
 import {Point3D} from "../util/viewerTypes";
 import {TomographyConstants} from "../tomography/tomographyConstants";
 import {SystemShader} from "./shaders/shaders";
-import {BrainCompartmentViewModel} from "../viewmodel/brainCompartmentViewModel";
+import {CompartmentViewModel} from "../store/viewModel/compartment/compartmentViewModel";
+import {SharkViewer} from "./shark_viewer";
 
 export type CompartmentId = string;
 
@@ -17,17 +18,17 @@ export class CompartmentManager {
 
     private _compartments = new Map<CompartmentId, Object3D>();
 
-    public constructor(rootPath: string, scene: Scene, shader: SystemShader) {
+    public constructor(rootPath: string, viewer: SharkViewer) {
         this._rootPath = rootPath;
-        this._scene = scene;
-        this._shader = shader;
+        this._scene = viewer.Scene;
+        this._shader = viewer.Shader;
     }
 
     public get Scene(): Scene {
         return this._scene;
     }
 
-    public renderCompartments(compartments: BrainCompartmentViewModel[]) {
+    public renderCompartments(compartments: CompartmentViewModel[]) {
         if (compartments.length === 0) {
             this.hideAll();
             return;
@@ -66,6 +67,8 @@ export class CompartmentManager {
     }
 
     private loadCompartment(id: CompartmentId, geometryFile: string, color: string) {
+        // Mark that compartment has been requested.
+
         this._compartments.set(id, null);
 
         const loader = new OBJLoader();

@@ -1,83 +1,59 @@
 import * as React from "react";
+import {observer} from "mobx-react-lite";
 import {Icon, List, SemanticICONS} from "semantic-ui-react";
 
-import {IBrainArea} from "../../../models/brainArea";
-import {BrainCompartmentViewModel} from "../../../viewmodel/brainCompartmentViewModel";
-
-export class CompartmentNode {
-    name: string;
-    toggled: boolean;
-   // isChecked: boolean;
-    children: CompartmentNode[];
-    compartment: IBrainArea;
-
-    matches(str: string): boolean {
-        let matches: boolean = this.name.toLowerCase().includes(str);
-
-        if (!matches) {
-            matches = this.compartment.acronym.toLowerCase().includes(str);
-        }
-
-        if (!matches && this.compartment.aliases.length > 0) {
-            matches = this.compartment.aliases.some(a => a.includes(str));
-        }
-
-        return matches;
-    }
-}
+import {useViewModel} from "../../app/App";
+import {CompartmentNode} from "../../../store/viewModel/compartment/compartmentTreeNode";
+import {useCompartments} from "../../../hooks/useCompartments";
 
 type CompartmentNodeProps = {
     compartmentNode: CompartmentNode;
     compartmentOnly: boolean;
-    visibleBrainAreas: BrainCompartmentViewModel[];
-
-    onToggle?(node: CompartmentNode): void;
-    onSelect(node: CompartmentNode, select: boolean): void;
 }
 
-export class CompartmentNodeView extends React.Component<CompartmentNodeProps, {}> {
-    private get IconName(): SemanticICONS {
-        if (this.props.compartmentOnly) {
-            return "file";
-        }
+export const CompartmentNodeView = observer((props: CompartmentNodeProps) => {
+    const {Compartments} = useViewModel();
+    const {VisibleCompartments} = useCompartments();
 
-        if (this.props.compartmentNode.toggled) {
-            return "folder open";
-        }
+    let items = null;
 
-        return this.props.compartmentNode.children && this.props.compartmentNode.children.length > 0 ? "folder" : "file";
-    }
-
-    public render() {
-        let items = null;
-
-        if (this.props.compartmentNode.toggled && !this.props.compartmentOnly && this.props.compartmentNode.children) {
-            items = (
-                <List.List>
-                    {this.props.compartmentNode.children.map(c => (
-                        <CompartmentNodeView key={c.name} compartmentNode={c}
-                                             compartmentOnly={this.props.compartmentOnly}
-                                             visibleBrainAreas={this.props.visibleBrainAreas}
-                                             onToggle={this.props.onToggle}
-                                             onSelect={this.props.onSelect}/>
-                    ))}
-                </List.List>
-            );
-        }
-
-        const isSelected = this.props.visibleBrainAreas.some(c => c.compartment.id === this.props.compartmentNode.compartment.id && c.isDisplayed);
-
-        return (
-            <List.Item>
-                <List.Icon name={this.IconName} onClick={() => {if (this.props.onToggle) {this.props.onToggle(this.props.compartmentNode);}}}/>
-                <List.Content>
-                    <List.Description onClick={() => this.props.onSelect(this.props.compartmentNode, !isSelected)}>
-                        <Icon name={isSelected ? "check square outline" : "square outline"}/>
-                        {this.props.compartmentNode.name}
-                    </List.Description>
-                    {items}
-                </List.Content>
-            </List.Item>
+    if (props.compartmentNode.isExpanded && !props.compartmentOnly && props.compartmentNode.children.length > 0) {
+        items = (
+            <List.List>
+                {props.compartmentNode.children.map(c => (
+                    <CompartmentNodeView key={c.name} compartmentNode={c}
+                                         compartmentOnly={props.compartmentOnly}/>
+                ))}
+            </List.List>
         );
     }
+
+    const isVisible = VisibleCompartments.includes(props.compartmentNode.compartment);
+
+    const iconName = getIconName(props.compartmentOnly, props.compartmentNode.isExpanded, props.compartmentNode.children.length > 0);
+
+    return (
+        <List.Item>
+            <List.Icon name={iconName} onClick={() => props.compartmentNode.toggleCollapsed()}/>
+            <List.Content>
+                <List.Description onClick={() => Compartments.toggle(props.compartmentNode.compartment.compartment.id)}>
+                    <Icon name={isVisible ? "check square outline" : "square outline"}/>
+                    {props.compartmentNode.name}
+                </List.Description>
+                {items}
+            </List.Content>
+        </List.Item>
+    );
+});
+
+function getIconName(compartmentOnly: boolean, isOpen: boolean, hasChildren: boolean): SemanticICONS {
+    if (compartmentOnly) {
+        return "file";
+    }
+
+    if (isOpen) {
+        return "folder open";
+    }
+
+    return hasChildren ? "folder" : "file";
 }

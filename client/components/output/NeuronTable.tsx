@@ -8,6 +8,7 @@ import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode"
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {ChangeAllStructureDisplayDialog} from "./ChangeAllStructureDisplayDialog";
 import {useViewModel} from "../app/App";
+import {rootViewModel} from "../../store/viewModel/systemViewModel";
 
 type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fixed" | "static" | "sticky";
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
@@ -104,7 +105,7 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
 
 export interface INeuronTableProps {
     isAllTracingsSelected: boolean;
-    neuronViewModels: NeuronViewModel[];
+    // neuronViewModels: NeuronViewModel[];
     defaultStructureSelection: NeuronViewMode;
 
     onChangeSelectTracing(id: string, b: boolean): void;
@@ -138,13 +139,15 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
     }
 
     public render() {
-        if (!this.props.neuronViewModels || this.props.neuronViewModels.length === 0) {
+        const neuronViewModels = rootViewModel.Viewer.neuronViewModels;
+
+        if (!neuronViewModels || neuronViewModels.length === 0) {
             return null;
         }
 
-        const rows: any = this.props.neuronViewModels.map((v, idx) => {
+        const rows: any = neuronViewModels.map((v, idx) => {
             return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v}
-                                    isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
+                                    isEnd={idx > 10 && idx > neuronViewModels.length - 10}
                                     onChangeNeuronColor={this.props.onChangeNeuronColor}
                                     onChangeNeuronMirror={this.props.onChangeNeuronMirror}
                                     onChangeSelectTracing={this.props.onChangeSelectTracing}

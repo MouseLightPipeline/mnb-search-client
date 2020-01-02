@@ -94,7 +94,7 @@ export class TomographyViewModel {
 
     private _lastTomography: SampleTomographyViewModel | null = null;
 
-    @observable private _selection: SampleTomographyViewModel | null = null;
+    @observable public _selection: SampleTomographyViewModel | null = null;
 
     @observable private _refTomography: SampleTomographyViewModel;
 

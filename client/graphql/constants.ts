@@ -46,14 +46,14 @@ export type SystemSettingsVariables = {
     searchScope: number;
 }
 
-export interface ISystemSettings {
+export type SystemSettings = {
     apiVersion: string;
     apiRelease: string;
     neuronCount: number;
 }
 
-export interface ConstantsQueryResponse {
-    systemSettings: ISystemSettings;
+export type ConstantsQueryResponse = {
+    systemSettings: SystemSettings;
     tracingStructures: ITracingStructure[];
     structureIdentifiers: IStructureIdentifier[];
     queryOperators: IQueryOperator[];

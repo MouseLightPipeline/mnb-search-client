@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import {Scene} from "three";
 
 import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
@@ -16,17 +16,17 @@ export class SliceManager {
 
     private _sliceService: SliceService;
 
-    private _scene: THREE.Scene;
+    private _scene: Scene;
 
     private _sliceMap = new Map<SlicePlane, Slice>();
 
-    public constructor(scene?: THREE.Scene) {
+    public constructor(scene?: Scene) {
         this.setScene(scene);
 
         this.initializeSliceService();
     }
 
-    public get Scene(): THREE.Scene {
+    public get Scene(): Scene {
         return this._scene;
     }
 
@@ -48,7 +48,7 @@ export class SliceManager {
         await this.updateSlice(SlicePlane.Coronal, locations[2]);
     }
 
-    private setScene(scene: THREE.Scene) {
+    private setScene(scene: Scene) {
         if (this._scene !== null) {
             // TODO Cleanup existing geometry.
         }

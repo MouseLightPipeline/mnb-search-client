@@ -5,10 +5,13 @@ import {ConstantsQueryResponse} from "../graphql/constants";
 import {ITracingStructure, TracingStructure} from "./tracingStructure";
 import {IQueryOperator} from "./queryOperator";
 import {PreferencesManager} from "../util/preferencesManager";
+import {computed, observable} from "mobx";
 
-const ROOT_ID = 997;
+export const ROOT_ID = 997;
 
 export class NdbConstants {
+    @observable private _isLoaded: boolean = false;
+
     private _QueryOperators: IQueryOperator[] = [];
     private _queryOperatorMap = new Map<string, IQueryOperator>();
 
@@ -24,19 +27,11 @@ export class NdbConstants {
 
     private _neuronCount = -1;
 
-    private _isLoaded: boolean;
-
-    public static DefaultConstants = new NdbConstants();
-
-    protected constructor() {
-        this._isLoaded = false;
+    @computed public get IsLoaded(): boolean {
+        return this._isLoaded;
     }
 
     public load(data: ConstantsQueryResponse) {
-        if (this._isLoaded) {
-            return;
-        }
-
         this._neuronCount = data.systemSettings.neuronCount;
 
         this.loadQueryOperators(data.queryOperators);
@@ -45,10 +40,6 @@ export class NdbConstants {
         this.loadNeuronalStructures(data.tracingStructures, data.structureIdentifiers);
 
         this._isLoaded = true;
-    }
-
-    public get IsLoaded(): boolean {
-        return this._isLoaded;
     }
 
     public get NeuronCount(): number {
@@ -71,6 +62,10 @@ export class NdbConstants {
         return this._NeuronStructures;
     }
 
+    public findBrainAreaId(id: number): string | undefined {
+        return this._brainAreaStructureIdMap.get(id)?.id;
+    }
+
     public findBrainArea(id: string | number): IBrainArea | undefined {
         if (typeof(id) === "string")
             return this._brainAreaIdMap.get(id);
@@ -91,7 +86,7 @@ export class NdbConstants {
     }
 
     private loadBrainAreas(brainAreas: IBrainArea[]): void {
-        brainAreas.map(b => {
+        brainAreas.forEach(b => {
             if (b.structureId === ROOT_ID) {
                 b.geometryColor = PreferencesManager.Instance.RootCompartmentColor;
             }

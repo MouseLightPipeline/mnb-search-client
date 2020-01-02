@@ -2,6 +2,7 @@ import {NeuronViewModel} from "./neuronViewModel";
 import {ITracing} from "../models/tracing";
 import {ITracingNode} from "../models/tracingNode";
 import {ITracingStructure, TracingStructure} from "../models/tracingStructure";
+import {computed} from "mobx";
 
 export class TracingViewModel {
     id: string;
@@ -35,6 +36,7 @@ export class TracingViewModel {
         return this._neuron.CurrentViewMode.structure === TracingStructure.soma;
     }
 
+    @computed
     public get IsHighlighted(): boolean {
         return this._neuron.isInHighlightList && (this._neuron.CurrentViewMode.structure === TracingStructure.all || this._neuron.CurrentViewMode.structure === this.structure.value);
     }
