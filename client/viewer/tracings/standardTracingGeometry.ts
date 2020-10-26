@@ -50,7 +50,10 @@ export class StandardTracingGeometry implements ITracingGeometry {
         };
     }
 
-    public createNeuron(swc_json, particleScale: number, color: string) {
+    public AspectRatio: number;
+    public FieldOfView: number;
+
+    public createNeuron(swc_json, particleScale: number, color: string): Object3D {
         //neuron is object 3d which ensures all components move together
         const neuron = new Object3D();
         let geometry, material;

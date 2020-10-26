@@ -2,13 +2,17 @@ import {NeuronViewModel} from "./neuronViewModel";
 import {ITracing} from "../models/tracing";
 import {ITracingNode} from "../models/tracingNode";
 import {ITracingStructure, TracingStructure} from "../models/tracingStructure";
-import {computed} from "mobx";
+import {computed, observable} from "mobx";
 
 export class TracingViewModel {
+    /**
+     * For axon or dendrite tracings, id reflects the underlying tracing id.  For the soma-only tracing store by the
+     * neuron view model for convenience, id is the neuron id.
+     */
     id: string;
     tracing: ITracing;
     structure: ITracingStructure;
-    private readonly _neuron: NeuronViewModel;
+    @observable private readonly _neuron: NeuronViewModel;
     soma: ITracingNode;
     // isHighlighted: boolean;
     nodeLookup: Map<number, ITracingNode>;
@@ -32,6 +36,7 @@ export class TracingViewModel {
         return this._neuron.Id;
     }
 
+    @computed
     public get IsSomaOnly(): boolean {
         return this._neuron.CurrentViewMode.structure === TracingStructure.soma;
     }

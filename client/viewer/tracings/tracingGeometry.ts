@@ -1,3 +1,8 @@
+import {Object3D} from "three";
+
 export interface ITracingGeometry {
-    createNeuron(swc_json: any, particleScale: number, color: string): void;
+    AspectRatio: number;
+    FieldOfView: number;
+
+    createNeuron(swc_json: any, particleScale: number, color: string): Object3D;
 }

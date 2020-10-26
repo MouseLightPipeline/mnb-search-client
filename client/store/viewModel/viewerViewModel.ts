@@ -18,12 +18,15 @@ import {TracingManager} from "../../viewer/tracings/tracingManager";
 const tomographyConstants = TomographyConstants.Instance;
 
 export class ViewerViewModel {
+    @observable public IsAttached: boolean = false;
+
     @observable public neuronViewModels = observable.array<NeuronViewModel>([]);
 
     @observable public Tracings = observable.array<TracingViewModel>([]);
 
     @observable public selectedNeurons = observable.array<NeuronViewModel>([]);
 
+    // TODO put selection/highlight into its own view model.
     @observable public SelectedTracing: TracingViewModel = null;
 
     @observable public SelectedNode: ITracingNode = null;
@@ -35,8 +38,6 @@ export class ViewerViewModel {
     @observable public wasDisplayHighlightedOnly: boolean = false;
 
     @observable public cycleFocusNeuronId: string = null;
-
-    @observable public IsAttached: boolean = false;
 
     public viewer: SharkViewer = null;
 
@@ -70,6 +71,8 @@ export class ViewerViewModel {
         await this.registerTomographyManagement();
 
         this.registerCompartmentManagement();
+
+        this.registerTracingManagement();
 
         this.viewer.attach("viewer-container");
 

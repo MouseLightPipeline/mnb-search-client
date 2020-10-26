@@ -38,7 +38,7 @@ export class CompartmentManager {
             if (!this._compartments.has(c.compartment.id)) {
                 this.loadCompartment(c.compartment.id, c.compartment.geometryFile, c.compartment.geometryColor)
             } else {
-                const obj = this.setVisibleForId(c.compartment.id, true);
+                this.setVisibleForId(c.compartment.id, true);
             }
         });
 
@@ -100,10 +100,5 @@ export class CompartmentManager {
 
             this._scene.add(object);
         });
-    }
-
-    private unloadCompartment(id: CompartmentId) {
-        const selectedObj = this._scene.getObjectByName(id);
-        this._scene.remove(selectedObj);
     }
 }

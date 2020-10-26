@@ -18,6 +18,8 @@ import {PreferencesManager} from "../util/preferencesManager";
 
 import {SystemShader} from "./shaders/shaders";
 import {StandardShader} from "./shaders/standardShader";
+import {ITracingGeometry} from "./tracings/tracingGeometry";
+import {StandardTracingGeometry} from "./tracings/standardTracingGeometry";
 
 const DEFAULT_POINT_THRESHOLD = 50;
 
@@ -39,6 +41,7 @@ export class SharkViewer {
     public CenterPoint = null;
 
     public Shader: SystemShader = new StandardShader();
+    public Geometry: ITracingGeometry = new StandardTracingGeometry();
 
     public OnSelectNode: SelectNodeHandler = null;
     public OnToggleNode: ToggleNodeHandler = null;
@@ -55,35 +58,37 @@ export class SharkViewer {
     public get Scene(): Scene {
         return this.scene;
     }
-/*
-    private static generateParticle(node) {
-        return new Vector3(node.x, node.y, node.z);
-    }
 
-    private static generateCone(node, node_parent, node_color: Color) {
-        const cone_child: any = {};
-        const cone_parent: any = {};
+    /*
+        private static generateParticle(node) {
+            return new Vector3(node.x, node.y, node.z);
+        }
 
-        cone_child.vertex = new Vector3(node.x, node.y, node.z);
-        cone_child.radius = node.radius;
-        cone_child.color = node_color;
+        private static generateCone(node, node_parent, node_color: Color) {
+            const cone_child: any = {};
+            const cone_parent: any = {};
 
-        cone_parent.vertex = new Vector3(node_parent.x, node_parent.y, node_parent.z);
-        cone_parent.radius = node_parent.radius;
-        cone_parent.color = node_color;
+            cone_child.vertex = new Vector3(node.x, node.y, node.z);
+            cone_child.radius = node.radius;
+            cone_child.color = node_color;
 
-        // normals
-        const n1 = new Vector3().subVectors(cone_parent.vertex, cone_child.vertex);
-        const n2 = n1.clone().negate();
+            cone_parent.vertex = new Vector3(node_parent.x, node_parent.y, node_parent.z);
+            cone_parent.radius = node_parent.radius;
+            cone_parent.color = node_color;
 
-        return {
-            'child': cone_child,
-            'parent': cone_parent,
-            'normal1': n1,
-            'normal2': n2
-        };
-    }
-*/
+            // normals
+            const n1 = new Vector3().subVectors(cone_parent.vertex, cone_child.vertex);
+            const n2 = n1.clone().negate();
+
+            return {
+                'child': cone_child,
+                'parent': cone_parent,
+                'normal1': n1,
+                'normal2': n2
+            };
+        }
+    */
+
     /*
     private createNeuron(swc_json, color: string) {
         //neuron is object 3d which ensures all components move together
@@ -404,6 +409,10 @@ export class SharkViewer {
                 this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
             }
         });
+
+        this.Geometry.AspectRatio = this.renderer.getSize().width / this.renderer.getSize().height;
+        this.Geometry.FieldOfView = this.fov;
+
     }
 
     public addEventHandler(handler, elementName) {
@@ -482,7 +491,8 @@ export class SharkViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public loadNeuron(filename, color, nodes) {/*
+    /*
+    public loadNeuron(filename, color, nodes) {
         const neuron = this.createNeuron(nodes, color);
 
         neuron.name = filename;
@@ -491,16 +501,21 @@ export class SharkViewer {
 
         if (this.CenterPoint !== null) {
             neuron.position.set(-this.CenterPoint[0], -this.CenterPoint[1], -this.CenterPoint[2]);
-        }*/
+        }
     };
 
     public unloadNeuron(filename) {
         const neuron = this.scene.getObjectByName(filename);
         this.scene.remove(neuron);
     };
+    */
 
     public setNeuronMirror(filename: string, mirror: boolean) {
         const neuron = this.scene.getObjectByName(filename);
+
+        if (neuron == null) {
+            return;
+        }
 
         if (mirror && neuron.scale.x > 0) {
             neuron.scale.x = -1;
@@ -542,6 +557,8 @@ export class SharkViewer {
             this.camera.updateProjectionMatrix();
 
             this.renderer.setSize(width, height);
+
+            this.Geometry.AspectRatio = this.renderer.getSize().width / this.renderer.getSize().height;
 
             this.render();
         }

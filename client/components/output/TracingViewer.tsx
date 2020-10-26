@@ -63,7 +63,7 @@ export class TracingViewer extends React.Component<ITracingViewerBaseProps, {}> 
     public componentWillReceiveProps(props: ITracingViewerBaseProps) {
         this.prepareAndRenderTracings(props);
     }
-
+/*
     private createNeuron(tracing: TracingViewModel, fadedOpacity: number) {
         const nodes: any = {};
 
@@ -131,7 +131,7 @@ export class TracingViewer extends React.Component<ITracingViewerBaseProps, {}> 
 
         this._knownNeurons.add(tracing.id);
     }
-
+*/
     private verifyNeuron(tracing: TracingViewModel, fadedOpacity: number) {
         const matches = this._neuronColors.get(tracing.id) === tracing.neuron.baseColor;
 
@@ -139,9 +139,10 @@ export class TracingViewer extends React.Component<ITracingViewerBaseProps, {}> 
             this.setOpacity(tracing, fadedOpacity);
             rootViewModel.Viewer.viewer.setNeuronMirror(tracing.id, tracing.neuron.mirror);
         } else {
-            rootViewModel.Viewer.viewer.unloadNeuron(tracing.id);
+            // rootViewModel.Viewer.viewer.unloadNeuron(tracing.id);
+            rootViewModel.Viewer.viewer.setNeuronVisible(tracing.id, false);
             this._knownNeurons.delete(tracing.id);
-            this.createNeuron(tracing, fadedOpacity);
+            //// Keep in - this.createNeuron(tracing, fadedOpacity);
         }
 
         return matches;
@@ -191,7 +192,7 @@ export class TracingViewer extends React.Component<ITracingViewerBaseProps, {}> 
         });
 
         toCreate.map(obj => {
-            this.createNeuron(obj, highlightValue);
+            //// Keep in - this.createNeuron(obj, highlightValue);
         });
 
         toHide.map(id => {

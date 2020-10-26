@@ -122,6 +122,16 @@ export class CompartmentsViewModel {
     }
 
     private createViewModel(compartment: IBrainArea): void {
+        if (compartment.structureId === 9999990) {
+            console.log(compartment);
+        }
+        if (compartment.structureId === 9999991) {
+            console.log(compartment);
+        }
+        if (compartment.structureId === 9999992) {
+            console.log(compartment);
+        }
+
         const viewModel = new CompartmentViewModel(compartment);
 
         this.Compartments.push(viewModel);
