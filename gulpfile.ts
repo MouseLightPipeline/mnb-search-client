@@ -1,21 +1,29 @@
 import * as fs from "fs";
 import * as gulp from "gulp";
 import * as shell from "gulp-shell";
+import * as del from "del";
+import * as merge from "merge-stream";
+
+const compileTypescript = `tsc -p tsconfig.prod.json`;
+
+gulp.task("clean", () => del("dist/**", {force: true}));
+
+gulp.task("compile", gulp.series("clean", shell.task([compileTypescript])));
+
+gulp.task("build", gulp.series("compile", moveTask, shell.task("webpack")));
 
 ///
 //  Build and tag the actual version, mark as latest, and also tag it with just the major and minor versions.
 ///
-const [buildTask, tagTask, pushTask] = createShellTasks("./package.json");
+const [tagTask, pushTask] = createShellTasks("./package.json");
 
-gulp.task("default", ["docker-build"]);
+gulp.task("docker-build", gulp.series("build", tagTask));
 
-gulp.task("build", buildTask);
+gulp.task("docker-push", gulp.series("docker-build", pushTask));
 
-gulp.task("docker-build", ["build"], tagTask);
+gulp.task("release", gulp.series("docker-push"));
 
-gulp.task("docker-push", ["docker-build"], pushTask);
-
-gulp.task("release", ["docker-push"]);
+gulp.task("default", gulp.series("docker-build"));
 
 function versionMajorMinor(version: string) {
     const parts = version.split(".");
@@ -27,15 +35,18 @@ function versionMajorMinor(version: string) {
     return [null, null];
 }
 
+function moveTask() {
+    return merge(
+        [
+            gulp.src("package.json").pipe(gulp.dest("dist")),
+            gulp.src("yarn.lock").pipe(gulp.dest("dist")),
+            gulp.src("LICENSE").pipe(gulp.dest("dist")),
+            gulp.src("docker-entry.sh").pipe(gulp.dest("dist"))
+        ]
+    );
+}
+
 function createShellTasks(sourceFile: string) {
-    // Clean and build
-    const cleanCommand = `rm -rf dist`;
-
-    const compileTypescript = `tsc -p tsconfig.prod.json`;
-
-    const moveFiles = `cp ./{package.json,yarn.lock,LICENSE,docker-entry.sh} dist`;
-    const webpack = `webpack`;
-
     const contents = fs.readFileSync(sourceFile).toString();
 
     const npmPackage = JSON.parse(contents);
@@ -65,12 +76,6 @@ function createShellTasks(sourceFile: string) {
     const pushLatestCommand = `docker push ${imageAsLatest}`;
 
     return [
-        shell.task([
-            cleanCommand,
-            compileTypescript,
-            moveFiles,
-            webpack
-        ]),
         shell.task([
             buildCommand,
             tagMajorCommand,
