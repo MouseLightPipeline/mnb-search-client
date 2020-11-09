@@ -6,6 +6,9 @@ import {useStore} from "./App";
 import {AppLoading} from "./AppLoading";
 import {SearchScope} from "../../models/uiQueryPredicate";
 
+/**
+ * Component that requires the system configuration API data be fulfilled before rendering children.
+ */
 export const AppSystemConfiguration = observer((props: any) => {
     useLoadSystemConfiguration();
 

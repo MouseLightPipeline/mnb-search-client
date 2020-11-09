@@ -1,96 +1,59 @@
+import {NODE_PARTICLE_IMAGE} from "../util";
+import {SystemShader} from "../shaders/shaders";
+import {StandardShader} from "../shaders/standardShader";
 import {
-    Scene,
-    Raycaster,
-    Vector2,
+    BufferGeometry, Color,
+    DoubleSide, Float32BufferAttribute,
+    Mesh,
+    Object3D,
     Points,
-    DirectionalLight,
-    PerspectiveCamera,
-    WebGLRenderer,
+    Shader,
     ShaderMaterial,
-    Shader, ShaderMaterialParameters
+    Texture,
+    Uint32BufferAttribute, Vector2,
+    Vector3
 } from "three";
+import {CompiledShaderMaterial} from "../shark_viewer";
+import {ITracingGeometry} from "./tracingGeometry";
 
-const THREE = require("three");
-require("three-obj-loader")(THREE);
-const OrbitControls = require("ndb-three-orbit-controls")(THREE);
+export class StandardTracingGeometry implements ITracingGeometry {
+    public static Default = new StandardTracingGeometry();
+    public static Shader: SystemShader = new StandardShader();
 
-import {PreferencesManager} from "../util/preferencesManager";
+    private nodeParticleTexture = NODE_PARTICLE_IMAGE;
 
-import {SystemShader} from "./shaders/shaders";
-import {StandardShader} from "./shaders/standardShader";
-import {ITracingGeometry} from "./tracings/tracingGeometry";
-import {StandardTracingGeometry} from "./tracings/standardTracingGeometry";
-
-const DEFAULT_POINT_THRESHOLD = 50;
-
-type CompilableShader = (shader: Shader) => void;
-
-// onBeforeCompile not currently in type definitions.
-export class CompiledShaderMaterial extends ShaderMaterial {
-    public constructor(parameters?: ShaderMaterialParameters) {
-        super(parameters);
+    private static generateParticle(node) {
+        return new Vector3(node.x, node.y, node.z);
     }
 
-    public onBeforeCompile: CompilableShader;
-}
+    private static generateCone(node, node_parent, node_color: Color) {
+        const cone_child: any = {};
+        const cone_parent: any = {};
 
-export type SelectNodeHandler = (tracingId: string, sampleNumber: number, event) => void;
-export type ToggleNodeHandler = (tracingId: string, sampleNumber: number) => void;
+        cone_child.vertex = new Vector3(node.x, node.y, node.z);
+        cone_child.radius = node.radius;
+        cone_child.color = node_color;
 
-export class SharkViewer {
-    public CenterPoint = null;
+        cone_parent.vertex = new Vector3(node_parent.x, node_parent.y, node_parent.z);
+        cone_parent.radius = node_parent.radius;
+        cone_parent.color = node_color;
 
-    public Shader: SystemShader = new StandardShader();
-    public Geometry: ITracingGeometry = new StandardTracingGeometry();
+        // normals
+        const n1 = new Vector3().subVectors(cone_parent.vertex, cone_child.vertex);
+        const n2 = n1.clone().negate();
 
-    public OnSelectNode: SelectNodeHandler = null;
-    public OnToggleNode: ToggleNodeHandler = null;
-
-    private fov: number = 45;
-    private last_anim_timestamp = null;
-    private mouseHandler = null;
-    private raycaster: Raycaster = new Raycaster();
-    private renderer: WebGLRenderer = null;
-    private scene: Scene = null;
-    private camera: PerspectiveCamera = null;
-    private trackControls = null;
-
-    public get Scene(): Scene {
-        return this.scene;
+        return {
+            'child': cone_child,
+            'parent': cone_parent,
+            'normal1': n1,
+            'normal2': n2
+        };
     }
 
-    /*
-        private static generateParticle(node) {
-            return new Vector3(node.x, node.y, node.z);
-        }
+    public AspectRatio: number;
+    public FieldOfView: number;
 
-        private static generateCone(node, node_parent, node_color: Color) {
-            const cone_child: any = {};
-            const cone_parent: any = {};
-
-            cone_child.vertex = new Vector3(node.x, node.y, node.z);
-            cone_child.radius = node.radius;
-            cone_child.color = node_color;
-
-            cone_parent.vertex = new Vector3(node_parent.x, node_parent.y, node_parent.z);
-            cone_parent.radius = node_parent.radius;
-            cone_parent.color = node_color;
-
-            // normals
-            const n1 = new Vector3().subVectors(cone_parent.vertex, cone_child.vertex);
-            const n2 = n1.clone().negate();
-
-            return {
-                'child': cone_child,
-                'parent': cone_parent,
-                'normal1': n1,
-                'normal2': n2
-            };
-        }
-    */
-
-    /*
-    private createNeuron(swc_json, color: string) {
+    public createNeuron(swc_json, particleScale: number, color: string): Object3D {
         //neuron is object 3d which ensures all components move together
         const neuron = new Object3D();
         let geometry, material;
@@ -110,7 +73,8 @@ export class SharkViewer {
         // properties that may vary from particle to particle. only accessible in vertex shaders!
         //	(can pass color info to fragment shader via vColor.)
         // compute scale for particles, in pixels
-        const particleScale = (0.5 * this.renderer.getSize().height / this.renderer.getPixelRatio()) / Math.tan(0.5 * this.fov * Math.PI / 180.0);
+
+        ///// const particleScale = (0.5 * this.renderer.getSize().height / this.renderer.getPixelRatio()) / Math.tan(0.5 * this.fov * Math.PI / 180.0);
 
         const customAttributes =
             {
@@ -132,7 +96,7 @@ export class SharkViewer {
         for (const node in swc_json) {
             if (swc_json.hasOwnProperty(node)) {
 
-                let particle_vertex = SharkViewer.generateParticle(swc_json[node]);
+                let particle_vertex = StandardTracingGeometry.generateParticle(swc_json[node]);
 
                 let radius = swc_json[node].radius;
 
@@ -154,8 +118,8 @@ export class SharkViewer {
         material = new ShaderMaterial(
             {
                 uniforms: customUniforms,
-                vertexShader: this.Shader.NodeShader.VertexShader,
-                fragmentShader: this.Shader.NodeShader.FragmentShader,
+                vertexShader: StandardTracingGeometry.Shader.NodeShader.VertexShader,
+                fragmentShader: StandardTracingGeometry.Shader.NodeShader.FragmentShader,
                 transparent: true,
                 alphaTest: 0.5,  // if having transparency issues, try including: alphaTest: 0.5,
             });
@@ -212,7 +176,7 @@ export class SharkViewer {
 
                     // Paint two triangles to make a cone-impostor quadrilateral
                     // Triangle #1
-                    const cone = SharkViewer.generateCone(swc_json[node], swc_json[swc_json[node].parent], node_color);
+                    const cone = StandardTracingGeometry.generateCone(swc_json[node], swc_json[swc_json[node].parent], node_color);
 
                     let child_radius = cone.child.radius;
 
@@ -330,8 +294,8 @@ export class SharkViewer {
         const coneMaterial = new CompiledShaderMaterial(
             {
                 uniforms: coneUniforms,
-                vertexShader: this.Shader.PathShader.VertexShader,
-                fragmentShader: this.Shader.PathShader.FragmentShader,
+                vertexShader: StandardTracingGeometry.Shader.PathShader.VertexShader,
+                fragmentShader: StandardTracingGeometry.Shader.PathShader.FragmentShader,
                 transparent: true,
                 depthTest: true,
                 side: DoubleSide,
@@ -360,211 +324,5 @@ export class SharkViewer {
         neuron.add(coneMesh);
 
         return neuron;
-    }
-     */
-
-    public attach(elementName) {
-        document.getElementById(elementName).appendChild(this.renderer.domElement);
-
-        this.trackControls = new OrbitControls(this.camera, document.getElementById(elementName));
-        this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
-        this.trackControls.addEventListener('change', this.render.bind(this));
-    }
-
-    public init(width: number | null, height: number | null) {
-        this.renderer = new WebGLRenderer({
-            antialias: true
-        });
-        this.renderer.setClearColor(0xffffff, 1);
-        this.renderer.setSize(width || window.innerWidth, height || window.innerHeight);
-
-        // create a scene
-        this.scene = new Scene();
-
-        // put a camera in the scene
-        this.fov = 45;
-
-        const cameraPosition = -20000;
-        this.camera = new PerspectiveCamera(this.fov, this.renderer.getSize().width / this.renderer.getSize().height, 1, cameraPosition * 5);
-
-        this.scene.add(this.camera);
-
-        this.camera.position.z = cameraPosition;
-
-        this.camera.up.setY(-1);
-
-        //Lights
-        let light = new DirectionalLight(0xffffff);
-        light.position.set(0, 0, 10000);
-        this.scene.add(light);
-
-        light = new DirectionalLight(0xffffff);
-        light.position.set(0, 0, -10000);
-        this.scene.add(light);
-
-        this.raycaster.params.Points.threshold = DEFAULT_POINT_THRESHOLD;
-
-        PreferencesManager.Instance.addListener((name) => {
-            if (name === "zoomSpeed") {
-                this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
-            }
-        });
-
-        this.Geometry.AspectRatio = this.renderer.getSize().width / this.renderer.getSize().height;
-        this.Geometry.FieldOfView = this.fov;
-
-    }
-
-    public addEventHandler(handler, elementName) {
-        this.mouseHandler = handler;
-
-        this.mouseHandler.DomElement = document.getElementById(elementName);
-        this.mouseHandler.addListeners();
-
-        this.mouseHandler.ClickHandler = this.onClick;
-        this.mouseHandler.ResetHandler = this.onResetView;
-    }
-
-    public onResetView = (r1, r2) => {
-        this.trackControls.reset();
-        this.trackControls.rotateLeft(r1);
-        this.trackControls.rotateUp(r2);
-        this.trackControls.update();
-    };
-
-    private onClick = (event) => {
-        const rect = this.renderer.domElement.getBoundingClientRect();
-
-        const mouse = new Vector2();
-
-        mouse.x = ((event.clientX - rect.left) / this.renderer.getSize().width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / this.renderer.getSize().height) * 2 + 1;
-
-        this.raycaster.setFromCamera(mouse, this.camera);
-
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-
-        const points = intersects.filter(o => o.object.type === "Points").filter(o => o.object.userData.materialShader.uniforms.alpha.value > 0.0).sort((a, b) => {
-            return a.distanceToRay === b.distanceToRay ? a.distance - b.distance : a.distanceToRay - b.distanceToRay;
-        });
-
-        if (points.length > 0) {
-            const intersectObject = points[0];
-
-            if (event.altKey) {
-                if (this.OnToggleNode) {
-                    const sampleNumber = intersectObject.object.userData.indexLookup[intersectObject.index];
-                    const tracingId = intersectObject.object.parent.name;
-
-                    this.OnToggleNode(tracingId, sampleNumber);
-                }
-            } else {
-                if (!event.shiftKey && !event.altKey && !event.ctrlKey) {
-                    this.trackControls.target = points[0].point;
-                }
-
-                if (this.OnSelectNode) {
-                    const sampleNumber = intersectObject.object.userData.indexLookup[intersectObject.index];
-                    const tracingId = intersectObject.object.parent.name;
-
-                    this.OnSelectNode(tracingId, sampleNumber, event);
-                }
-            }
-        }
-    };
-
-    public animate = (timestamp = null) => {
-        if (!this.last_anim_timestamp) {
-            this.last_anim_timestamp = timestamp;
-            this.render();
-        } else if (timestamp - this.last_anim_timestamp > 50) {
-            this.last_anim_timestamp = timestamp;
-            this.trackControls.update();
-            this.render();
-        }
-
-        window.requestAnimationFrame(this.animate);
-    };
-
-
-    private render() {
-        this.renderer.render(this.scene, this.camera);
-    }
-
-    /*
-    public loadNeuron(filename, color, nodes) {
-        const neuron = this.createNeuron(nodes, color);
-
-        neuron.name = filename;
-
-        this.scene.add(neuron);
-
-        if (this.CenterPoint !== null) {
-            neuron.position.set(-this.CenterPoint[0], -this.CenterPoint[1], -this.CenterPoint[2]);
-        }
-    };
-
-    public unloadNeuron(filename) {
-        const neuron = this.scene.getObjectByName(filename);
-        this.scene.remove(neuron);
-    };
-    */
-
-    public setNeuronMirror(filename: string, mirror: boolean) {
-        const neuron = this.scene.getObjectByName(filename);
-
-        if (neuron == null) {
-            return;
-        }
-
-        if (mirror && neuron.scale.x > 0) {
-            neuron.scale.x = -1;
-            neuron.position.x = this.CenterPoint[0];
-        } else if (!mirror && neuron.scale.x < 0) {
-            neuron.scale.x = 1;
-            neuron.position.x = -this.CenterPoint[0];
-        }
-    };
-
-    public setNeuronVisible(id: string, visible: boolean) {
-        const neuron = this.scene.getObjectByName(id);
-
-        if (neuron) {
-            neuron.children.map(c => {
-                if (c.userData.materialShader) {
-                    c.userData.materialShader.uniforms.alpha.value = visible ? 1.0 : 0.0;
-                }
-            });
-        }
-    };
-
-    public setNeuronDisplayLevel(id: string, opacity: number) {
-        const neuron = this.scene.getObjectByName(id);
-
-        if (neuron) {
-
-            neuron.children.map(c => {
-                if (c.userData.materialShader) {
-                    c.userData.materialShader.uniforms.alpha.value = opacity;
-                }
-            });
-        }
-    };
-
-    public setSize(width: number, height: number) {
-        if (this.camera) {
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-
-            this.renderer.setSize(width, height);
-
-            this.Geometry.AspectRatio = this.renderer.getSize().width / this.renderer.getSize().height;
-
-            this.render();
-        }
-    }
-
-    public setBackground(color: number) {
-        this.renderer.setClearColor(color, 1);
     }
 }

@@ -1,15 +1,13 @@
-import * as THREE from "three";
+import {Scene} from "three";
 
 import {SlicePlane, SliceService} from "../services/sliceService";
 import {Slice} from "./slice";
 import {TomographyConstants} from "./tomographyConstants";
-import {Range2D} from "../util/viewerTypes";
+import {Point3D, Range2D} from "../util/viewerTypes";
 
 const tomographyConstants = TomographyConstants.Instance;
 
-export type LocationArray = [number, number, number];
-
-const centerPoint: LocationArray = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+const centerPoint: Point3D = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
 export class SliceManager {
     private _sampleId: string = null;
@@ -18,21 +16,21 @@ export class SliceManager {
 
     private _sliceService: SliceService;
 
-    private _scene: THREE.Scene;
+    private _scene: Scene;
 
     private _sliceMap = new Map<SlicePlane, Slice>();
 
-    public constructor(scene?: THREE.Scene) {
+    public constructor(scene?: Scene) {
         this.setScene(scene);
 
         this.initializeSliceService();
     }
 
-    public get Scene(): THREE.Scene {
+    public get Scene(): Scene {
         return this._scene;
     }
 
-    public async setSampleId(id: string, locations: LocationArray) {
+    public async setSampleId(id: string, locations: Point3D) {
         if (id !== this._sampleId) {
             this._sampleId = id;
 
@@ -42,7 +40,7 @@ export class SliceManager {
         }
     }
 
-    public async setThreshold(threshold: Range2D, locations: LocationArray) {
+    public async setThreshold(threshold: Range2D, locations: Point3D) {
         this._threshold = threshold;
 
         await this.updateSlice(SlicePlane.Sagittal, locations[0]);
@@ -50,7 +48,7 @@ export class SliceManager {
         await this.updateSlice(SlicePlane.Coronal, locations[2]);
     }
 
-    private setScene(scene: THREE.Scene) {
+    private setScene(scene: Scene) {
         if (this._scene !== null) {
             // TODO Cleanup existing geometry.
         }

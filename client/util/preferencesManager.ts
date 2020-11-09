@@ -1,8 +1,6 @@
 import {UIQueryPredicate} from "../models/uiQueryPredicate";
 
-export interface INotificationListener {
-    preferenceChanged(name: string);
-}
+export type PreferenceChangedEvent = (name: string) => void;
 
 const prefix = "jne:";
 
@@ -10,7 +8,7 @@ export class PreferencesManager {
 
     private static _instance = null;
 
-    private _notificationListeners: INotificationListener[] = [];
+    private _notificationListeners: PreferenceChangedEvent[] = [];
 
     public static get Instance(): PreferencesManager {
         if (!this._instance) {
@@ -36,19 +34,19 @@ export class PreferencesManager {
         }
     }
 
-    public addListener(listener: INotificationListener) {
+    public addListener(listener: PreferenceChangedEvent) {
         if (this._notificationListeners.indexOf(listener) === -1) {
             this._notificationListeners.push(listener);
         }
     }
 
-    public removeListener(listener: INotificationListener) {
+    public removeListener(listener: PreferenceChangedEvent) {
         this._notificationListeners = this._notificationListeners.filter(n => n !== listener);
     }
 
     private notifyListeners(name: string, value: any) {
         this._notificationListeners.map(n => {
-            n.preferenceChanged(name);
+            n(name);
         })
     }
 
@@ -204,7 +202,6 @@ export class PreferencesManager {
             return "#FFFFFF";
         }
     }
-
 
     public set ViewerBackgroundColor(n: string) {
         if (typeof(Storage) !== undefined) {

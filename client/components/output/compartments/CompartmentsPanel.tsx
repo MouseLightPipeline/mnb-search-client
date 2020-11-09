@@ -2,22 +2,18 @@ import * as React from "react";
 import {observer} from "mobx-react-lite";
 import {Icon} from "semantic-ui-react";
 
-import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
-import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
-import {DrawerState} from "../MainView";
+import {CompartmentHistory} from "./CompartmentHistory";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyControls} from "../../tomography/tomographyPanel";
 import {useViewModel} from "../../app/App";
+import {CompartmentTree} from "./CompartmentTree";
+import {DrawerState} from "../../../store/viewModel/layout/DockableDrawerViewModel";
+import {useLayout} from "../../../hooks/useLayout";
 
-type CompartmentHeaderProps = {
-    isDocked: boolean;
+const CompartmentHeader = observer(() => {
+    const {CompartmentsDrawer} = useLayout();
 
-    onClickCloseOrPin(state: DrawerState): void;
-}
-
-const CompartmentHeader = (props: CompartmentHeaderProps) => {
-    const transform = props.isDocked ? "" : "rotate(-45deg)";
-    const state = props.isDocked ? DrawerState.Float : DrawerState.Dock;
+    const transform = CompartmentsDrawer.DrawerState === DrawerState.Dock ? "" : "rotate(-45deg)";
 
     return (
         <div style={{
@@ -42,28 +38,24 @@ const CompartmentHeader = (props: CompartmentHeaderProps) => {
                 order: 3
             }}>Compartments</h4>
             <Icon name="pin" style={{margin: "auto", order: 2, marginLeft: "10px", transform: transform}}
-                  onClick={() => props.onClickCloseOrPin(state)}/>
+                  onClick={() => CompartmentsDrawer.toggleDocked()}/>
             <Icon name="chevron right" style={{margin: "auto", order: 1}}
-                  onClick={() => props.onClickCloseOrPin(DrawerState.Hidden)}/>
+                  onClick={() => CompartmentsDrawer.DrawerState = DrawerState.Hidden}/>
         </div>
     );
-};
+});
 
-interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrainAreaGeometryProps {
-    isDocked: boolean;
+export const CompartmentsPanel = observer(() => {
+    const {CompartmentsDrawer} = useLayout();
 
-    onClickCloseOrPin(state: DrawerState): void;
-}
+    const {Tomography, Compartments} = useViewModel();
 
-export const CompartmentListContainer = observer((props: ICompartmentListContainerProps) => {
     const color = secondaryBackground;
 
-    const {Tomography, CompartmentHistory} = useViewModel();
-
     return (
-        <div style={{
+        <div id="compartmentsPanel" style={{
             backgroundColor: "#efefef",
-            opacity: props.isDocked ? 1.0 : 0.75,
+            opacity: CompartmentsDrawer.DrawerState === DrawerState.Dock ? 1.0 : 0.75,
             flexDirection: "column",
             flexWrap: "nowrap",
             alignItems: "flex-start",
@@ -76,7 +68,7 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
             display: "flex",
             border: "1px solid"
         }}>
-            <CompartmentHeader {...props}/>
+            <CompartmentHeader/>
             <div style={{order: 2, flexGrow: 1, width: "100%", overflow: "auto"}}>
                 <TomographyControls tomography={Tomography}/>
                 <div style={{
@@ -95,10 +87,10 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                         flexGrow: 1
                     }}>History</h5>
                     <Icon style={{order: 1, flexGrow: 0, verticalAlign: "middle"}}
-                          name={CompartmentHistory.IsVisible ? "angle up" : "angle down"}
-                          onClick={() => CompartmentHistory.IsVisible = !CompartmentHistory.IsVisible}/>
+                          name={Compartments.History.IsVisible ? "angle up" : "angle down"}
+                          onClick={() => Compartments.History.IsVisible = !Compartments.History.IsVisible}/>
                 </div>
-                {CompartmentHistory.IsVisible ? <BrainVolumesTable {...props}/> : null}
+                {Compartments.History.IsVisible ? <CompartmentHistory/> : null}
                 <div style={{
                     backgroundColor: color,
                     color: "white",
@@ -112,7 +104,7 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                         textAlign: "center"
                     }}>All Compartments</h5>
                 </div>
-                <BrainCompartmentSelectionTree {...props}/>
+                <CompartmentTree/>
             </div>
         </div>
     );

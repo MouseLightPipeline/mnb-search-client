@@ -57,11 +57,18 @@ export class SampleTomography {
 export class TomographyCollection {
     @observable public SampleTomographyMap: Map<string, SampleTomography> = new Map<string, SampleTomography>();
 
-    @observable _referenceTomography: SampleTomography = null;
+    @observable private _referenceTomography: SampleTomography = null;
 
     @computed
     public get ReferenceTomography(): SampleTomography | null {
         return this._referenceTomography;
+    }
+
+    @observable public _isLoaded: boolean = false;
+
+    @computed
+    public get IsLoaded(): boolean {
+        return this._isLoaded;
     }
 
     @action
@@ -77,5 +84,7 @@ export class TomographyCollection {
                 this._referenceTomography = sampleTomography;
             }
         });
+
+        this._isLoaded = true;
     }
 }

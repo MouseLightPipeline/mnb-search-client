@@ -1,8 +1,9 @@
 import * as React from "react";
+import {observer} from "mobx-react";
 import * as _ from "lodash";
 
 import {ExportFormat, ITracing} from "../../models/tracing";
-import {HighlightSelectionMode, ITiming} from "./TracingViewer";
+import {ITiming} from "./TracingViewer";
 
 import "../../util/override.css";
 import {INeuron} from "../../models/neuron";
@@ -11,31 +12,25 @@ import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {jet} from "../../util/colors";
 import {NEURON_VIEW_MODE_SOMA, NeuronViewMode} from "../../viewmodel/neuronViewMode";
 import {TracingStructure, TracingStructures} from "../../models/tracingStructure";
-import {BrainCompartmentViewModel} from "../../viewmodel/brainCompartmentViewModel";
 import {NdbConstants} from "../../models/constants";
 import {IPositionInput} from "../../models/queryFilter";
-import {NeuronListContainer} from "./NeuronListContainer";
-import {ViewerContainer} from "./ViewerContainer";
-import {CompartmentListContainer} from "./compartments/CompartmentListContainer";
+import {INeuronListContainerProps, NeuronListContainer} from "./NeuronListContainer";
+import {IViewerProps, ViewerContainer} from "./ViewerContainer";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {fullRowStyle} from "../../util/styles";
 import {QueryStatus} from "../query/QueryHeader";
-import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
-import {CompartmentNode} from "./compartments/CompartmentNode";
 import {Button, Message, Modal} from "semantic-ui-react";
+import {rootViewModel} from "../../store/viewModel/systemViewModel";
+import {DrawerState} from "../../store/viewModel/layout/DockableDrawerViewModel";
+import {CompartmentsPanel} from "./compartments/CompartmentsPanel";
+import {useLayout} from "../../hooks/useLayout";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
 const tracingNeuronMap = new Map<string, string>();
 
 const tracingViewModelMap2 = new Map<string, TracingViewModel>();
-
-export enum DrawerState {
-    Hidden,
-    Float,
-    Dock
-}
 
 export enum FetchState {
     Running = 1,
@@ -57,7 +52,6 @@ interface IOutputContainerProps {
     queryStatus: QueryStatus;
     isLoading: boolean;
     neurons: INeuron[];
-    visibleBrainAreas: BrainCompartmentViewModel[];
     constants: NdbConstants;
     nonce: string;
     shouldAlwaysShowFullTracing: boolean;
@@ -67,31 +61,19 @@ interface IOutputContainerProps {
 
     requestExport?(tracingIds: string[], format: ExportFormat): any;
     populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
-    onToggleBrainArea(id: string): void;
-    onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel): void;
-    onMutateBrainAreas(added: string[], removed: string[]): void;
     onToggleQueryCollapsed(): void;
 }
 
 interface IOutputContainerState {
     defaultStructureSelection?: NeuronViewMode;
-    neuronViewModels?: NeuronViewModel[];
-    tracingsToDisplay?: TracingViewModel[];
-    rootNode?: CompartmentNode;
-    displayHighlightedOnly?: boolean;
-    wasDisplayHighlightedOnly?: boolean;
-    cycleFocusNeuronId?: string;
-    highlightSelectionMode?: HighlightSelectionMode;
     latestTiming?: ITiming;
     fetchState?: FetchState;
     fetchCount?: number;
     isRendering?: boolean;
-    isNeuronListOpen?: boolean;
-    isNeuronListDocked?: boolean;
-    isCompartmentListOpen?: boolean;
-    isCompartmentListDocked?: boolean;
     isExportMessageOpen?: boolean;
 }
+
+// TODO Direct references to rootViewModel without observing may not update.
 
 export class MainView extends React.Component<IOutputContainerProps, IOutputContainerState> {
     private _queuedIds: string[] = [];
@@ -99,35 +81,21 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
     private _colorIndex: number = 0;
     private _fetchBatchSize = PreferencesManager.Instance.TracingFetchBatchSize;
 
-    private _viewerContainer = null;
     private _expectingFetch = false;
 
     public constructor(props: IOutputContainerProps) {
         super(props);
 
-        const neuronCalc = this.updateNeuronViewModels(props, false);
+        this.updateNeuronViewModels(props, false);
 
         this.state = {
             defaultStructureSelection: NEURON_VIEW_MODE_SOMA,
-            neuronViewModels: neuronCalc.neurons,
-            tracingsToDisplay: [],
-            rootNode: makeCompartmentNodes(props.constants.BrainAreasWithGeometry),
-            displayHighlightedOnly: false,
-            highlightSelectionMode: HighlightSelectionMode.Normal,
             fetchState: FetchState.Running,
             fetchCount: 0,
-            cycleFocusNeuronId: null,
             isRendering: false,
             latestTiming: null,
-            isNeuronListOpen: false,
-            isNeuronListDocked: PreferencesManager.Instance.IsNeuronListDocked,
-            isCompartmentListDocked: PreferencesManager.Instance.IsCompartmentListDocked,
             isExportMessageOpen: false
         };
-    }
-
-    public get ViewerContainer() {
-        return this._viewerContainer;
     }
 
     private onSetFetchState(fetchState: FetchState) {
@@ -137,14 +105,15 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
     public onCancelFetch() {
         this._queuedIds = [];
 
-        const neuronViewModels = this.state.neuronViewModels.map(n => {
+        /*const neuronViewModels = */
+        rootViewModel.Viewer.neuronViewModels.map(n => {
             n.cancelRequestedViewMode();
             return n;
         });
 
         this.updateNeuronViewModels(this.props, true);
 
-        this.setState({fetchState: FetchState.Running, fetchCount: 0, neuronViewModels: neuronViewModels.slice()});
+        this.setState({fetchState: FetchState.Running, fetchCount: 0/*, neuronViewModels: neuronViewModels.slice()*/});
     }
 
     private completeFetch() {
@@ -158,49 +127,19 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             n.isSelected = n.isSelected || this.props.shouldAlwaysShowSoma
         });
         this.onCancelFetch();
-        this.ViewerContainer.TracingViewer.reset();
-        this.setState({displayHighlightedOnly: false, highlightSelectionMode: HighlightSelectionMode.Normal});
+        // this.ViewerContainer.TracingViewer.reset();
+        // this.setState({displayHighlightedOnly: false, highlightSelectionMode: HighlightSelectionMode.Normal});
     }
 
-    private neuronIdsForExport(): string[] {
-        const neurons = this.state.neuronViewModels.filter(v => v.isSelected);
+    private static neuronIdsForExport(): string[] {
+        const neurons = rootViewModel.Viewer.neuronViewModels.filter(v => v.isSelected);
 
         return neurons.map(n => n.neuron.idString);
     }
 
-    private onNeuronListCloseOrPin(state: DrawerState) {
-        if (state === DrawerState.Hidden) {
-            // Close the docked or drawer
-            PreferencesManager.Instance.IsNeuronListDocked = false;
-            this.setState({isNeuronListDocked: false, isNeuronListOpen: false});
-        } else if (state === DrawerState.Float) {
-            // Pin the float
-            PreferencesManager.Instance.IsNeuronListDocked = false;
-            this.setState({isNeuronListDocked: false, isNeuronListOpen: true});
-        } else {
-            PreferencesManager.Instance.IsNeuronListDocked = true;
-            this.setState({isNeuronListDocked: true, isNeuronListOpen: false});
-        }
-    }
-
-    private onCompartmentListCloseOrPin(state: DrawerState) {
-        if (state === DrawerState.Hidden) {
-            // Close the docked or drawer
-            PreferencesManager.Instance.IsCompartmentListDocked = false;
-            this.setState({isCompartmentListDocked: false, isCompartmentListOpen: false});
-        } else if (state === DrawerState.Float) {
-            // Pin the float
-            PreferencesManager.Instance.IsCompartmentListDocked = false;
-            this.setState({isCompartmentListDocked: false, isCompartmentListOpen: true});
-        } else {
-            PreferencesManager.Instance.IsCompartmentListDocked = true;
-            this.setState({isCompartmentListDocked: true, isCompartmentListOpen: false});
-        }
-    }
-
     private async onExportSelectedTracings(format: ExportFormat) {
         try {
-            const ids = this.neuronIdsForExport();
+            const ids = MainView.neuronIdsForExport();
 
             if (ids.length === 0) {
                 return;
@@ -247,10 +186,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
         }
     }
 
-    private onShowNeuronList() {
-        this.setState({isNeuronListOpen: true});
-    }
-
+    /*
     private onToggleDisplayHighlighted() {
         this.setState({displayHighlightedOnly: !this.state.displayHighlightedOnly});
     }
@@ -282,61 +218,71 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             cycleFocusNeuronId
         });
     }
+    */
 
+    /*
     private onChangeHighlightTracing(neuronViewModel: NeuronViewModel, shouldHighlight: boolean = null) {
         neuronViewModel.isInHighlightList = shouldHighlight == null ? !neuronViewModel.isInHighlightList : shouldHighlight;
 
-        const tracingsToDisplay = this.state.tracingsToDisplay.slice();
+        // TODO Highlighting working?
+        // const tracingsToDisplay = this.state.tracingsToDisplay.slice();
 
-        this.setState({tracingsToDisplay});
+        // this.setState({tracingsToDisplay});
 
         this.verifyHighlighting();
     }
+    */
 
     private onChangeSelectTracing(id: string, shouldSelect: boolean) {
-        const neuronViewModels = this.state.neuronViewModels.slice();
+        // const neuronViewModels = this.state.neuronViewModels.slice();
 
         neuronViewModelMap.get(id).isSelected = shouldSelect;
 
-        const fetchCalc = this.determineTracingFetchState(neuronViewModels);
+        const fetchCalc = this.determineTracingFetchState(rootViewModel.Viewer.neuronViewModels);
 
-        this.setState({neuronViewModels, tracingsToDisplay: fetchCalc.knownTracings});
+        rootViewModel.Viewer.Tracings.replace(fetchCalc.knownTracings);
+
+        // this.setState({neuronViewModels/*, tracingsToDisplay: fetchCalc.knownTracings*/});
     }
 
     private onChangeSelectAllTracings(shouldSelectAll: boolean) {
-        const neuronViewModels = this.state.neuronViewModels.slice();
+        // const neuronViewModels = this.state.neuronViewModels.slice();
 
         neuronViewModelMap.forEach(v => v.isSelected = shouldSelectAll);
 
-        const fetchCalc = this.determineTracingFetchState(neuronViewModels);
+        const fetchCalc = this.determineTracingFetchState(rootViewModel.Viewer.neuronViewModels);
 
-        this.setState({neuronViewModels, tracingsToDisplay: fetchCalc.knownTracings});
+        rootViewModel.Viewer.Tracings.replace(fetchCalc.knownTracings);
+
+        // this.setState({neuronViewModels/*, tracingsToDisplay: fetchCalc.knownTracings*/});
     }
 
     private onChangeNeuronColor(neuron: NeuronViewModel, color: any) {
-        const neuronViewModels = this.state.neuronViewModels.slice();
+        // const neuronViewModels = this.state.neuronViewModels.slice();
 
         neuron.baseColor = color.hex;
 
-        this.setState({neuronViewModels});
+        // this.setState({neuronViewModels});
     }
 
     private onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean) {
-        const neuronViewModels = this.state.neuronViewModels.slice();
+        // const neuronViewModels = this.state.neuronViewModels.slice();
 
         neuron.mirror = mirror;
 
-        this.setState({neuronViewModels});
+        // this.setState({neuronViewModels});
     }
 
     private onChangeDefaultStructure(mode: NeuronViewMode) {
         this.setState({defaultStructureSelection: mode});
 
-        this.state.neuronViewModels.map(v => v.requestViewMode(mode.structure));
+        rootViewModel.Viewer.neuronViewModels.map(v => v.requestViewMode(mode.structure));
 
-        const fetchCalc = this.determineTracingFetchState(this.state.neuronViewModels.slice());
+        const fetchCalc = this.determineTracingFetchState(rootViewModel.Viewer.neuronViewModels.slice());
 
-        this.setState({tracingsToDisplay: fetchCalc.knownTracings});
+        rootViewModel.Viewer.Tracings.replace(fetchCalc.knownTracings);
+
+        // this.setState({tracingsToDisplay: fetchCalc.knownTracings});
     }
 
 
@@ -355,7 +301,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         this.updateNeuronViewModels(this.props, true);
 
-        this.verifyHighlighting();
+        rootViewModel.Viewer.verifyHighlighting();
     }
 
     private onToggleSomaViewMode(neuronViewModel: NeuronViewModel) {
@@ -368,7 +314,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         this.updateNeuronViewModels(this.props, true);
 
-        this.verifyHighlighting();
+        rootViewModel.Viewer.verifyHighlighting();
     }
 
     private onToggleTracing(id: string) {
@@ -377,54 +323,55 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
         this.onToggleSomaViewMode(tracing.neuron);
     }
 
-    private onSetHighlightedNeuron(neuron: NeuronViewModel) {
-        this.setState({cycleFocusNeuronId: neuron.Id});
-    }
-
-    private onCycleHighlightNeuron(direction: number) {
-        const highlighted = this.state.neuronViewModels.filter(n => n.isInHighlightList).map(n => n.neuron.id);
-
-        if (highlighted.length < 2) {
-            return;
+    /*
+        private onSetHighlightedNeuron(neuron: NeuronViewModel) {
+            this.setState({cycleFocusNeuronId: neuron.Id});
         }
 
-        if (this.state.cycleFocusNeuronId === null) {
-            if (highlighted.length > 0) {
-                this.setState({cycleFocusNeuronId: highlighted[0]});
-            }
-        } else {
-            const index = highlighted.indexOf(this.state.cycleFocusNeuronId);
-
-            if (direction < 0) {
-                if (index > 0) {
-                    this.setState({cycleFocusNeuronId: highlighted[index - 1]});
-                } else {
-                    this.setState({cycleFocusNeuronId: highlighted[length - 1]});
-                }
-            } else {
-                if (index < highlighted.length - 1) {
-                    this.setState({cycleFocusNeuronId: highlighted[index + 1]});
-                } else {
-                    this.setState({cycleFocusNeuronId: highlighted[0]});
-                }
-            }
-        }
-    }
-
-    private verifyHighlighting() {
-        if (this.state.highlightSelectionMode === HighlightSelectionMode.Cycle) {
+        private onCycleHighlightNeuron(direction: number) {
             const highlighted = this.state.neuronViewModels.filter(n => n.isInHighlightList).map(n => n.neuron.id);
 
-            if (this.state.cycleFocusNeuronId === null || !highlighted.some(id => id === this.state.cycleFocusNeuronId)) {
+            if (highlighted.length < 2) {
+                return;
+            }
+
+            if (this.state.cycleFocusNeuronId === null) {
                 if (highlighted.length > 0) {
                     this.setState({cycleFocusNeuronId: highlighted[0]});
+                }
+            } else {
+                const index = highlighted.indexOf(this.state.cycleFocusNeuronId);
+
+                if (direction < 0) {
+                    if (index > 0) {
+                        this.setState({cycleFocusNeuronId: highlighted[index - 1]});
+                    } else {
+                        this.setState({cycleFocusNeuronId: highlighted[length - 1]});
+                    }
                 } else {
-                    this.setState({highlightSelectionMode: HighlightSelectionMode.Normal});
+                    if (index < highlighted.length - 1) {
+                        this.setState({cycleFocusNeuronId: highlighted[index + 1]});
+                    } else {
+                        this.setState({cycleFocusNeuronId: highlighted[0]});
+                    }
                 }
             }
         }
-    }
 
+        private verifyHighlighting() {
+            if (this.state.highlightSelectionMode === HighlightSelectionMode.Cycle) {
+                const highlighted = this.state.neuronViewModels.filter(n => n.isInHighlightList).map(n => n.neuron.id);
+
+                if (this.state.cycleFocusNeuronId === null || !highlighted.some(id => id === this.state.cycleFocusNeuronId)) {
+                    if (highlighted.length > 0) {
+                        this.setState({cycleFocusNeuronId: highlighted[0]});
+                    } else {
+                        this.setState({highlightSelectionMode: HighlightSelectionMode.Normal});
+                    }
+                }
+            }
+        }
+    */
     public componentWillReceiveProps(props: IOutputContainerProps) {
         if (props.queryStatus === QueryStatus.Loading) {
             this._colorIndex = 0;
@@ -437,7 +384,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
         const neuronCalc = this.updateNeuronViewModels(props, true, examples.find(e => e.filters[0].id === props.nonce));
 
-        this.verifyHighlighting();
+        rootViewModel.Viewer.verifyHighlighting();
 
         if (this._expectingFetch && !neuronCalc.fetchCalc.hadQuery) {
             this.completeFetch();
@@ -518,7 +465,9 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
         const fetchCalc = this.determineTracingFetchState(loadedModels);
 
         if (setState) {
-            this.setState({neuronViewModels: loadedModels, tracingsToDisplay: fetchCalc.knownTracings});
+            rootViewModel.Viewer.Tracings.replace(fetchCalc.knownTracings);
+            rootViewModel.Viewer.neuronViewModels.replace(loadedModels);
+            // this.setState({neuronViewModels: loadedModels/*, tracingsToDisplay: fetchCalc.knownTracings*/});
         }
 
         return {
@@ -628,7 +577,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
                 const tracings = tracingsData.tracings;
 
-                let tracingsToDisplay = this.state.tracingsToDisplay;
+                let tracingsToDisplay = rootViewModel.Viewer.Tracings; // this.state.tracingsToDisplay;
 
                 tracings.forEach((t: ITracing) => {
                     const model = tracingViewModelMap2.get(t.id);
@@ -644,7 +593,8 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
                 timing = Object.assign({}, tracingsData.timing, {transfer: (arrive.valueOf() - tracingsData.timing.sent) / 1000});
 
-                this.setState({fetchCount: this._queuedIds.length, tracingsToDisplay, latestTiming: timing});
+                rootViewModel.Viewer.Tracings.replace(tracingsToDisplay);
+                this.setState({fetchCount: this._queuedIds.length/*, tracingsToDisplay*/, latestTiming: timing});
 
                 this._isInQuery = false;
             } else {
@@ -657,7 +607,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                 });
 
                 this.setState({
-                    neuronViewModels: this.state.neuronViewModels.slice(),
+                    // neuronViewModels: this.state.neuronViewModels.slice(),
                     fetchCount: this._queuedIds.length,
                     latestTiming: null
                 });
@@ -678,7 +628,7 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             });
 
             this.setState({
-                neuronViewModels: this.state.neuronViewModels.slice(),
+                // neuronViewModels: this.state.neuronViewModels.slice(),
                 fetchCount: this._queuedIds.length,
                 latestTiming: null
             });
@@ -692,14 +642,12 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
     }
 
     public render() {
-        const isAllTracingsSelected = !this.state.neuronViewModels.some(v => !v.isSelected);
+        const isAllTracingsSelected = !rootViewModel.Viewer.neuronViewModels.some(v => !v.isSelected);
 
         const tableProps = {
-            isDocked: this.state.isNeuronListDocked,
             queryStatus: this.props.queryStatus,
             isAllTracingsSelected,
             defaultStructureSelection: this.state.defaultStructureSelection,
-            neuronViewModels: this.state.neuronViewModels,
             isPublicRelease: this.props.isPublicRelease,
             exportLimit: this.props.exportLimit,
             onRequestExport: (f) => this.onExportSelectedTracings(f),
@@ -708,26 +656,16 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             onChangeNeuronMirror: (n: NeuronViewModel, b: boolean) => this.onChangeNeuronMirror(n, b),
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
             onChangeSelectAllTracings: (b: boolean) => this.onChangeSelectAllTracings(b),
-            onChangeDefaultStructure: (mode: NeuronViewMode) => this.onChangeDefaultStructure(mode),
-            onClickCloseOrPin: (s: DrawerState) => this.onNeuronListCloseOrPin(s)
+            onChangeDefaultStructure: (mode: NeuronViewMode) => this.onChangeDefaultStructure(mode)
         };
 
         const viewerProps = {
-            isNeuronListDocked: this.state.isNeuronListDocked,
-            isCompartmentListDocked: this.state.isCompartmentListDocked,
-            isNeuronListOpen: this.state.isNeuronListOpen,
-            isCompartmentListOpen: this.state.isCompartmentListOpen,
             constants: this.props.constants,
             isLoading: this.props.isLoading,
-            tracings: this.state.tracingsToDisplay,
-            compartments: this.props.visibleBrainAreas,
             highlightedTracings: [],
             isRendering: this.state.isRendering,
             fetchCount: this.state.fetchCount,
             fixedAspectRatio: null,
-            displayHighlightedOnly: this.state.displayHighlightedOnly,
-            highlightSelectionMode: this.state.highlightSelectionMode,
-            cycleFocusNeuronId: this.state.cycleFocusNeuronId,
             isQueryCollapsed: this.props.isQueryCollapsed,
             fetchState: this.state.fetchState,
             onSetFetchState: (s) => this.onSetFetchState(s),
@@ -735,27 +673,8 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             onChangeNeuronViewMode: (n: NeuronViewModel, v: NeuronViewMode) => this.onChangeNeuronViewMode(n, v),
             onToggleQueryCollapsed: this.props.onToggleQueryCollapsed,
             onChangeIsRendering: (b: boolean) => this.onChangeIsRendering(b),
-            onToggleDisplayHighlighted: () => this.onToggleDisplayHighlighted(),
-            onHighlightTracing: (n: NeuronViewModel, b: boolean) => this.onChangeHighlightTracing(n, b),
             onToggleTracing: (id: string) => this.onToggleTracing(id),
-            onToggleCompartment: this.props.onToggleBrainArea,
-            onSetHighlightedNeuron: (n: NeuronViewModel) => this.onSetHighlightedNeuron(n),
-            onCycleHighlightNeuron: (d: number) => this.onCycleHighlightNeuron(d),
-            onChangeHighlightMode: () => this.onChangeHighlightMode(),
-            populateCustomPredicate: (p: IPositionInput, b: boolean) => this.props.populateCustomPredicate(p, b),
-            onFloatNeuronList: () => this.onNeuronListCloseOrPin(DrawerState.Float),
-            onFloatCompartmentList: () => this.onCompartmentListCloseOrPin(DrawerState.Float)
-        };
-
-        const treeProps = {
-            isDocked: this.state.isCompartmentListDocked,
-            constants: this.props.constants,
-            onChangeLoadedGeometry: this.props.onMutateBrainAreas,
-            visibleBrainAreas: this.props.visibleBrainAreas,
-            rootNode: this.state.rootNode,
-            onToggleCompartmentSelected: this.props.onToggleBrainArea,
-            onRemoveFromHistory: this.props.onRemoveBrainAreaFromHistory,
-            onClickCloseOrPin: (s: DrawerState) => this.onCompartmentListCloseOrPin(s)
+            populateCustomPredicate: (p: IPositionInput, b: boolean) => this.props.populateCustomPredicate(p, b)
         };
 
         const is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
@@ -765,7 +684,6 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
         if (is_chrome) {
             offset -= 0;
         }
-
         const baseStyle = {
             position: "fixed" as "fixed",
             zIndex: 2,
@@ -774,33 +692,10 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             backgroundColor: "#ffffffdd"
         };
 
-        const neuronList = (<NeuronListContainer {...tableProps}/>);
-
-        const neuronListFloat = this.state.isNeuronListOpen ? (<div style={baseStyle}>  {neuronList}</div>) : null;
-
-        const compartmentListFloat = this.state.isCompartmentListOpen ? (
-            <div style={Object.assign({left: "calc(100% - 400px)"}, baseStyle)}>
-                <CompartmentListContainer {...treeProps}/>
-            </div>) : null;
-
-        const compartmentListDock = this.state.isCompartmentListDocked ? (
-            <CompartmentListContainer {...treeProps}/>) : null;
-
-        const overlay = neuronListFloat !== null || compartmentListFloat !== null ? (
-            <div style={{
-                width: "100%",
-                position: "fixed",
-                top: offset + "px",
-                zIndex: 1,
-                height: "calc(100% - " + offset + "px)",
-                backgroundColor: "#000000",
-                opacity: 0.1
-            }} onClick={() => this.setState({isNeuronListOpen: false, isCompartmentListOpen: false})}/>) : null;
-
         const style = {width: "100%", height: "100%"};
 
         return (
-            <div style={style}>
+            <div id="mainView" style={style}>
                 <Modal open={this.state.isExportMessageOpen} dimmer="blurring"
                        onClose={() => this.setState({isExportMessageOpen: false})}>
                     <Modal.Header content="Export Failed"/>
@@ -812,18 +707,103 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                         <Button content="Ok" onClick={() => this.setState({isExportMessageOpen: false})}/>
                     </Modal.Actions>
                 </Modal>
-                {neuronListFloat}
-                {compartmentListFloat}
-                {overlay}
-                <div style={fullRowStyle}>
-                    {this.state.isNeuronListDocked ? neuronList : null}
-                    <ViewerContainer {...viewerProps} ref={(v) => this._viewerContainer = v}/>
-                    {compartmentListDock}
-                </div>
+                <FloatingNeuronsPanel neuronProps={tableProps} baseStyle={baseStyle}/>
+                <FloatingCompartmentPanel baseStyle={baseStyle}/>
+                <Overlay offset={offset}/>
+                <MainPanel viewerProps={viewerProps} neuronProps={tableProps}/>
             </div>
         );
     }
 }
+
+type OverlayProps = {
+    offset: number;
+}
+
+/**
+ * If either the neurons or compartments panel is floating, add an invisible div over the viewer header to capture
+ * mouse clicks and close those floating windows.
+ */
+const Overlay = observer((props: OverlayProps) => {
+    const {CompartmentsDrawer, NeuronsDrawer} = useLayout();
+
+    if (CompartmentsDrawer.DrawerState !== DrawerState.Float && NeuronsDrawer.DrawerState !== DrawerState.Float) {
+        return null;
+    }
+
+    return (
+        <div id="overlay" style={{
+            width: "100%",
+            position: "fixed",
+            top: props.offset + "px",
+            zIndex: 1,
+            height: "calc(100% - " + props.offset + "px)",
+            backgroundColor: "#000000",
+            opacity: 0.1
+        }} onClick={() => {
+            if (CompartmentsDrawer.DrawerState === DrawerState.Float) {
+                CompartmentsDrawer.DrawerState = DrawerState.Hidden
+            }
+            if (NeuronsDrawer.DrawerState === DrawerState.Float) {
+                NeuronsDrawer.DrawerState = DrawerState.Hidden
+            }
+        }}/>
+    );
+});
+
+type FloatingCompartmentPanelProps = {
+    baseStyle: any;
+}
+
+const FloatingCompartmentPanel = observer((props: FloatingCompartmentPanelProps) => {
+    const {CompartmentsDrawer} = useLayout();
+
+    if (CompartmentsDrawer.DrawerState !== DrawerState.Float) {
+        return null;
+    }
+
+    return (
+        <div id="floatingCompartments" style={Object.assign({left: "calc(100% - 400px)"}, props.baseStyle)}>
+            <CompartmentsPanel/>
+        </div>
+    );
+});
+
+type FloatingNeuronsPanelProps = {
+    baseStyle: any;
+    neuronProps: INeuronListContainerProps;
+}
+
+const FloatingNeuronsPanel = observer((props: FloatingNeuronsPanelProps) => {
+    const {NeuronsDrawer} = useLayout();
+
+    if (NeuronsDrawer.DrawerState !== DrawerState.Float) {
+        return null;
+    }
+
+    return (
+        <div id="floatingNeurons" style={props.baseStyle}>
+            <NeuronListContainer {...props.neuronProps}/>
+        </div>
+    );
+});
+
+type MainPanelProps = {
+    viewerProps: IViewerProps;
+    neuronProps: INeuronListContainerProps;
+}
+
+const MainPanel = observer((props: MainPanelProps) => {
+    const {CompartmentsDrawer, NeuronsDrawer} = useLayout();
+
+    return (
+        <div id="mainPanel" style={fullRowStyle}>
+            {NeuronsDrawer.DrawerState === DrawerState.Dock ? <NeuronListContainer {...props.neuronProps}/> : null}
+            <ViewerContainer {...props.viewerProps}/>
+            {CompartmentsDrawer.DrawerState === DrawerState.Dock ? <CompartmentsPanel/> : null}
+        </div>
+    )
+});
 
 function saveFile(data: any, filename: string, mime: string = null) {
     const blob = new Blob([data], {type: mime || "text/plain;charset=utf-8"});
@@ -857,59 +837,4 @@ function dataToBlob(encoded) {
     }
 
     return ab;
-}
-
-// A couple of hard-coded exceptions.  If this grows, should have a db column.
-const ROOT = 997;
-const RETINA = 304325711;
-const GROOVES = 1024;
-
-export const compartmentNodeSortedList = new Array<CompartmentNode>();
-const compartmentNodeMap = new Map<number, CompartmentNode>();
-
-function makeCompartmentNodes(brainAreas: IBrainArea[]): CompartmentNode {
-    if (compartmentNodeMap.size > 0) {
-        return compartmentNodeMap.get(ROOT);
-    }
-
-    let sorted = brainAreas.slice();
-
-    const root: CompartmentNode = new CompartmentNode();
-    root.name = sorted[0].name;
-    // root.isChecked = true;
-    root.toggled = true;
-    root.children = null;
-    root.compartment = sorted[0];
-
-    compartmentNodeMap.set(sorted[0].structureId, root);
-    compartmentNodeSortedList.push(root);
-
-    sorted = sorted.slice(1);
-
-    sorted.forEach((c: IBrainArea) => {
-        if (c.structureId === RETINA || c.structureId === GROOVES) {
-            return;
-        }
-
-        const node: CompartmentNode = new CompartmentNode();
-        node.name = c.name;
-        // node.isChecked = false;
-        node.toggled = false;
-        node.children = null;
-        node.compartment = c;
-
-        compartmentNodeMap.set(c.structureId, node);
-        compartmentNodeSortedList.push(node);
-
-        const parent = compartmentNodeMap.get(c.parentStructureId);
-
-        if (parent) {
-            if (!parent.children) {
-                parent.children = [];
-            }
-            parent.children.push(node);
-        }
-    });
-
-    return root;
 }
