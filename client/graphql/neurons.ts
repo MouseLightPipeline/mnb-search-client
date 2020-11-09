@@ -19,6 +19,7 @@ export const NEURONS_QUERY = gql`query SearchNeurons($context: SearchContext) {
     neurons {
       id
       idString
+      consensus
       brainArea {
         id
         acronym

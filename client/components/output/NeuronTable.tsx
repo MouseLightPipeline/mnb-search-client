@@ -8,6 +8,7 @@ import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode"
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {ChangeAllStructureDisplayDialog} from "./ChangeAllStructureDisplayDialog";
 import {useViewModel} from "../app/App";
+import {ConsensusStatus} from "../../models/neuron";
 
 type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fixed" | "static" | "sticky";
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
@@ -90,7 +91,7 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
                       onClick={() => props.onChangeNeuronMirror(v, !v.mirror)}/>
             </td>
             <td style={{verticalAlign: "middle"}}>
-                {v.neuron.idString}
+                {v.neuron.idString}{v.neuron.consensus == ConsensusStatus.Single ? "*" : ""}
             </td>
             <td style={{verticalAlign: "middle"}}>
                 {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
