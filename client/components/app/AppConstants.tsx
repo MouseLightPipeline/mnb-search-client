@@ -3,11 +3,17 @@ import {observer} from "mobx-react-lite";
 import {useQuery} from "react-apollo-hooks";
 import {Message} from "semantic-ui-react";
 
-import {NdbConstants} from "../../models/constants";
 import {CONSTANTS_QUERY, ConstantsQueryResponse, SystemSettingsVariables} from "../../graphql/constants";
 import {useStore} from "./App";
 import {AppLoading} from "./AppLoading";
 
+/**
+ * Component that requires constant system data be loaded before rendering children.  This currently includes
+ * * system configuration (versions, neuron count)
+ * * query operators (gt, lt, etc...)
+ * * tracing and structure identifiers
+ * * compartment data
+ */
 export const AppConstants = observer((props: any) => {
     const Store = useStore();
 
@@ -26,7 +32,7 @@ export const AppConstants = observer((props: any) => {
         );
     }
 
-    NdbConstants.DefaultConstants.load(data!);
+    Store.Constants.load(data!);
 
     return props.children;
 });

@@ -2,10 +2,19 @@ import {IBrainArea} from "./brainArea";
 import {ITracing} from "./tracing";
 import {ISample} from "./sample";
 
+export enum ConsensusStatus {
+    Full,
+    Partial,
+    Single,
+    Pending,
+    None
+}
+
 export interface INeuron {
     id: string;
     idNumber: number;
     idString: string;
+    consensus: ConsensusStatus;
     tag: string;
     keywords: string;
     x: number;

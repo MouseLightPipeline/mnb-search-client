@@ -1,8 +1,8 @@
 import {useEffect} from "react";
 
-import {INotificationListener, PreferencesManager} from "../util/preferencesManager";
+import {PreferenceChangedEvent, PreferencesManager} from "../util/preferencesManager";
 
-export const usePreferences = (listener: INotificationListener) => {
+export const usePreferences = (listener: PreferenceChangedEvent) => {
     useEffect(() => {
         PreferencesManager.Instance.addListener(listener);
 

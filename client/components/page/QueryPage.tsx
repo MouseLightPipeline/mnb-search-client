@@ -6,12 +6,11 @@ import {FilterComposition, IPositionInput} from "../../models/queryFilter";
 import {QueryFilterContainer} from "../query/QueryFilterContainer";
 import {MainView} from "../output/MainView";
 import {QueryStatus} from "../query/QueryHeader";
-import {VisibleBrainAreas} from "../../viewmodel/VisibleBrainAreas";
-import {BrainCompartmentViewModel} from "../../viewmodel/brainCompartmentViewModel";
 import {ApolloError} from "apollo-client";
 import {UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
 import {BRAIN_AREA_FILTER_TYPE_SPHERE} from "../../models/brainAreaFilterType";
 import {PreferencesManager} from "../../util/preferencesManager";
+import {rootViewModel} from "../../store/viewModel/systemViewModel";
 
 interface IPageProps {
     constants: NdbConstants;
@@ -34,23 +33,25 @@ interface IPageProps {
 
 interface IPageState {
     isQueryCollapsed?: boolean;
-    visibleBrainAreas?: BrainCompartmentViewModel[];
+    // visibleBrainAreas?: CompartmentViewModel[];
 }
 
 export class QueryPage extends React.Component<IPageProps, IPageState> {
-    private _visibleBrainAreas = new VisibleBrainAreas();
+    // private _visibleBrainAreas = new VisibleBrainAreas();
 
     private _mainView;
 
     public constructor(props: IPageProps) {
         super(props);
 
-        this._visibleBrainAreas.initialize(props.constants);
+        // this._visibleBrainAreas.initialize(props.constants);
 
         this.state = {
             isQueryCollapsed: false,
-            visibleBrainAreas: this._visibleBrainAreas.BrainAreas
+            // visibleBrainAreas: this._visibleBrainAreas.BrainAreas
         };
+
+        // rootViewModel.CompartmentTree.History.addCompartment(this._visibleBrainAreas.WholeBrainCompartment);
     }
 
     private onPerformQuery = () => {
@@ -61,23 +62,30 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
         this.props.onPerformQuery();
     };
 
+    /*
     public resetView(r1: number, r2: number) {
-        this._mainView.ViewerContainer.TracingViewer.resetView(r1, r2);
+        // this._mainView.ViewerContainer.TracingViewer.resetView(r1, r2);
+        rootViewModel.Viewer.resetView(r1, r2);
     }
+*/
 
+    /*
     public updateVisibleCompartments(ids: number[]) {
         this._visibleBrainAreas.show(ids);
 
         this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas});
     }
+     */
 
     private onResetPage = () => {
         this.props.onResetPage();
 
-        this._visibleBrainAreas.clear();
+        // this._visibleBrainAreas.clear();
+        rootViewModel.Compartments.reset();
+
         this._mainView.resetPage();
 
-        this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas, isQueryCollapsed: false});
+        this.setState({/*visibleBrainAreas: this._visibleBrainAreas.BrainAreas,*/ isQueryCollapsed: false});
     };
 
     private populateCustomPredicate?(position: IPositionInput, replace: boolean) {
@@ -105,21 +113,18 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
             });
         }
     }
-
+/*
     private onToggleBrainArea(id: string) {
         this._visibleBrainAreas.toggle(id);
         this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas});
     }
 
-    private onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel) {
-        viewModel.shouldIncludeInHistory = false;
-        this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas});
-    }
-
     private onMutateBrainAreas(added: string[], removed: string[]) {
-        this._visibleBrainAreas.mutate(added, removed);
+        const vm = this._visibleBrainAreas.mutate(added, removed);
+        vm.forEach(v => rootViewModel.CompartmentTree.History.addCompartment(v));
         this.setState({visibleBrainAreas: this._visibleBrainAreas.BrainAreas});
     }
+ */
 
     public render() {
         const queryStatus = this.props.isInQuery ? QueryStatus.Loading : (this.props.totalCount >= 0 ? QueryStatus.Loaded : QueryStatus.NeverQueried);
@@ -143,7 +148,7 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
             isQueryCollapsed: this.state.isQueryCollapsed,
             queryStatus: queryStatus,
             neurons: this.props.neurons,
-            visibleBrainAreas: this.state.visibleBrainAreas,
+            // visibleBrainAreas: this.state.visibleBrainAreas,
             isLoading: this.props.isInQuery,
             nonce: this.props.queryNonce,
             shouldAlwaysShowFullTracing: this.props.shouldAlwaysShowFullTracing,
@@ -153,9 +158,8 @@ export class QueryPage extends React.Component<IPageProps, IPageState> {
             ref: (r) => this._mainView = r,
             onToggleQueryCollapsed: () => this.setState({isQueryCollapsed: !this.state.isQueryCollapsed}),
             populateCustomPredicate: (p: IPositionInput, b: boolean) => this.populateCustomPredicate(p, b),
-            onToggleBrainArea: (id: string) => this.onToggleBrainArea(id),
-            onRemoveBrainAreaFromHistory: (id: BrainCompartmentViewModel) => this.onRemoveBrainAreaFromHistory(id),
-            onMutateBrainAreas: (added: string[], removed: string[]) => this.onMutateBrainAreas(added, removed)
+            // onToggleBrainArea: (id: string) => this.onToggleBrainArea(id),
+            // onMutateBrainAreas: (added: string[], removed: string[]) => this.onMutateBrainAreas(added, removed)
         };
 
         return (

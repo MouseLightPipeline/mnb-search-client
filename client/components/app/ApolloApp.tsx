@@ -15,6 +15,11 @@ const client = new ApolloClient({
     cache: new InMemoryCache(),
 });
 
+/**
+ * Enable Apollo GraphQL in downstream components.  The stack of AppXYZ components between the Apollo components and
+ * `AppContent` ensure that all required data is loaded before rendering the actual application components. `AppContent`
+ * and below can assume that data is available.
+ */
 export const ApolloApp = () => (
     <ApolloHooksProvider client={client}>
         <ApolloProvider client={client}>

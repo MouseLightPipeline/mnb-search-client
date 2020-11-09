@@ -4,18 +4,20 @@ import {
 } from "./neuronViewMode";
 import {TracingViewModel} from "./tracingViewModel";
 import {TracingStructure} from "../models/tracingStructure";
+import {observable} from "mobx";
 
 export class NeuronViewModel {
     neuron: INeuron;
 
-    toggleViewMode: NeuronViewMode;
+    @observable public toggleViewMode: NeuronViewMode;
 
-    isSelected: boolean;
-    isInHighlightList: boolean;
+    @observable public isSelected: boolean;
 
-    baseColor: string;
+    @observable public isInHighlightList: boolean;
 
-    mirror: boolean;
+    @observable public baseColor: string;
+
+    @observable public mirror: boolean;
 
     hasAxonTracing: boolean;
     hasDendriteTracing: boolean;

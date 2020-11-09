@@ -1,208 +1,28 @@
 import * as React from "react";
 
-import {ITracingViewerBaseProps, TracingViewer} from "./TracingViewer";
 import {FetchState} from "./MainView";
 import {primaryBackground} from "../../util/styles";
 import {Icon} from "semantic-ui-react";
+import {TracingViewerWrapper, TracingWrapperProps} from "./TracingViewerWrapper";
+import {observer} from "mobx-react-lite";
+import {useLayout} from "../../hooks/useLayout";
+import {DrawerState} from "../../store/viewModel/layout/DockableDrawerViewModel";
 
-interface IViewerProps extends ITracingViewerBaseProps {
+export type IViewerProps = TracingWrapperProps & {
     isQueryCollapsed: boolean;
-    isNeuronListDocked: boolean;
-    isCompartmentListDocked: boolean;
-    isNeuronListOpen: boolean;
-    isCompartmentListOpen: boolean;
 
     fetchState: FetchState;
     fetchCount: number;
     isRendering: boolean;
 
-    onFloatNeuronList(): void;
-    onFloatCompartmentList(): void;
     onToggleQueryCollapsed(): void;
     onSetFetchState(fetchState: FetchState): void;
     onCancelFetch(): void;
 }
 
-interface IViewerContainerState {
-}
-
-export class ViewerContainer extends React.Component<IViewerProps, IViewerContainerState> {
-
-    private _tracingViewer;
-
-    public constructor(props: IViewerProps) {
-        super(props);
-
-        this.state = {}
-    }
-
-    public get TracingViewer() {
-        return this._tracingViewer;
-    }
-
-    private renderFloatNeuronListGlyph() {
-        if (!this.props.isNeuronListDocked && !this.props.isNeuronListOpen) {
-            return (
-                <div style={{display: "flex", alignItems: "center", height: "100%"}}
-                     onClick={() => this.props.onFloatNeuronList()}>
-                    <h5 style={{color: "white", fontWeight: "lighter", margin: "0 6px 0 10px"}}>
-                        Neurons</h5>
-                    <Icon name="chevron right" style={{top: -1, order: 2}}
-                    />
-                </div>);
-        } else {
-            return null;
-        }
-    }
-
-    private renderFloatCompartmentListGlyph() {
-        if (!this.props.isCompartmentListDocked && !this.props.isCompartmentListOpen) {
-            return (
-                <div style={{display: "flex", alignItems: "center", height: "100%"}}
-                     onClick={() => this.props.onFloatCompartmentList()}>
-                    <Icon name="chevron left" style={{order: 1, top: -1}}/>
-                    <h5 style={{
-                        color: "white",
-                        fontWeight: "lighter",
-                        margin: "0 6px 0 10px",
-                        order: 2
-                    }}>
-                        Compartments</h5>
-                </div>);
-        } else {
-            return null;
-        }
-    }
-
-    private renderCollapseQueryGlyph() {
-        return (<Icon name={this.props.isQueryCollapsed ? "chevron down" : "chevron up"}
-                           style={{margin: "auto", order: 3}}
-                           onClick={() => this.props.onToggleQueryCollapsed()}/>)
-    }
-
-    private renderProgress() {
-        if ((this.props.fetchCount > 0 && this.props.fetchState === FetchState.Running) || this.props.isRendering) {
-            return (<div style={spinnerStyle}/>);
-        }
-
-        return null;
-    }
-
-    private renderMessage() {
-        const isPaused = this.props.fetchState === FetchState.Paused;
-
-        if (this.props.fetchCount > 0) {
-            const iconName = isPaused ? "play" : "pause";
-
-            return (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
-                    <div style={{
-                        flex: "", marginLeft: "10px", height: "100%", color: "white"
-                    }}>
-                        {`Fetching neuron tracings ( ${this.props.fetchCount} remaining ${isPaused ? "- paused" : ""})`}
-                    </div>
-                    <div style={{
-                        display: "inline-block",
-                        verticalAlign: "middle",
-                        height: "100%",
-                        color: "white",
-                        marginLeft: "10px"
-                    }}>
-                        <div style={{
-                            display: "inline-block",
-                            verticalAlign: "middle",
-                            height: "100%",
-                            border: "1px solid #ccc",
-                            padding: "0px 10px"
-                        }}>
-                            <Icon name={iconName}
-                                       style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
-                                       onClick={() => this.props.onSetFetchState(isPaused ? FetchState.Running : FetchState.Paused)}/>
-                        </div>
-                        <div style={{
-                            display: "inline-block",
-                            verticalAlign: "middle",
-                            height: "100%",
-                            border: "1px solid #ccc", marginLeft: "10px",
-                            padding: "0px 10px"
-                        }}>
-                            <Icon name="remove"
-                                       style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
-                                       onClick={() => this.props.onCancelFetch()}/>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        if (this.props.isRendering) {
-            return (
-                <div>
-                    <span style={{color: "white"}}>
-                        Submitting tracing content for render...
-                    </span>
-                </div>
-            );
-        }
-
-    }
-
-    private renderHeader() {
-        const isLeftGlyphVisible = !this.props.isNeuronListDocked && !this.props.isNeuronListOpen;
-        const progressMarginLeft = isLeftGlyphVisible ? "20px" : "0px";
+export const ViewerContainer = (props: IViewerProps) => {
         return (
-            <div style={{
-                backgroundColor: primaryBackground,
-                color: "white",
-                height: "40px",
-                minHeight: "40px",
-                width: "100%",
-                margin: "auto",
-                padding: "0px",
-                display: "flex",
-                order: 1,
-                flexDirection: "row"
-            }}>
-                <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
-                    <div style={{flex: "0 0 auto", order: 1, width: "auto"}}>
-                        {this.renderFloatNeuronListGlyph()}
-                    </div>
-                    <div style={{display: "flex", flexDirection: "column", flex: "1 1 auto", order: 2, width: "100%"}}>
-                        <div style={{flex: "0 0 auto", order: 1, textAlign: "center", height: "15px"}}>
-                            {this.renderCollapseQueryGlyph()}
-                        </div>
-                        <div style={{display: "flex", flexDirection: "row", flex: "1 1 auto", order: 2}}>
-                            <div style={{
-                                flex: "0 0 auto",
-                                order: 1,
-                                marginRight: "6px",
-                                marginLeft: progressMarginLeft
-                            }}>
-                                {this.renderProgress()}
-                            </div>
-                            <div style={{flex: "1 1 auto", margin: "auto", order: 2, textAlign: "left"}}>
-                                {this.renderMessage()}
-                            </div>
-                        </div>
-                        <div style={{flex: "1 1 auto", order: 2, textAlign: "center", width: "100%"}}>
-                            {this.props.isQueryCollapsed ?
-                                <span onClick={() => this.props.onToggleQueryCollapsed()}>
-                                    Show Search
-                                </span> : null}
-                        </div>
-                    </div>
-                    <div style={{flex: "0 0 auto", order: 3, width: "auto"}}>
-                        {this.renderFloatCompartmentListGlyph()}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    public render() {
-
-        return (
-            <div style={{
+            <div id="viewerContainer" style={{
                 flexDirection: "column",
                 flexWrap: "nowrap",
                 alignItems: "flex-start",
@@ -217,14 +37,203 @@ export class ViewerContainer extends React.Component<IViewerProps, IViewerContai
                 borderTop: "1px solid",
                 borderBottom: "1px solid"
             }}>
-                {this.renderHeader()}
+                <ViewerPanelHeader {...props}/>
                 <div style={{order: 2, flexGrow: 1, width: "100%", height: "100%"}}>
-                    <TracingViewer {...this.props} ref={(t => this._tracingViewer = t)}/>
+                    <TracingViewerWrapper {...props}/>
                 </div>
             </div>
         );
-    }
+};
+
+const ViewerPanelHeader = observer((props: IViewerProps) => {
+    const {NeuronsDrawer} = useLayout();
+
+    const isLeftGlyphVisible = NeuronsDrawer.DrawerState === DrawerState.Hidden;
+
+    const progressMarginLeft = isLeftGlyphVisible ? "20px" : "0px";
+
+    return (
+        <div style={{
+            backgroundColor: primaryBackground,
+            color: "white",
+            height: "40px",
+            minHeight: "40px",
+            width: "100%",
+            margin: "auto",
+            padding: "0px",
+            display: "flex",
+            order: 1,
+            flexDirection: "row"
+        }}>
+            <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
+                <div style={{flex: "0 0 auto", order: 1, width: "auto"}}>
+                    <FloatNeuronListGlyph/>
+                </div>
+                <div style={{display: "flex", flexDirection: "column", flex: "1 1 auto", order: 2, width: "100%"}}>
+                    <div style={{flex: "0 0 auto", order: 1, textAlign: "center", height: "15px"}}>
+                        <CollapseQueryGlyph {...props}/>
+                    </div>
+                    <div style={{display: "flex", flexDirection: "row", flex: "1 1 auto", order: 2}}>
+                        <div style={{
+                            flex: "0 0 auto",
+                            order: 1,
+                            marginRight: "6px",
+                            marginLeft: progressMarginLeft
+                        }}>
+                            <FetchProgress {...props}/>
+                        </div>
+                        <div style={{flex: "1 1 auto", margin: "auto", order: 2, textAlign: "left"}}>
+                            <FetchMessage {...props}/>
+                        </div>
+                    </div>
+                    <div style={{flex: "1 1 auto", order: 2, textAlign: "center", width: "100%"}}>
+                        {props.isQueryCollapsed ?
+                            <span onClick={() => props.onToggleQueryCollapsed()}>
+                                    Show Search
+                                </span> : null}
+                    </div>
+                </div>
+                <div style={{flex: "0 0 auto", order: 3, width: "auto"}}>
+                    <FloatCompartmentListGlyph/>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+type CollapseQueryGlyphProps = {
+    isQueryCollapsed: boolean;
+    onToggleQueryCollapsed(): void;
 }
+
+const CollapseQueryGlyph = (props: CollapseQueryGlyphProps) => {
+    return (<Icon name={props.isQueryCollapsed ? "chevron down" : "chevron up"}
+                  style={{margin: "auto", order: 3}}
+                  onClick={() => props.onToggleQueryCollapsed()}/>)
+};
+
+type FetchProgressProps = {
+    fetchState: FetchState;
+    fetchCount: number;
+    isRendering: boolean;
+}
+
+const FetchProgress = (props: FetchProgressProps) => {
+    if ((props.fetchCount > 0 && props.fetchState === FetchState.Running) || props.isRendering) {
+        return (<div style={spinnerStyle}/>);
+    }
+
+    return null;
+};
+
+type FetchMessageProps = {
+    fetchState: FetchState;
+    fetchCount: number;
+    isRendering: boolean;
+
+    onSetFetchState(fetchState: FetchState): void;
+    onCancelFetch(): void;
+}
+
+const FetchMessage = (props: FetchMessageProps) => {
+    const isPaused = props.fetchState === FetchState.Paused;
+
+    if (props.fetchCount > 0) {
+        const iconName = isPaused ? "play" : "pause";
+
+        return (
+            <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
+                <div style={{
+                    flex: "", marginLeft: "10px", height: "100%", color: "white"
+                }}>
+                    {`Fetching neuron tracings ( ${props.fetchCount} remaining ${isPaused ? "- paused" : ""})`}
+                </div>
+                <div style={{
+                    display: "inline-block",
+                    verticalAlign: "middle",
+                    height: "100%",
+                    color: "white",
+                    marginLeft: "10px"
+                }}>
+                    <div style={{
+                        display: "inline-block",
+                        verticalAlign: "middle",
+                        height: "100%",
+                        border: "1px solid #ccc",
+                        padding: "0px 10px"
+                    }}>
+                        <Icon name={iconName}
+                              style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
+                              onClick={() => props.onSetFetchState(isPaused ? FetchState.Running : FetchState.Paused)}/>
+                    </div>
+                    <div style={{
+                        display: "inline-block",
+                        verticalAlign: "middle",
+                        height: "100%",
+                        border: "1px solid #ccc", marginLeft: "10px",
+                        padding: "0px 10px"
+                    }}>
+                        <Icon name="remove"
+                              style={{paddingTop: "2px", paddingBottom: "0px", paddingLeft: "1px"}}
+                              onClick={() => props.onCancelFetch()}/>
+                    </div>
+                </div>
+            </div>
+        );
+    } else {
+        return null;
+    }
+
+    if (props.isRendering) {
+        return (
+            <div>
+                    <span style={{color: "white"}}>
+                        Submitting tracing content for render...
+                    </span>
+            </div>
+        );
+    }
+
+};
+
+const FloatCompartmentListGlyph = observer(() => {
+    const {CompartmentsDrawer} = useLayout();
+
+    if (CompartmentsDrawer.DrawerState === DrawerState.Hidden) {
+        return (
+            <div style={{display: "flex", alignItems: "center", height: "100%"}}
+                 onClick={() => CompartmentsDrawer.DrawerState = DrawerState.Float}>
+                <Icon name="chevron left" style={{order: 1, top: -1}}/>
+                <h5 style={{
+                    color: "white",
+                    fontWeight: "lighter",
+                    margin: "0 6px 0 10px",
+                    order: 2
+                }}>
+                    Compartments</h5>
+            </div>);
+    } else {
+        return null;
+    }
+});
+
+
+const FloatNeuronListGlyph = observer(() => {
+    const {NeuronsDrawer} = useLayout();
+
+    if (NeuronsDrawer.DrawerState === DrawerState.Hidden) {
+        return (
+            <div style={{display: "flex", alignItems: "center", height: "100%"}}
+                 onClick={() => NeuronsDrawer.DrawerState = DrawerState.Float}>
+                <h5 style={{color: "white", fontWeight: "lighter", margin: "0 6px 0 10px"}}>
+                    Neurons</h5>
+                <Icon name="chevron right" style={{top: -1, order: 2}}
+                />
+            </div>);
+    } else {
+        return null;
+    }
+});
 
 const spinnerStyle = {
     width: 20,
