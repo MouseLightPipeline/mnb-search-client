@@ -34,7 +34,7 @@ export class SharkViewer {
     ];
     public radius_scale_factor = 1;
     public metadata = false;
-    public centerpoint = null;
+    public centerPoint = null;
     public compartment_path = "/static/allen/obj/";
     public on_select_node = null;
     public on_toggle_node = null;
@@ -47,7 +47,7 @@ export class SharkViewer {
     private mouseHandler = null;
     private nodeParticleTexture = NODE_PARTICLE_IMAGE;
     private min_radius = null;
-    private raycaster = new THREE.Raycaster();
+    private rayCaster = new THREE.Raycaster();
     private trackControls = null;
     private backgroundColor = 0xffffff;
     private renderer = null;
@@ -105,7 +105,7 @@ export class SharkViewer {
         let geometry, material;
 
         // special imposter image contains:
-        // 1 - colorizable sphere image in red channel
+        // 1 - colorable sphere image in red channel
         // 2 - specular highlight in green channel
         // 3 - depth offset in blue channel (currently unused)
         const image = document.createElement('img');
@@ -116,7 +116,7 @@ export class SharkViewer {
         image.src = this.nodeParticleTexture;
 
         geometry = new THREE.BufferGeometry();
-        // properties that may consty from particle to particle. only accessible in vertex shaders!
+        // properties that may const from particle to particle. only accessible in vertex shaders!
         //	(can pass color info to fragment shader via vColor.)
         // compute scale for particles, in pixels
         const particleScale = (0.5 * this.HEIGHT / this.renderer.getPixelRatio()) / Math.tan(0.5 * this.fov * Math.PI / 180.0);
@@ -444,9 +444,13 @@ export class SharkViewer {
 
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.dom_element));
         this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
-        this.trackControls.addEventListener('change', this.render.bind(this));
+        this.trackControls.addEventListener("change", () => {
+            this.render();
+        });
 
-        this.raycaster.params.Points.threshold = DEFAULT_POINT_THRESHOLD;
+        this.rayCaster.params.Points.threshold = DEFAULT_POINT_THRESHOLD;
+
+        this.loadAxes();
 
         PreferencesManager.Instance.addListener({
             preferenceChanged: (name) => {
@@ -482,9 +486,9 @@ export class SharkViewer {
         mouse.x = ((event.clientX - rect.left) / this.WIDTH) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / this.HEIGHT) * 2 + 1;
 
-        this.raycaster.setFromCamera(mouse, this.camera);
+        this.rayCaster.setFromCamera(mouse, this.camera);
 
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+        const intersects = this.rayCaster.intersectObjects(this.scene.children, true);
 
         const points = intersects.filter(o => o.object.type === "Points").filter(o => o.object.userData.materialShader.uniforms.alpha.value > 0.0).sort((a, b) => {
             return a.distanceToRay === b.distanceToRay ? a.distance - b.distance : a.distanceToRay - b.distanceToRay;
@@ -528,9 +532,13 @@ export class SharkViewer {
         window.requestAnimationFrame(this.animate);
     };
 
-
     private render() {
         this.renderer.render(this.scene, this.camera);
+    }
+
+    private loadAxes() {
+        const axes = new THREE.AxisHelper(5000);
+        this.scene.add(axes);
     }
 
     public loadNeuron(filename, color, nodes) {
@@ -540,8 +548,8 @@ export class SharkViewer {
 
         this.scene.add(neuron);
 
-        if (this.centerpoint !== null) {
-            neuron.position.set(-this.centerpoint[0], -this.centerpoint[1], -this.centerpoint[2]);
+        if (this.centerPoint !== null) {
+            neuron.position.set(-this.centerPoint[0], -this.centerPoint[1], -this.centerPoint[2]);
         }
     };
 
@@ -555,10 +563,10 @@ export class SharkViewer {
 
         if (mirror && neuron.scale.x > 0) {
             neuron.scale.x = -1;
-            neuron.position.x = this.centerpoint[0];
+            neuron.position.x = this.centerPoint[0];
         } else if (!mirror && neuron.scale.x < 0) {
             neuron.scale.x = 1;
-            neuron.position.x = -this.centerpoint[0];
+            neuron.position.x = -this.centerPoint[0];
         }
     };
 
@@ -611,8 +619,8 @@ export class SharkViewer {
 
             object.name = id;
 
-            if (that.centerpoint !== null) {
-                object.position.set(-that.centerpoint[0], -that.centerpoint[1], -that.centerpoint[2]);
+            if (that.centerPoint !== null) {
+                object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
             }
 
             that.scene.add(object);
