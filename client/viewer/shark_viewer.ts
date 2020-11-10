@@ -12,7 +12,7 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 const DEFAULT_POINT_THRESHOLD = 50;
 
 export interface ICameraObserver {
-    cameraChanged(camera: THREE.Camera);
+    cameraChanged(camera: THREE.PerspectiveCamera);
 }
 
 export class SharkViewer {
@@ -462,8 +462,6 @@ export class SharkViewer {
 
         this.rayCaster.params.Points.threshold = DEFAULT_POINT_THRESHOLD;
 
-        this.loadAxes();
-
         PreferencesManager.Instance.addListener({
             preferenceChanged: (name) => {
                 if (name === "zoomSpeed") {
@@ -547,12 +545,6 @@ export class SharkViewer {
     private render() {
         this.renderer.render(this.scene, this.camera);
     }
-
-    private loadAxes() {
-        const axes = new THREE.AxisHelper(5000);
-        this.scene.add(axes);
-    }
-
     public loadNeuron(filename, color, nodes) {
         const neuron = this.createNeuron(nodes, color);
 

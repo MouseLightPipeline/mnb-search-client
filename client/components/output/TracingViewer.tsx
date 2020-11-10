@@ -238,11 +238,11 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         if (!this._viewer) {
             const a = new AxisViewer();
             a.dom_element = "axis-viewer-container";
-            a.WIDTH = 250;
-            a.HEIGHT = 250;
+            a.WIDTH = 50;
+            a.HEIGHT = 50;
 
             a.init();
-            a.setBackground("#cccccc");
+            // a.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
 
             a.animate();
 

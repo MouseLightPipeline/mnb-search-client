@@ -1,10 +1,7 @@
 import * as THREEM from "three";
-import {PreferencesManager} from "../util/preferencesManager";
 import {ICameraObserver} from "./shark_viewer";
-import {Font} from "three";
 
 const THREE = require("three");
-const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 const fontJson = require("three/examples/fonts/helvetiker_regular.typeface.json");
 
 export class AxisViewer implements ICameraObserver {
@@ -15,13 +12,13 @@ export class AxisViewer implements ICameraObserver {
     //width of canvas
     public WIDTH = window.innerWidth;
 
-    private backgroundColor = 0xffffff;
     private renderer = null;
     private scene = null;
     private camera = null;
     private fov: number = 1;
-    private trackControls = null;
     private last_anim_timestamp = null;
+
+    private xLabel: THREE.Mesh;
 
     public get Scene(): THREEM.Scene {
         return this.scene;
@@ -39,17 +36,11 @@ export class AxisViewer implements ICameraObserver {
         this.render();
     };
 
-    public setBackground(color) {
-        this.backgroundColor = color;
-        this.renderer.setClearColor(this.backgroundColor, 1);
-    }
-
     public init() {
         this.renderer = new THREE.WebGLRenderer({
+            alpha: true,
             antialias: true
         });
-
-        this.renderer.setClearColor(this.backgroundColor, 1);
 
         this.renderer.setSize(this.WIDTH, this.HEIGHT);
 
@@ -61,8 +52,8 @@ export class AxisViewer implements ICameraObserver {
         // put a camera in the scene
         this.fov = 45;
 
-        const cameraPosition = -20000;
-        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
+        const cameraPosition = -1;
+        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, .5, cameraPosition * 2);
 
         this.scene.add(this.camera);
 
@@ -98,9 +89,17 @@ export class AxisViewer implements ICameraObserver {
 
     public void
 
-    cameraChanged(camera: THREE.Camera) {
+    cameraChanged(camera: THREE.PerspectiveCamera) {
+
         if (this.camera) {
-            this.camera.copy(camera);
+            const scale = Math.max(...camera.position.toArray().map(p => Math.abs(p)));
+
+            this.camera.position.set(camera.position.x / scale, camera.position.y / scale, camera.position.z / scale);
+            this.camera.lookAt(0, 0, 0);
+
+            this.camera.updateProjectionMatrix();
+
+            this.render();
         }
     }
 
@@ -109,35 +108,36 @@ export class AxisViewer implements ICameraObserver {
     }
 
     private loadAxes() {
-        const axes = new THREE.AxisHelper(5000);
+        const axes = new THREE.AxisHelper(0.25);
 
         this.scene.add(axes);
 
         const font = new THREE.Font(fontJson);
 
-        const textGeo = new THREE.TextGeometry('Y', {
-            size: 2500,
-            height: 5,
-            font: font,
-            curveSegments: 12,
-            bevelEnabled: true,
-            bevelThickness: 10,
-            bevelSize: 8,
-            bevelOffset: 0,
-            bevelSegments: 5
+        this.xLabel = this.createLabel("X", new THREE.Color("#FF0000"), font);
+        this.xLabel.scale.set(1, -1, 1);
+        this.xLabel.position.set(0.25, .06125, 0);
+        this.scene.add(this.xLabel);
+
+        const y = this.createLabel("Y", new THREE.Color("#00FF00"), font);
+        y.scale.set(1, -1, 1);
+        y.position.set(-.05, 0.375, 0);
+        this.scene.add(y);
+
+        const z = this.createLabel("Z", new THREE.Color("#0000FF"), font);
+        z.scale.set(1, -1, 1);
+        z.position.set(-.05, .05, .26);
+        this.scene.add(z);
+    }
+
+    private createLabel(label: string, color: THREE.Color, font: THREE.Font) : THREE.Mesh {
+        const textGeo = new THREE.TextGeometry(label, {
+            font,
+            size: .1,
+            height: 0.01
         });
 
-        const color = new THREE.Color();
-        color.setRGB(255, 0, 0);
-        const textMaterial = new THREE.MeshBasicMaterial({color: color});
-        const text = new THREE.Mesh(textGeo, textMaterial);
-        /*
-                console.log(axes.geometry);
-                text.position.x = axes.geometry.vertices[1].x;
-                text.position.y = axes.geometry.vertices[1].y;
-                text.position.z = axes.geometry.vertices[1].z;
-        */
-        // text.rotation = this.camera.rotation;
-        this.scene.add(text);
+        const textMaterial = new THREE.MeshBasicMaterial({color});
+        return new THREE.Mesh(textGeo, textMaterial);
     }
 }
