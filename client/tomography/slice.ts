@@ -14,7 +14,7 @@ const tomographyConstants = TomographyConstants.Instance;
 
 const centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
 
-THREE.Math.nearestPowerOfTwo = THREE.Math.nextPowerOfTwo;
+THREE.MathUtils.nearestPowerOfTwo = THREE.MathUtils.ceilPowerOfTwo;
 
 export class Slice {
     private readonly _mesh: THREE.Object3D = null;

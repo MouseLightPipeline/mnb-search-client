@@ -21,6 +21,7 @@ import {rootViewModel} from "../../store/viewModel/systemViewModel";
 import {SliceManager} from "../../tomography/sliceManager";
 import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
+import {AxisViewer} from "../../viewer/axisView";
 
 const ROOT_ID = 997;
 
@@ -76,6 +77,7 @@ interface ITracingViewerState {
 @observer
 export class TracingViewer extends React.Component<ITracingViewerProps, ITracingViewerState> implements INotificationListener {
     private _viewer: any = null;
+    private _axisViewer: AxisViewer;
 
     private _loadedVolumes: string[] = [];
     private _knownVolumes = new Set<string>();
@@ -234,10 +236,20 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private async createViewer(width: number, height: number) {
         if (!this._viewer) {
+            const a = new AxisViewer();
+            a.dom_element = "axis-viewer-container";
+            a.WIDTH = 50;
+            a.HEIGHT = 50;
+
+            a.init();
+            // a.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
+
+            a.animate();
+
             const s = new SharkViewer();
 
             s.dom_element = "viewer-container";
-            s.centerpoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
+            s.centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
             s.compartment_path = "/static/allen/obj/";
             s.WIDTH = width;
@@ -252,6 +264,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
             s.addEventHandler(new ViewerMouseHandler());
 
+            s.addCameraObserver(a);
+
             this._viewer = s;
 
             this._sliceManager = new SliceManager(this._viewer.Scene);
@@ -261,6 +275,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             if (tomography.Selection) {
                 await this._sliceManager.setSampleId(tomography.Selection.SampleTomography.Id, tomography.CurrentLocation);
             }
+
+            this._axisViewer = a;
         }
     }
 
@@ -582,6 +598,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                                  onCycleHighlightNeuron={(d: number) => this.props.onCycleHighlightNeuron(d)}
                                  populateCustomPredicate={this.props.populateCustomPredicate}/>
                 <div id="viewer-container" style={{height: this.state.renderHeight, width: this.state.renderWidth}}/>
+                <div id="axis-viewer-container" style={{height: this._axisViewer?.HEIGHT ?? 0, width: this._axisViewer?.WIDTH ?? 0, position: "absolute", top: 0, left: 0}}/>
             </div>
         );
     }
