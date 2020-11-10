@@ -11,6 +11,10 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 const DEFAULT_POINT_THRESHOLD = 50;
 
+export interface ICameraObserver {
+    cameraChanged(camera: THREE.Camera);
+}
+
 export class SharkViewer {
     public dom_element = 'container';
 
@@ -53,6 +57,11 @@ export class SharkViewer {
     private renderer = null;
     private scene = null;
     private camera = null;
+    private cameraObservers: ICameraObserver[] = [];
+
+    private static generateParticle(node) {
+        return new THREE.Vector3(node.x, node.y, node.z);
+    }
 
     public get Scene(): THREEM.Scene {
         return this.scene;
@@ -63,8 +72,10 @@ export class SharkViewer {
         return this.three_colors[0];
     }
 
-    private static generateParticle(node) {
-        return new THREE.Vector3(node.x, node.y, node.z);
+    public addCameraObserver(observer: ICameraObserver) {
+        if (observer) {
+            this.cameraObservers.push(observer);
+        }
     }
 
     private generateCone(node, node_parent, color) {
@@ -445,6 +456,7 @@ export class SharkViewer {
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.dom_element));
         this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
         this.trackControls.addEventListener("change", () => {
+            this.cameraObservers.forEach(c => c.cameraChanged(this.camera));
             this.render();
         });
 

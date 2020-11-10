@@ -236,6 +236,16 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
     private async createViewer(width: number, height: number) {
         if (!this._viewer) {
+            const a = new AxisViewer();
+            a.dom_element = "axis-viewer-container";
+            a.WIDTH = 250;
+            a.HEIGHT = 250;
+
+            a.init();
+            a.setBackground("#cccccc");
+
+            a.animate();
+
             const s = new SharkViewer();
 
             s.dom_element = "viewer-container";
@@ -254,6 +264,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
             s.addEventHandler(new ViewerMouseHandler());
 
+            s.addCameraObserver(a);
+
             this._viewer = s;
 
             this._sliceManager = new SliceManager(this._viewer.Scene);
@@ -263,16 +275,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             if (tomography.Selection) {
                 await this._sliceManager.setSampleId(tomography.Selection.SampleTomography.Id, tomography.CurrentLocation);
             }
-
-            const a = new AxisViewer();
-            a.dom_element = "axis-viewer-container";
-            a.WIDTH = 100;
-            a.HEIGHT = 100;
-
-            a.init();
-            a.setBackground("#cccccc");
-
-            a.animate();
 
             this._axisViewer = a;
         }

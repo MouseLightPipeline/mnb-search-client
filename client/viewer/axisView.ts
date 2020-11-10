@@ -1,9 +1,13 @@
 import * as THREEM from "three";
 import {PreferencesManager} from "../util/preferencesManager";
+import {ICameraObserver} from "./shark_viewer";
+import {Font} from "three";
+
 const THREE = require("three");
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
+const fontJson = require("three/examples/fonts/helvetiker_regular.typeface.json");
 
-export class AxisViewer {
+export class AxisViewer implements ICameraObserver {
     public dom_element = 'container';
 
     //height of canvas
@@ -92,12 +96,48 @@ export class AxisViewer {
         window.requestAnimationFrame(this.animate);
     };
 
+    public void
+
+    cameraChanged(camera: THREE.Camera) {
+        if (this.camera) {
+            this.camera.copy(camera);
+        }
+    }
+
     private render() {
         this.renderer.render(this.scene, this.camera);
     }
 
     private loadAxes() {
         const axes = new THREE.AxisHelper(5000);
+
         this.scene.add(axes);
+
+        const font = new THREE.Font(fontJson);
+
+        const textGeo = new THREE.TextGeometry('Y', {
+            size: 2500,
+            height: 5,
+            font: font,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
+
+        const color = new THREE.Color();
+        color.setRGB(255, 0, 0);
+        const textMaterial = new THREE.MeshBasicMaterial({color: color});
+        const text = new THREE.Mesh(textGeo, textMaterial);
+        /*
+                console.log(axes.geometry);
+                text.position.x = axes.geometry.vertices[1].x;
+                text.position.y = axes.geometry.vertices[1].y;
+                text.position.z = axes.geometry.vertices[1].z;
+        */
+        // text.rotation = this.camera.rotation;
+        this.scene.add(text);
     }
 }
