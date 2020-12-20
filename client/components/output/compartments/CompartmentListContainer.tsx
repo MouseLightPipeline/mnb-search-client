@@ -6,7 +6,7 @@ import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCom
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
-import {TomographyControls} from "../../tomography/tomographyPanel";
+import {TomographyControls} from "../../tomography/TomographyPanel";
 import {useViewModel} from "../../app/App";
 
 type CompartmentHeaderProps = {

@@ -555,6 +555,8 @@ export class SharkViewer {
         if (this.centerPoint !== null) {
             neuron.position.set(-this.centerPoint[0], -this.centerPoint[1], -this.centerPoint[2]);
         }
+
+        // neuron.scale.y = -1;
     };
 
     public unloadNeuron(filename) {
@@ -626,6 +628,8 @@ export class SharkViewer {
             if (that.centerPoint !== null) {
                 object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
             }
+
+            // object.scale.y = -1;
 
             that.scene.add(object);
 
