@@ -110,6 +110,8 @@ export class AxisViewer implements ICameraObserver {
     private loadAxes() {
         const axes = new THREE.AxisHelper(0.25);
 
+        // axes.scale.z = -1;
+
         this.scene.add(axes);
 
         const font = new THREE.Font(fontJson);
