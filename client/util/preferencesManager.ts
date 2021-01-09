@@ -1,4 +1,5 @@
 import {UIQueryPredicate} from "../models/uiQueryPredicate";
+import {ViewerMeshVersion} from "./viewerTypes";
 
 export interface INotificationListener {
     preferenceChanged(name: string);
@@ -205,13 +206,28 @@ export class PreferencesManager {
         }
     }
 
-
     public set ViewerBackgroundColor(n: string) {
         if (typeof(Storage) !== undefined) {
             localStorage.setItem(prefix + "viewerBackgroundColor", n);
         }
 
         this.notifyListeners("viewerBackgroundColor", n);
+    }
+
+    public get ViewerMeshVersion(): ViewerMeshVersion {
+        if (typeof(Storage) !== undefined) {
+            return parseInt(localStorage.getItem(prefix + "viewerMeshVersion")) as ViewerMeshVersion;
+        } else {
+            return ViewerMeshVersion.Janelia;
+        }
+    }
+
+    public set ViewerMeshVersion(n: ViewerMeshVersion) {
+        if (typeof(Storage) !== undefined) {
+            localStorage.setItem(prefix + "viewerMeshVersion", n.valueOf().toFixed(0));
+        }
+
+        this.notifyListeners("viewerMeshVersion", n);
     }
 
     public get TracingRadiusFactor() {
@@ -310,6 +326,10 @@ export class PreferencesManager {
 
             if (!localStorage.getItem(prefix + "zoomSpeed")) {
                 localStorage.setItem(prefix + "zoomSpeed", "1.0");
+            }
+
+            if (!localStorage.getItem(prefix + "viewerMeshVersion")) {
+                localStorage.setItem(prefix + "viewerMeshVersion", "1");
             }
         }
     }

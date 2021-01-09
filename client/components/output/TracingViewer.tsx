@@ -2,7 +2,6 @@ import * as React from "react";
 import {observe} from "mobx";
 import {observer} from "mobx-react";
 import * as _ from "lodash";
-import Color = require("color");
 
 import {ITracingNode} from "../../models/tracingNode";
 import {TracingViewModel} from "../../viewmodel/tracingViewModel";
@@ -22,6 +21,8 @@ import {SliceManager} from "../../tomography/sliceManager";
 import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
 import {AxisViewer} from "../../viewer/axisView";
+import {ViewerMeshVersion} from "../../util/viewerTypes";
+import Color = require("color");
 
 const ROOT_ID = 997;
 
@@ -211,6 +212,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             if (this._viewer) {
                 this._viewer.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
             }
+        } else if (name === "viewerMeshVersion") {
+            if (this._viewer) {
+                //this._viewer.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
+            }
         }
     }
 
@@ -242,7 +247,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             a.HEIGHT = 100;
 
             a.init();
-            // a.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
 
             a.animate();
 
@@ -251,7 +255,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             s.dom_element = "viewer-container";
             s.centerPoint = [tomographyConstants.Sagittal.Center, tomographyConstants.Horizontal.Center, tomographyConstants.Coronal.Center];
             s.metadata = false;
-            s.compartment_path = "/static/allen/obj/";
             s.WIDTH = width;
             s.HEIGHT = height;
             s.on_select_node = (tracingId: string, sampleNumber: number, event) => this.onSelectNode(tracingId, sampleNumber, event);
@@ -322,6 +325,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             return;
         }
 
+        const meshPath = PreferencesManager.Instance.ViewerMeshVersion != ViewerMeshVersion.AibsCcf ? "http://localhost:8450/static/allen/obj/" : "/static/ccf-2017/obj/";
+        // const useGeometryName = PreferencesManager.Instance.ViewerMeshVersion != ViewerMeshVersion.AibsCcf;
         const displayCompartments = props.compartments.filter(c => c.isDisplayed);
 
         if (displayCompartments.length === 0) {
@@ -337,7 +342,11 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                     if (v.compartment.structureId === ROOT_ID) {
                         geometryColor = PreferencesManager.Instance.RootCompartmentColor;
                     }
-                    this._viewer.loadCompartment(v.compartment.id, v.compartment.geometryFile, geometryColor);
+
+                    const geometryFile = `${meshPath}${v.compartment.structureId}.obj`;
+
+                    console.log(geometryFile);
+                    this._viewer.loadCompartment(v.compartment.id, geometryFile, geometryColor);
                     this._knownVolumes.add(v.compartment.id);
                 }
             });
@@ -364,7 +373,10 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                     if (brainArea.structureId === ROOT_ID) {
                         brainArea.geometryColor = PreferencesManager.Instance.RootCompartmentColor;
                     }
-                    this._viewer.loadCompartment(id, brainArea.geometryFile, brainArea.geometryColor);
+
+                    const geometryFile = `${meshPath}${brainArea.structureId}.obj`;
+
+                    this._viewer.loadCompartment(id, geometryFile, brainArea.geometryColor);
                     this._knownVolumes.add(id);
                 }
             });
