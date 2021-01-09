@@ -329,7 +329,7 @@ export class PreferencesManager {
             }
 
             if (!localStorage.getItem(prefix + "viewerMeshVersion")) {
-                localStorage.setItem(prefix + "viewerMeshVersion", "1");
+                localStorage.setItem(prefix + "viewerMeshVersion", ViewerMeshVersion.AibsCcf.valueOf().toFixed(0));
             }
         }
     }

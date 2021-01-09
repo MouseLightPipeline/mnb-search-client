@@ -21,7 +21,7 @@ import {SliceManager} from "../../tomography/sliceManager";
 import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
 import {AxisViewer} from "../../viewer/axisView";
-import {ViewerMeshVersion} from "../../util/viewerTypes";
+import {ViewerMeshPath, ViewerMeshVersion} from "../../util/viewerTypes";
 import Color = require("color");
 
 const ROOT_ID = 997;
@@ -280,6 +280,9 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             }
 
             this._axisViewer = a;
+
+            this._axisViewer.MeshVersion = PreferencesManager.Instance.ViewerMeshVersion;
+            this._viewer.MeshVersion = PreferencesManager.Instance.ViewerMeshVersion;
         }
     }
 
@@ -325,8 +328,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             return;
         }
 
-        const meshPath = PreferencesManager.Instance.ViewerMeshVersion != ViewerMeshVersion.AibsCcf ? "http://localhost:8450/static/allen/obj/" : "/static/ccf-2017/obj/";
-        // const useGeometryName = PreferencesManager.Instance.ViewerMeshVersion != ViewerMeshVersion.AibsCcf;
+        const meshPath = ViewerMeshPath(PreferencesManager.Instance.ViewerMeshVersion);
+
         const displayCompartments = props.compartments.filter(c => c.isDisplayed);
 
         if (displayCompartments.length === 0) {
