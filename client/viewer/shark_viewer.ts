@@ -4,7 +4,7 @@ import {PreferencesManager} from "../util/preferencesManager";
 import * as THREEM from "three";
 import {SystemShader} from "./shaders/shaders";
 import {StandardShader} from "./shaders/standardShader";
-import {ViewerMeshRotation, ViewerMeshVersion} from "../util/viewerTypes";
+import {CompartmentMeshSet, ViewerMeshVersion} from "../models/compartmentMeshSet";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -60,19 +60,20 @@ export class SharkViewer {
     private cameraObservers: ICameraObserver[] = [];
     private _compartmentGroup: THREEM.Group;
 
-    private _meshVersion: ViewerMeshVersion;
+    private _meshVersion: CompartmentMeshSet;
 
     public get Scene(): THREEM.Scene {
         return this.scene;
     }
 
-    public get MeshVersion(): ViewerMeshVersion {
+    public get MeshVersion(): CompartmentMeshSet {
         return this._meshVersion;
     }
 
-    public set MeshVersion(v: ViewerMeshVersion) {
+    public set MeshVersion(v: CompartmentMeshSet) {
+        this._compartmentGroup.clear();
         this._meshVersion = v;
-        this._compartmentGroup.rotation.y = ViewerMeshRotation(v);
+        this._compartmentGroup.rotation.y = v.MeshRotation;
     }
 
     private static generateParticle(node) {
@@ -636,7 +637,11 @@ export class SharkViewer {
             object.name = id;
 
             if (that.centerPoint !== null) {
-                object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
+                if (this._meshVersion.Version == ViewerMeshVersion.Janelia) {
+                    object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
+                } else {
+                    object.position.set(-that.centerPoint[2], -that.centerPoint[1], -that.centerPoint[0]);
+                }
             }
 
             that._compartmentGroup.add(object);

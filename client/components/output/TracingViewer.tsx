@@ -21,8 +21,8 @@ import {SliceManager} from "../../tomography/sliceManager";
 import {TomographyViewModel} from "../../store/viewModel/tomographyViewModel";
 import {TracingStructure} from "../../models/tracingStructure";
 import {AxisViewer} from "../../viewer/axisView";
-import {ViewerMeshPath, ViewerMeshVersion} from "../../util/viewerTypes";
 import Color = require("color");
+import {CompartmentMeshSet} from "../../models/compartmentMeshSet";
 
 const ROOT_ID = 997;
 
@@ -52,15 +52,25 @@ export interface ITracingViewerBaseProps {
     cycleFocusNeuronId: string;
 
     onChangeIsRendering?(isRendering: boolean): void;
+
     onHighlightTracing(neuron: NeuronViewModel, highlight?: boolean): void;
+
     onSelectNode?(tracing: TracingViewModel, node: ITracingNode): void;
+
     onToggleTracing(id: string): void;
+
     onToggleCompartment(id: string): void;
+
     onToggleDisplayHighlighted(): void;
+
     onChangeHighlightMode(): void;
+
     onSetHighlightedNeuron(neuron: NeuronViewModel): void;
+
     onCycleHighlightNeuron(direction: number): void;
+
     populateCustomPredicate(position: IPositionInput, replace: boolean): void;
+
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
@@ -95,6 +105,8 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
     private _disposer1 = null;
     private _disposer2 = null;
 
+    private _compartmentMeshSet: CompartmentMeshSet;
+
     public constructor(props: ITracingViewerProps) {
         super(props);
 
@@ -103,6 +115,24 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
             renderHeight: 0,
             selectedTracing: null,
             selectedNode: null
+        }
+    }
+
+    private set MeshSet(m: CompartmentMeshSet) {
+        if (this._compartmentMeshSet?.Version == m?.Version) {
+            return;
+        }
+
+        this._loadedVolumes = [];
+        this._knownVolumes.clear();
+
+        this._compartmentMeshSet = m;
+
+        if (this._viewer != null) {
+            this._axisViewer.MeshVersion = this._compartmentMeshSet;
+            this._viewer.MeshVersion = this._compartmentMeshSet;
+
+            this.renderCompartments(this.props);
         }
     }
 
@@ -213,9 +243,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                 this._viewer.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
             }
         } else if (name === "viewerMeshVersion") {
-            if (this._viewer) {
-                //this._viewer.setBackground(parseInt(PreferencesManager.Instance.ViewerBackgroundColor.slice(1), 16));
-            }
+            this.MeshSet = new CompartmentMeshSet(PreferencesManager.Instance.ViewerMeshVersion);
         }
     }
 
@@ -281,8 +309,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
             this._axisViewer = a;
 
-            this._axisViewer.MeshVersion = PreferencesManager.Instance.ViewerMeshVersion;
-            this._viewer.MeshVersion = PreferencesManager.Instance.ViewerMeshVersion;
+            this.MeshSet = new CompartmentMeshSet(PreferencesManager.Instance.ViewerMeshVersion);
         }
     }
 
@@ -323,12 +350,12 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
         }
     }
 
-    private renderBrainVolumes(props: ITracingViewerProps) {
+    private renderCompartments(props: ITracingViewerProps) {
         if (!this._viewer) {
             return;
         }
 
-        const meshPath = ViewerMeshPath(PreferencesManager.Instance.ViewerMeshVersion);
+        const meshPath = this._compartmentMeshSet.MeshPath ?? "";
 
         const displayCompartments = props.compartments.filter(c => c.isDisplayed);
 
@@ -348,7 +375,6 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
                     const geometryFile = `${meshPath}${v.compartment.structureId}.obj`;
 
-                    console.log(geometryFile);
                     this._viewer.loadCompartment(v.compartment.id, geometryFile, geometryColor);
                     this._knownVolumes.add(v.compartment.id);
                 }
@@ -539,7 +565,7 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
 
         await this.createViewer(width, height);
 
-        this.renderBrainVolumes(props);
+        this.renderCompartments(props);
 
         this.renderNeurons(props.tracings);
 
@@ -613,7 +639,13 @@ export class TracingViewer extends React.Component<ITracingViewerProps, ITracing
                                  onCycleHighlightNeuron={(d: number) => this.props.onCycleHighlightNeuron(d)}
                                  populateCustomPredicate={this.props.populateCustomPredicate}/>
                 <div id="viewer-container" style={{height: this.state.renderHeight, width: this.state.renderWidth}}/>
-                <div id="axis-viewer-container" style={{height: this._axisViewer?.HEIGHT ?? 0, width: this._axisViewer?.WIDTH ?? 0, position: "absolute", top: 0, left: 0}}/>
+                <div id="axis-viewer-container" style={{
+                    height: this._axisViewer?.HEIGHT ?? 0,
+                    width: this._axisViewer?.WIDTH ?? 0,
+                    position: "absolute",
+                    top: 0,
+                    left: 0
+                }}/>
             </div>
         );
     }

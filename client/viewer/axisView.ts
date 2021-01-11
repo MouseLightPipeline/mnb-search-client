@@ -1,6 +1,6 @@
 import * as THREEM from "three";
 import {ICameraObserver} from "./shark_viewer";
-import {ViewerMeshRotation, ViewerMeshVersion} from "../util/viewerTypes";
+import {CompartmentMeshSet} from "../models/compartmentMeshSet";
 
 const THREE = require("three");
 const fontJson = require("three/examples/fonts/helvetiker_regular.typeface.json");
@@ -18,20 +18,20 @@ export class AxisViewer implements ICameraObserver {
     private last_anim_timestamp = null;
     private _axesGroup: THREEM.Group;
 
-    private _meshVersion: ViewerMeshVersion;
+    private _meshVersion: CompartmentMeshSet;
 
     public get Scene(): THREEM.Scene {
         return this.scene;
     }
 
-    public get MeshVersion(): ViewerMeshVersion {
+    public get MeshVersion(): CompartmentMeshSet {
         return this._meshVersion;
     }
 
-    public set MeshVersion(v: ViewerMeshVersion) {
+    public set MeshVersion(v: CompartmentMeshSet) {
         this._meshVersion = v;
 
-        this._axesGroup.rotation.y = ViewerMeshRotation(v);
+        this._axesGroup.rotation.y = v.MeshRotation;
     }
 
     public setSize(width, height) {

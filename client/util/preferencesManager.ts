@@ -1,5 +1,6 @@
 import {UIQueryPredicate} from "../models/uiQueryPredicate";
-import {ViewerMeshVersion} from "./viewerTypes";
+import { ViewerMeshVersion } from "../models/compartmentMeshSet";
+
 
 export interface INotificationListener {
     preferenceChanged(name: string);
@@ -329,7 +330,7 @@ export class PreferencesManager {
             }
 
             if (!localStorage.getItem(prefix + "viewerMeshVersion")) {
-                localStorage.setItem(prefix + "viewerMeshVersion", ViewerMeshVersion.AibsCcf.valueOf().toFixed(0));
+                localStorage.setItem(prefix + "viewerMeshVersion", ViewerMeshVersion.Janelia.valueOf().toFixed(0));
             }
         }
     }
