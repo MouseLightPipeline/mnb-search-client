@@ -1,9 +1,11 @@
+import {IDynamicSelectOption} from "../components/editors/DynamicSelect";
+
 export enum ViewerMeshVersion {
     Janelia,
     AibsCcf
 }
 
-export class CompartmentMeshSet {
+export class CompartmentMeshSet implements IDynamicSelectOption {
     private readonly version: ViewerMeshVersion;
 
     public get Version(): ViewerMeshVersion {
@@ -26,6 +28,19 @@ export class CompartmentMeshSet {
             default:
                 return 0;
         }
+    }
+
+    public get Name(): string {
+        switch (this.version) {
+            case ViewerMeshVersion.AibsCcf:
+                return "CCF";
+            default:
+                return "Janelia";
+        }
+    }
+
+    public get id(): string {
+        return this.Name;
     }
 
     public constructor(v: ViewerMeshVersion) {

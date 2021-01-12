@@ -4,6 +4,7 @@ import {NeuronalStructure} from "./neuronalStructure";
 import {ConstantsQueryResponse} from "../graphql/constants";
 import {ITracingStructure, TracingStructure} from "./tracingStructure";
 import {IQueryOperator} from "./queryOperator";
+import {CompartmentMeshSet, ViewerMeshVersion} from "./compartmentMeshSet";
 
 export class NdbConstants {
     private _QueryOperators: IQueryOperator[] = [];
@@ -18,6 +19,8 @@ export class NdbConstants {
 
     private _NeuronStructures: NeuronalStructure[] = [];
     private _neuronStructureMap = new Map<string, NeuronalStructure>();
+
+    private _compartmentMeshSets: CompartmentMeshSet[] = [];
 
     private _neuronCount = -1;
 
@@ -40,6 +43,8 @@ export class NdbConstants {
         this.loadBrainAreas(data.brainAreas);
         this.loadStructureIdentifiers(data.structureIdentifiers);
         this.loadNeuronalStructures(data.tracingStructures, data.structureIdentifiers);
+
+        this.loadCompartmentMeshSets();
 
         this._isLoaded = true;
     }
@@ -68,6 +73,10 @@ export class NdbConstants {
         return this._NeuronStructures;
     }
 
+    public get CompartmentMeshSets(): CompartmentMeshSet[] {
+        return this._compartmentMeshSets;
+    }
+
     public findBrainArea(id: string | number): IBrainArea | undefined {
         if (typeof(id) === "string")
             return this._brainAreaIdMap.get(id);
@@ -85,6 +94,10 @@ export class NdbConstants {
 
     public findNeuronalStructure(id: string) {
         return this._neuronStructureMap.get(id);
+    }
+
+    public findCompartmentMeshSet(v: ViewerMeshVersion) {
+        return this._compartmentMeshSets.filter(m => m.Version == v).pop();
     }
 
     private loadBrainAreas(brainAreas: IBrainArea[]): void {
@@ -124,6 +137,11 @@ export class NdbConstants {
         this._neuronStructureMap.set(pair.id, pair);
 
         return pair;
+    }
+
+    private loadCompartmentMeshSets() {
+        this._compartmentMeshSets.push(new CompartmentMeshSet(ViewerMeshVersion.Janelia));
+        this._compartmentMeshSets.push(new CompartmentMeshSet(ViewerMeshVersion.AibsCcf));
     }
 
     private loadQueryOperators(queryOperators: IQueryOperator[]) {

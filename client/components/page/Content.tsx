@@ -154,7 +154,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
             <ApolloConsumer>
                 {client => (
                     <div style={{height: "calc(100vh - 112px)"}}>
-                        <SettingsDialog show={this.state.isSettingsOpen}
+                        <SettingsDialog show={this.state.isSettingsOpen} constants={this.props.constants}
                                         isPublicRelease={this.props.searchScope >= SearchScope.Public}
                                         onHide={() => this.onSettingsClose()}/>
                         <PageHeader searchScope={this.props.searchScope} onSettingsClick={() => this.onSettingsClick()}
