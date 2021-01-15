@@ -1,6 +1,6 @@
 import * as React from "react";
 import {observer} from "mobx-react-lite";
-import {Icon} from "semantic-ui-react";
+import {Form, Icon} from "semantic-ui-react";
 
 import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
@@ -8,6 +8,9 @@ import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyControls} from "../../tomography/TomographyPanel";
 import {useViewModel} from "../../app/App";
+import {CompartmentMeshSetSelect} from "../../editors/CompartmentMeshSetSelect";
+import {CompartmentMeshSet, ViewerMeshVersion} from "../../../models/compartmentMeshSet";
+import {NdbConstants} from "../../../models/constants";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
@@ -51,6 +54,7 @@ const CompartmentHeader = (props: CompartmentHeaderProps) => {
 
 interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrainAreaGeometryProps {
     isDocked: boolean;
+    compartmentMeshVersion?: ViewerMeshVersion;
 
     onClickCloseOrPin(state: DrawerState): void;
 }
@@ -102,7 +106,7 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                 <div style={{
                     backgroundColor: color,
                     color: "white",
-                    height: "30px",
+                    height: "44px",
                     margin: 0,
                     padding: "6px"
                 }}>
@@ -111,6 +115,13 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                         margin: "auto",
                         textAlign: "center"
                     }}>All Compartments</h5>
+                    <h6 style={{
+                        color: "white",
+                        margin: "auto",
+                        textAlign: "center"
+                    }}>
+                        {`CCF Annotations: ${props.constants.findCompartmentMeshSet(props.compartmentMeshVersion).Name}`}
+                    </h6>
                 </div>
                 <BrainCompartmentSelectionTree {...props}/>
             </div>

@@ -24,6 +24,7 @@ import {IBrainArea} from "../../models/brainArea";
 import {examples} from "../../examples";
 import {CompartmentNode} from "./compartments/CompartmentNode";
 import {Button, Message, Modal} from "semantic-ui-react";
+import {CompartmentMeshSet, ViewerMeshVersion} from "../../models/compartmentMeshSet";
 
 const neuronViewModelMap = new Map<string, NeuronViewModel>();
 
@@ -64,6 +65,7 @@ interface IOutputContainerProps {
     shouldAlwaysShowSoma: boolean;
     isPublicRelease: boolean;
     exportLimit: number;
+    compartmentMeshVersion?: ViewerMeshVersion;
 
     requestExport?(tracingIds: string[], format: ExportFormat): any;
     populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
@@ -753,9 +755,11 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
             onChangeLoadedGeometry: this.props.onMutateBrainAreas,
             visibleBrainAreas: this.props.visibleBrainAreas,
             rootNode: this.state.rootNode,
+            compartmentMeshVersion: this.props.compartmentMeshVersion,
             onToggleCompartmentSelected: this.props.onToggleBrainArea,
             onRemoveFromHistory: this.props.onRemoveBrainAreaFromHistory,
-            onClickCloseOrPin: (s: DrawerState) => this.onCompartmentListCloseOrPin(s)
+            onClickCloseOrPin: (s: DrawerState) => this.onCompartmentListCloseOrPin(s),
+
         };
 
         const is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;

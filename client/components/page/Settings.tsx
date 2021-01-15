@@ -130,7 +130,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                     <Form size="small" style={{marginTop: "20px"}}>
                         <Form.Group>
                             <Form.Field>
-                                <label>Compartment Mesh Set</label>
+                                <label>CCF Annotations</label>
                                 <CompartmentMeshSetSelect idName="compartment-mesh-set"
                                                          options={this.props.constants.CompartmentMeshSets}
                                                          selectedOption={this.props.constants.findCompartmentMeshSet(this.state.compartmentMeshVersion)}

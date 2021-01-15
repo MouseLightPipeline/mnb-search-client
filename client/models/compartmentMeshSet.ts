@@ -33,9 +33,9 @@ export class CompartmentMeshSet implements IDynamicSelectOption {
     public get Name(): string {
         switch (this.version) {
             case ViewerMeshVersion.AibsCcf:
-                return "CCF";
+                return "CCFv3";
             default:
-                return "Janelia";
+                return "CCFv2.5 (ML legacy)";
         }
     }
 

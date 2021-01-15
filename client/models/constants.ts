@@ -96,7 +96,7 @@ export class NdbConstants {
         return this._neuronStructureMap.get(id);
     }
 
-    public findCompartmentMeshSet(v: ViewerMeshVersion) {
+    public findCompartmentMeshSet(v: ViewerMeshVersion): CompartmentMeshSet {
         return this._compartmentMeshSets.filter(m => m.Version == v).pop();
     }
 
