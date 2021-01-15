@@ -1,16 +1,14 @@
 import * as React from "react";
 import {observer} from "mobx-react-lite";
-import {Form, Icon} from "semantic-ui-react";
+import {Form, Icon, MenuItem} from "semantic-ui-react";
 
 import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyControls} from "../../tomography/TomographyPanel";
-import {useViewModel} from "../../app/App";
-import {CompartmentMeshSetSelect} from "../../editors/CompartmentMeshSetSelect";
-import {CompartmentMeshSet, ViewerMeshVersion} from "../../../models/compartmentMeshSet";
-import {NdbConstants} from "../../../models/constants";
+import {useStore, useViewModel} from "../../app/App";
+import { ViewerMeshVersion} from "../../../models/compartmentMeshSet";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
@@ -118,13 +116,23 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                     <h6 style={{
                         color: "white",
                         margin: "auto",
-                        textAlign: "center"
+                        textAlign: "left"
                     }}>
-                        {`CCF Annotations: ${props.constants.findCompartmentMeshSet(props.compartmentMeshVersion).Name}`}
+                        <CompartmentAnnotationLabel/>
                     </h6>
                 </div>
                 <BrainCompartmentSelectionTree {...props}/>
             </div>
         </div>
     );
+});
+
+const CompartmentAnnotationLabel = observer(() => {
+    const viewModel = useViewModel();
+    const store = useStore();
+
+    return <div>
+        <Icon style={{marginRight: "10px"}} name="exchange" onClick={() => viewModel.Compartments.ToggleMeshVersion()}/>
+        {`CCF Annotations: ${store.Constants.findCompartmentMeshSet(viewModel.Compartments.MeshVersion).Name}`}
+    </div>;
 });

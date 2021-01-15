@@ -4,7 +4,7 @@ import {QueryPage} from "./QueryPage";
 import {PreferencesManager} from "../../util/preferencesManager";
 import {NdbConstants} from "../../models/constants";
 import {ExampleDefinition} from "../../examples";
-import {SettingsDialog} from "./Settings";
+import {SettingsDialogContainer} from "./SettingsDialog";
 import {PageHeader} from "./Header";
 import {Footer} from "./Footer";
 import {ApolloConsumer} from "react-apollo";
@@ -154,10 +154,8 @@ export class Content extends React.Component<IContentProps, IContentState> {
             <ApolloConsumer>
                 {client => (
                     <div style={{height: "calc(100vh - 112px)"}}>
-                        <SettingsDialog show={this.state.isSettingsOpen} constants={this.props.constants}
-                                        isPublicRelease={this.props.searchScope >= SearchScope.Public}
-                                        onHide={() => this.onSettingsClose()}/>
-                        <PageHeader searchScope={this.props.searchScope} onSettingsClick={() => this.onSettingsClick()}
+                        <SettingsDialogContainer/>
+                        <PageHeader searchScope={this.props.searchScope}
                                     onApplyExampleQuery={(f) => this.onApplyExampleQuery(f, client)}/>
                         <QueryPage constants={this.props.constants} predicates={this._uiPredicates}
                                    predicateList={this.state.predicates} neurons={this.state.neurons}

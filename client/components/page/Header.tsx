@@ -5,6 +5,8 @@ import {PreferencesManager} from "../../util/preferencesManager";
 import {ExampleDefinition, examples} from "../../examples";
 import {TutorialDialog} from "./Tutorial";
 import {SearchScope} from "../../models/uiQueryPredicate";
+import {observer} from "mobx-react-lite";
+import {useViewModel} from "../app/App";
 
 const logo = require("file-loader!../../../assets/mouseLight_NB_color.svg");
 const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
@@ -12,7 +14,6 @@ const hhmiImage = require("file-loader!../../../assets/hhmi_logo.png");
 interface IHeadingProps {
     searchScope: SearchScope;
 
-    onSettingsClick(): void;
     onApplyExampleQuery(filterData: ExampleDefinition): void;
 }
 
@@ -136,12 +137,17 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                         </Dropdown.Menu>
                     </Dropdown>
 
-                    {PreferencesManager.HavePreferences ?
-                        <MenuItem onClick={() => this.props.onSettingsClick()}>
-                            <Icon name="cog"/>
-                        </MenuItem> : null}
+                    {PreferencesManager.HavePreferences ?  <PreferencesMenuItem/> : null}
                 </Menu.Menu>
             </Menu>
         );
     }
 }
+
+const PreferencesMenuItem = observer(() => {
+    const viewModel = useViewModel();
+
+    return <MenuItem onClick={() => viewModel.Settings.openSettingsDialog()}>
+        <Icon name="cog"/>
+    </MenuItem>;
+});

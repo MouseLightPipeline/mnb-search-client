@@ -1,4 +1,5 @@
 import * as React from "react";
+import {observer} from "mobx-react-lite";
 import {Button, Form, Grid, Modal} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
@@ -8,6 +9,17 @@ import {PreferencesManager} from "../../util/preferencesManager";
 import {CompartmentMeshSet, ViewerMeshVersion} from "../../models/compartmentMeshSet";
 import {NdbConstants} from "../../models/constants";
 import {CompartmentMeshSetSelect} from "../editors/CompartmentMeshSetSelect";
+import {useStore, useViewModel} from "../app/App";
+import {SearchScope} from "../../models/uiQueryPredicate";
+
+export const SettingsDialogContainer = observer(() => {
+    const viewModel = useViewModel();
+    const {SystemConfiguration, Constants} = useStore();
+
+    return <SettingsDialog show={viewModel.Settings.IsSettingsWindowOpen} constants={Constants}
+                           isPublicRelease={SystemConfiguration.searchScope >= SearchScope.Public}
+                           onHide={() => viewModel.Settings.closeSettingsDialog()}/>;
+});
 
 interface ISettingsDialogProps {
     show: boolean
@@ -25,7 +37,7 @@ interface ISettingsDialogState {
     compartmentMeshVersion?: ViewerMeshVersion;
 }
 
-export class SettingsDialog extends React.Component<ISettingsDialogProps, ISettingsDialogState> {
+class SettingsDialog extends React.Component<ISettingsDialogProps, ISettingsDialogState> {
     public constructor(props: ISettingsDialogProps) {
         super(props);
 
@@ -42,7 +54,8 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
         this.setState({
             shouldAutoCollapseOnQuery: PreferencesManager.Instance.ShouldAutoCollapseOnQuery,
             shouldAlwaysShowSoma: PreferencesManager.Instance.ShouldAlwaysShowSoma,
-            shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing
+            shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing,
+            compartmentMeshVersion: PreferencesManager.Instance.ViewerMeshVersion
         });
     }
 
