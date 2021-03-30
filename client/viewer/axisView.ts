@@ -1,5 +1,6 @@
 import * as THREEM from "three";
 import {ICameraObserver} from "./shark_viewer";
+import {CompartmentMeshSet} from "../models/compartmentMeshSet";
 
 const THREE = require("three");
 const fontJson = require("three/examples/fonts/helvetiker_regular.typeface.json");
@@ -7,9 +8,7 @@ const fontJson = require("three/examples/fonts/helvetiker_regular.typeface.json"
 export class AxisViewer implements ICameraObserver {
     public dom_element = 'container';
 
-    //height of canvas
     public HEIGHT = window.innerHeight;
-    //width of canvas
     public WIDTH = window.innerWidth;
 
     private renderer = null;
@@ -17,11 +16,22 @@ export class AxisViewer implements ICameraObserver {
     private camera = null;
     private fov: number = 1;
     private last_anim_timestamp = null;
+    private _axesGroup: THREEM.Group;
 
-    private xLabel: THREE.Mesh;
+    private _meshVersion: CompartmentMeshSet;
 
     public get Scene(): THREEM.Scene {
         return this.scene;
+    }
+
+    public get MeshVersion(): CompartmentMeshSet {
+        return this._meshVersion;
+    }
+
+    public set MeshVersion(v: CompartmentMeshSet) {
+        this._meshVersion = v;
+
+        this._axesGroup.rotation.y = v.MeshRotation;
     }
 
     public setSize(width, height) {
@@ -108,31 +118,33 @@ export class AxisViewer implements ICameraObserver {
     }
 
     private loadAxes() {
+        this._axesGroup = new THREE.Group();
+
         const axes = new THREE.AxisHelper(0.25);
 
-        // axes.scale.z = -1;
-
-        this.scene.add(axes);
+        this._axesGroup.add(axes);
 
         const font = new THREE.Font(fontJson);
 
-        this.xLabel = this.createLabel("X", new THREE.Color("#FF0000"), font);
-        this.xLabel.scale.set(1, -1, 1);
-        this.xLabel.position.set(0.25, .06125, 0);
-        this.scene.add(this.xLabel);
+        const x = this.createLabel("X", new THREE.Color("#FF0000"), font);
+        x.scale.set(1, -1, 1);
+        x.position.set(0.25, .06125, 0);
+        this._axesGroup.add(x);
 
         const y = this.createLabel("Y", new THREE.Color("#00FF00"), font);
         y.scale.set(1, -1, 1);
         y.position.set(-.05, 0.375, 0);
-        this.scene.add(y);
+        this._axesGroup.add(y);
 
         const z = this.createLabel("Z", new THREE.Color("#0000FF"), font);
         z.scale.set(1, -1, 1);
         z.position.set(-.05, .05, .26);
-        this.scene.add(z);
+        this._axesGroup.add(z);
+
+        this.scene.add(this._axesGroup);
     }
 
-    private createLabel(label: string, color: THREE.Color, font: THREE.Font) : THREE.Mesh {
+    private createLabel(label: string, color: THREE.Color, font: THREE.Font): THREE.Mesh {
         const textGeo = new THREE.TextGeometry(label, {
             font,
             size: .1,
@@ -140,6 +152,7 @@ export class AxisViewer implements ICameraObserver {
         });
 
         const textMaterial = new THREE.MeshBasicMaterial({color});
+
         return new THREE.Mesh(textGeo, textMaterial);
     }
 }

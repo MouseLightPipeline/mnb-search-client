@@ -13,7 +13,6 @@ export class SliceControlViewModel {
     @observable public IsEnabled: boolean = false;
     @observable public Location: number = 0;
 
-
     public constructor(constants: TomographyPlaneConstants) {
         this.IsEnabled = false;
         this.Location = constants.Center;

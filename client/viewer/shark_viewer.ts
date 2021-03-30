@@ -4,6 +4,7 @@ import {PreferencesManager} from "../util/preferencesManager";
 import * as THREEM from "three";
 import {SystemShader} from "./shaders/shaders";
 import {StandardShader} from "./shaders/standardShader";
+import {CompartmentMeshSet, ViewerMeshVersion} from "../models/compartmentMeshSet";
 
 const THREE = require("three");
 require("three-obj-loader")(THREE);
@@ -39,7 +40,6 @@ export class SharkViewer {
     public radius_scale_factor = 1;
     public metadata = false;
     public centerPoint = null;
-    public compartment_path = "/static/allen/obj/";
     public on_select_node = null;
     public on_toggle_node = null;
 
@@ -58,13 +58,26 @@ export class SharkViewer {
     private scene = null;
     private camera = null;
     private cameraObservers: ICameraObserver[] = [];
+    private _compartmentGroup: THREEM.Group;
 
-    private static generateParticle(node) {
-        return new THREE.Vector3(node.x, node.y, node.z);
-    }
+    private _meshVersion: CompartmentMeshSet;
 
     public get Scene(): THREEM.Scene {
         return this.scene;
+    }
+
+    public get MeshVersion(): CompartmentMeshSet {
+        return this._meshVersion;
+    }
+
+    public set MeshVersion(v: CompartmentMeshSet) {
+        this._compartmentGroup.clear();
+        this._meshVersion = v;
+        this._compartmentGroup.rotation.y = v.MeshRotation;
+    }
+
+    private static generateParticle(node) {
+        return new THREE.Vector3(node.x, node.y, node.z);
     }
 
     private nodeColor(node) {
@@ -429,10 +442,8 @@ export class SharkViewer {
         this.renderer.setSize(this.WIDTH, this.HEIGHT);
         document.getElementById(this.dom_element).appendChild(this.renderer.domElement);
 
-        // create a scene
         this.scene = new THREE.Scene();
 
-        // put a camera in the scene
         this.fov = 45;
 
         const cameraPosition = -20000;
@@ -444,7 +455,6 @@ export class SharkViewer {
 
         this.camera.up.setY(-1);
 
-        //Lights
         let light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0, 10000);
         this.scene.add(light);
@@ -452,6 +462,9 @@ export class SharkViewer {
         light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0, -10000);
         this.scene.add(light);
+
+        this._compartmentGroup = new THREE.Group();
+        this.scene.add(this._compartmentGroup);
 
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.dom_element));
         this.trackControls.zoomSpeed = PreferencesManager.Instance.ZoomSpeed;
@@ -606,9 +619,7 @@ export class SharkViewer {
 
         const that = this;
 
-        const path = this.compartment_path + geometryFile;
-
-        loader.load(path, (object) => {
+        loader.load(geometryFile, (object) => {
             object.traverse((child) => {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
@@ -626,23 +637,25 @@ export class SharkViewer {
             object.name = id;
 
             if (that.centerPoint !== null) {
-                object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
+                if (this._meshVersion.Version == ViewerMeshVersion.Janelia) {
+                    object.position.set(-that.centerPoint[0], -that.centerPoint[1], -that.centerPoint[2]);
+                } else {
+                    object.position.set(-that.centerPoint[2], -that.centerPoint[1], -that.centerPoint[0]);
+                }
             }
 
-            // object.scale.y = -1;
-
-            that.scene.add(object);
+            that._compartmentGroup.add(object);
 
         });
     };
 
     public unloadCompartment(id: string) {
-        const selectedObj = this.scene.getObjectByName(id);
-        this.scene.remove(selectedObj);
+        const selectedObj = this._compartmentGroup.getObjectByName(id);
+        this._compartmentGroup.remove(selectedObj);
     };
 
     public setCompartmentVisible(id: string, visible: boolean) {
-        const compartment = this.scene.getObjectByName(id);
+        const compartment = this._compartmentGroup.getObjectByName(id);
 
         if (compartment) {
             compartment.visible = visible;

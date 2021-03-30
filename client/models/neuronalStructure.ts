@@ -1,11 +1,10 @@
 import {displayTracingStructure, ITracingStructure} from "./tracingStructure";
 import {displayStructureIdentifier, StructureIdentifier} from "./structureIdentifier";
-import {isNullOrUndefined} from "util";
 
 // The subset of tracingStructure:structureIdentifier combinations used for search.  Is not a direct map of either, nor
 // a full mux of both.
 //
-// To date, this particular choice of combinations is exclusively for presentation in this interface
+// To date, this particular choice of combinations is exclusively for presentation in this interface.
 export class NeuronalStructure {
     private readonly _id: string;
 
@@ -50,7 +49,7 @@ export class NeuronalStructure {
 }
 
 export function displayNeuronalStructure(structure: NeuronalStructure): string {
-    if (isNullOrUndefined(structure)) {
+    if (structure === null || structure === undefined) {
         return "(none)";
     }
 

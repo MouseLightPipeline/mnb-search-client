@@ -1,13 +1,14 @@
 import * as React from "react";
 import {observer} from "mobx-react-lite";
-import {Icon} from "semantic-ui-react";
+import {Form, Icon, MenuItem} from "semantic-ui-react";
 
 import {BrainCompartmentSelectionTree, IBrainAreaGeometryProps} from "./BrainCompartmentSelectionTree";
 import {BrainVolumesTable, IBrainVolumesTableProps} from "./BrainCompartmentViewHistoryList";
 import {DrawerState} from "../MainView";
 import {primaryBackground, secondaryBackground} from "../../../util/styles";
 import {TomographyControls} from "../../tomography/TomographyPanel";
-import {useViewModel} from "../../app/App";
+import {useStore, useViewModel} from "../../app/App";
+import { ViewerMeshVersion} from "../../../models/compartmentMeshSet";
 
 type CompartmentHeaderProps = {
     isDocked: boolean;
@@ -51,6 +52,7 @@ const CompartmentHeader = (props: CompartmentHeaderProps) => {
 
 interface ICompartmentListContainerProps extends IBrainVolumesTableProps, IBrainAreaGeometryProps {
     isDocked: boolean;
+    compartmentMeshVersion?: ViewerMeshVersion;
 
     onClickCloseOrPin(state: DrawerState): void;
 }
@@ -102,7 +104,7 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                 <div style={{
                     backgroundColor: color,
                     color: "white",
-                    height: "30px",
+                    height: "44px",
                     margin: 0,
                     padding: "6px"
                 }}>
@@ -111,9 +113,26 @@ export const CompartmentListContainer = observer((props: ICompartmentListContain
                         margin: "auto",
                         textAlign: "center"
                     }}>All Compartments</h5>
+                    <h6 style={{
+                        color: "white",
+                        margin: "auto",
+                        textAlign: "left"
+                    }}>
+                        <CompartmentAnnotationLabel/>
+                    </h6>
                 </div>
                 <BrainCompartmentSelectionTree {...props}/>
             </div>
         </div>
     );
+});
+
+const CompartmentAnnotationLabel = observer(() => {
+    const viewModel = useViewModel();
+    const store = useStore();
+
+    return <div>
+        <Icon style={{marginRight: "10px"}} name="exchange" onClick={() => viewModel.Compartments.ToggleMeshVersion()}/>
+        {`CCF Annotations: ${store.Constants.findCompartmentMeshSet(viewModel.Compartments.MeshVersion).Name}`}
+    </div>;
 });

@@ -1,14 +1,30 @@
 import * as React from "react";
-import {Button, Form, Modal} from "semantic-ui-react";
+import {observer} from "mobx-react-lite";
+import {Button, Form, Grid, Modal} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 const Slider = require("rc-slider").default;
 
 import {PreferencesManager} from "../../util/preferencesManager";
+import {CompartmentMeshSet, ViewerMeshVersion} from "../../models/compartmentMeshSet";
+import {NdbConstants} from "../../models/constants";
+import {CompartmentMeshSetSelect} from "../editors/CompartmentMeshSetSelect";
+import {useStore, useViewModel} from "../app/App";
+import {SearchScope} from "../../models/uiQueryPredicate";
+
+export const SettingsDialogContainer = observer(() => {
+    const viewModel = useViewModel();
+    const {SystemConfiguration, Constants} = useStore();
+
+    return <SettingsDialog show={viewModel.Settings.IsSettingsWindowOpen} constants={Constants}
+                           isPublicRelease={SystemConfiguration.searchScope >= SearchScope.Public}
+                           onHide={() => viewModel.Settings.closeSettingsDialog()}/>;
+});
 
 interface ISettingsDialogProps {
     show: boolean
     isPublicRelease: boolean;
+    constants: NdbConstants;
 
     onHide(): void;
 }
@@ -18,9 +34,10 @@ interface ISettingsDialogState {
     shouldAlwaysShowSoma?: boolean;
     shouldAlwaysShowFullTracing?: boolean;
     displayColorPicker?: boolean;
+    compartmentMeshVersion?: ViewerMeshVersion;
 }
 
-export class SettingsDialog extends React.Component<ISettingsDialogProps, ISettingsDialogState> {
+class SettingsDialog extends React.Component<ISettingsDialogProps, ISettingsDialogState> {
     public constructor(props: ISettingsDialogProps) {
         super(props);
 
@@ -28,7 +45,8 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
             shouldAutoCollapseOnQuery: PreferencesManager.Instance.ShouldAutoCollapseOnQuery,
             shouldAlwaysShowSoma: PreferencesManager.Instance.ShouldAlwaysShowSoma,
             shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing,
-            displayColorPicker: false
+            displayColorPicker: false,
+            compartmentMeshVersion: PreferencesManager.Instance.ViewerMeshVersion
         };
     }
 
@@ -36,7 +54,8 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
         this.setState({
             shouldAutoCollapseOnQuery: PreferencesManager.Instance.ShouldAutoCollapseOnQuery,
             shouldAlwaysShowSoma: PreferencesManager.Instance.ShouldAlwaysShowSoma,
-            shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing
+            shouldAlwaysShowFullTracing: PreferencesManager.Instance.ShouldAlwaysShowFullTracing,
+            compartmentMeshVersion: PreferencesManager.Instance.ViewerMeshVersion
         });
     }
 
@@ -75,6 +94,11 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
         PreferencesManager.Instance.ViewerBackgroundColor = color.hex;
     }
 
+    private onMeshSetChanged(m: CompartmentMeshSet) {
+        PreferencesManager.Instance.ViewerMeshVersion = m.Version;
+        this.setState({compartmentMeshVersion: m.Version})
+    }
+
     public render() {
         const rowStyles = {
             color: {
@@ -94,6 +118,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                                        label="Collapse query after search"
                                        onChange={(evt: any) => this.onSetAutoCollapseOnQuery(evt.target.checked)}/>
                         <Form.Checkbox width={16} checked={this.state.shouldAlwaysShowSoma}
+                                       style={{marginTop: "10px"}}
                                        label="Always display tracing after search"
                                        onChange={(evt: any) => this.onSetAlwaysShowSoma(evt.target.checked)}/>
                         <Form.Checkbox width={16} checked={this.state.shouldAlwaysShowFullTracing}
@@ -103,7 +128,7 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                                        onChange={(evt: any) => this.onSetAlwaysShowFullTracing(evt.target.checked)}/>
                     </Form>
 
-                    <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
+                    <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "20px"}}>
                         <div style={styles.swatch} onClick={() => this.handleClick()}>
                             <div style={rowStyles.color}/>
                         </div>
@@ -115,8 +140,22 @@ export class SettingsDialog extends React.Component<ISettingsDialogProps, ISetti
                         <span style={styles.text}> Viewer background color</span>
                     </div>
 
+                    <Form size="small" style={{marginTop: "20px"}}>
+                        <Form.Group>
+                            <Form.Field>
+                                <label>CCF Annotations</label>
+                                <CompartmentMeshSetSelect idName="compartment-mesh-set"
+                                                         options={this.props.constants.CompartmentMeshSets}
+                                                         selectedOption={this.props.constants.findCompartmentMeshSet(this.state.compartmentMeshVersion)}
+                                                         multiSelect={false}
+                                                         searchable={false}
+                                                         onSelect={(m: CompartmentMeshSet) => this.onMeshSetChanged(m)}/>
+                            </Form.Field>
+                        </Form.Group>
+                    </Form>
+
                     {!this.props.isPublicRelease ?
-                        <div style={{paddingTop: "10px"}}>
+                        <div style={{paddingTop: "20px"}}>
                             <label>Tracing fetch batch size (requires page refresh)</label>
                             <div style={{
                                 width: "100%",
