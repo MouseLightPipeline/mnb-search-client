@@ -1,7 +1,6 @@
 import * as React from "react";
-import {useState} from "react";
 import {observer} from "mobx-react-lite";
-import {Dropdown, Icon, Table} from "semantic-ui-react";
+import {Dropdown, Icon, Popup, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
 
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
@@ -14,19 +13,18 @@ type position = "initial" | "inherit" | "unset" | "relative" | "absolute" | "fix
 type zIndex = number | "initial" | "inherit" | "unset" | "auto";
 
 interface IOutputTableRowProps {
-    isEnd: boolean;
     neuronViewModel: NeuronViewModel;
 
     onChangeSelectTracing(id: string, b: boolean): void;
+
     onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean): void;
+
     onChangeNeuronColor(neuron: NeuronViewModel, color: any): void;
+
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
 export const OutputTableRow = observer((props: IOutputTableRowProps) => {
-
-    const [displayColorPicker, setDisplayColorPicker] = useState(false);
-
     const {Tomography} = useViewModel();
 
     const v = props.neuronViewModel;
@@ -62,18 +60,21 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
                           style={{order: 0, paddingTop: "3px", paddingRight: "14px"}}
                           onClick={() => props.onChangeSelectTracing(v.neuron.id, !v.isSelected)}/>
                     <div style={{order: 1}}>
-                        <div style={styles.swatch} onClick={() => setDisplayColorPicker(!displayColorPicker)}>
-                            <div style={rowStyles.color}/>
-                        </div>
-                        {displayColorPicker ?
-                            <div style={{position: "relative"}}>
-                                <div style={props.isEnd ? styles.popoverLow : styles.popover}>
-                                    <div style={styles.cover} onClick={() => setDisplayColorPicker(false)}/>
+                        <Popup on="click"
+                               trigger={
+                                   <div style={styles.swatch}>
+                                       <div style={rowStyles.color}/>
+                                   </div>
+                               }>
+                            <Popup.Content>
+                                <div>
+                                    <div style={styles.cover}/>
                                     <SketchPicker color={v.baseColor}
                                                   onChange={(color: any) => props.onChangeNeuronColor(v, color)}/>
                                 </div>
-                            </div>
-                            : null}
+                            </Popup.Content>
+
+                        </Popup>
                     </div>
                 </div>
             </td>
@@ -109,10 +110,15 @@ export interface INeuronTableProps {
     defaultStructureSelection: NeuronViewMode;
 
     onChangeSelectTracing(id: string, b: boolean): void;
+
     onChangeNeuronColor(neuron: NeuronViewModel, color: any): void;
+
     onChangeNeuronMirror(neuron: NeuronViewModel, mirror: boolean): void;
+
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
+
     onChangeSelectAllTracings(selectAll: boolean): void;
+
     onChangeDefaultStructure(mode: NeuronViewMode): void;
 }
 
@@ -145,7 +151,6 @@ export class NeuronTable extends React.Component<INeuronTableProps, IOutputTable
 
         const rows: any = this.props.neuronViewModels.map((v, idx) => {
             return (<OutputTableRow key={`trf_${v.neuron.id}`} neuronViewModel={v}
-                                    isEnd={idx > 10 && idx > this.props.neuronViewModels.length - 10}
                                     onChangeNeuronColor={this.props.onChangeNeuronColor}
                                     onChangeNeuronMirror={this.props.onChangeNeuronMirror}
                                     onChangeSelectTracing={this.props.onChangeSelectTracing}
@@ -197,16 +202,6 @@ const styles = {
         boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
         display: "inline-block",
         cursor: "pointer"
-    },
-    popover: {
-        position: "absolute" as position,
-        zIndex: "1000" as zIndex
-    },
-    popoverLow: {
-        position: "absolute" as position,
-        zIndex: "1000" as zIndex,
-        top: "-300px",
-        left: "40px"
     },
     cover: {
         position: "fixed" as position,
