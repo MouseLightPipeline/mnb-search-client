@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useState} from "react";
 import {observer} from "mobx-react-lite";
 import {Dropdown, Icon, Popup, Table} from "semantic-ui-react";
 import {SketchPicker} from 'react-color';
