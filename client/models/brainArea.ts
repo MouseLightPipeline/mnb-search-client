@@ -3,7 +3,7 @@ export interface IBrainArea {
     name: string;
     depth: number;
     acronym: string;
-    aliases: string[];
+    aliasList: string[];
     structureId: number;
     structureIdPath: string;
     parentStructureId: number;

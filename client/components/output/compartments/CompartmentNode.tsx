@@ -18,8 +18,8 @@ export class CompartmentNode {
             matches = this.compartment.acronym.toLowerCase().includes(str);
         }
 
-        if (!matches && this.compartment.aliases?.length > 0) {
-            matches = this.compartment.aliases.some(a => a.includes(str));
+        if (!matches && this.compartment.aliasList?.length > 0) {
+            matches = this.compartment.aliasList.some(a => a.includes(str));
         }
 
         return matches;

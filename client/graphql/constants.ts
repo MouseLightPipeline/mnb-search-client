@@ -30,7 +30,7 @@ export const CONSTANTS_QUERY = gql`query ConstantsQuery($searchScope: Int) {
     id
     name
     acronym
-    aliases
+    aliasList
     structureId
     depth
     parentStructureId

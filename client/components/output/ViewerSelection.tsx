@@ -39,7 +39,7 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, {}>
         let somaBrainAreaLabel = null;
 
         if (soma) {
-            const somaBrainArea = this.props.lookupBrainArea(soma.brainAreaId);
+            const somaBrainArea = this.props.lookupBrainArea(soma.brainAreaIdCcfV25);
 
             if (somaBrainArea) {
                 let somaDisplayBrainArea = somaBrainArea;
@@ -169,7 +169,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
     public renderSelection() {
         const node = this.props.selectedNode;
 
-        const brainArea = this.lookupBrainArea(node.brainAreaId);
+        const brainArea = this.lookupBrainArea(node.brainAreaIdCcfV25);
 
         let displayBrainArea = brainArea;
 
@@ -206,7 +206,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
         let somaBrainAreaLabel = null;
 
         if (structure.value !== StructureIdentifier.soma && this.props.selectedTracing && this.props.selectedTracing.soma) {
-            const somaBrainArea = this.lookupBrainArea(this.props.selectedTracing.soma.brainAreaId);
+            const somaBrainArea = this.lookupBrainArea(this.props.selectedTracing.soma.brainAreaIdCcfV25);
 
             let somaDisplayBrainArea = somaBrainArea;
 

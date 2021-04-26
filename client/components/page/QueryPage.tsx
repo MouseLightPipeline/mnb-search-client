@@ -12,7 +12,6 @@ import {ApolloError} from "apollo-client";
 import {UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
 import {BRAIN_AREA_FILTER_TYPE_SPHERE} from "../../models/brainAreaFilterType";
 import {PreferencesManager} from "../../util/preferencesManager";
-import {CompartmentMeshSet, ViewerMeshVersion} from "../../models/compartmentMeshSet";
 
 interface IPageProps {
     constants: NdbConstants;

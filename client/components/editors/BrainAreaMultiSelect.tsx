@@ -121,7 +121,7 @@ function filterBrainArea(compartment: IBrainArea, value: string) {
         return true;
     }
 
-    const matches = compartment.aliases?.some(a => a.toLowerCase().includes(filterValue));
+    const matches = compartment.aliasList?.some(a => a.toLowerCase().includes(filterValue));
 
     if (matches) {
         return true;

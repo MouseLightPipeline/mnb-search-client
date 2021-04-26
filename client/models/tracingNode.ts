@@ -1,6 +1,4 @@
 import {INodeBase} from "./nodeBase";
-import {IBrainArea} from "./brainArea";
-import {ISwcNode} from "./swcNode";
 import {IStructureIdentifier} from "./structureIdentifier";
 
 export interface ITracingNode extends INodeBase {
@@ -14,7 +12,6 @@ export interface ITracingNode extends INodeBase {
     structureIdValue: number;
     structureIdentifier: IStructureIdentifier;
     structureIdentifierId: string;
-    swcNode?: ISwcNode;
-    brainArea?: IBrainArea;
-    brainAreaId?: string;
+    brainAreaIdCcfV25?: string;
+    brainAreaIdCcfV30?: string;
 }
