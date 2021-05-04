@@ -1,13 +1,18 @@
 import {
     BRAIN_AREA_FILTER_TYPE_COMPARTMENT,
     BrainAreaFilterType,
-    BrainAreaFilterTypeOption,
+    PredicateType,
     findBrainAreaFilterType
 } from "./brainAreaFilterType";
 import {SearchPredicate} from "../graphql/neurons";
 import {NdbConstants} from "./constants";
 import {FilterContents, IPosition, IPositionInput} from "./queryFilter";
 import cuid = require("cuid");
+
+export enum CcfVersion {
+    Ccf25 = "CCFV25",
+    Ccf30 = "CCFV25",
+}
 
 export enum SearchScope {
     Unset = -1,
@@ -46,7 +51,7 @@ export class UIQueryPredicates {
         this._predicateListener = fcn;
     }
 
-    public addPredicate(uiModifiers: any = {}, predicateModifiers: any  = {}) {
+    public addPredicate(uiModifiers: any = {}, predicateModifiers: any = {}) {
         const predicate = Object.assign(new UIQueryPredicate(), DEFAULT_QUERY_FILTER, {
             id: cuid(),
             index: this._predicates.length,
@@ -108,7 +113,7 @@ export class UIQueryPredicate {
         const operatorId = n && n.IsSoma ? null : (this.filter.operator ? this.filter.operator.id : null);
 
         return {
-            predicateType: this.brainAreaFilterType.option,
+            predicateType: this.brainAreaFilterType.value,
             tracingIdsOrDOIs: this.brainAreaFilterType.IsIdQuery ? this.filter.tracingIdsOrDOIs.split(",").map(s => s.trim()).filter(s => s.length > 0) : [],
             tracingIdsOrDOIsExactMatch: this.filter.tracingIdsOrDOIsExactMatch,
             tracingStructureIds: tracingStructureId ? [tracingStructureId] : [],
@@ -137,7 +142,7 @@ export class UIQueryPredicate {
 
         filter.id = data.id || "";
         filter.index = data.index || 0;
-        filter.brainAreaFilterType = findBrainAreaFilterType(data.brainAreaFilterTypeOption || BrainAreaFilterTypeOption.AnatomicalRegion);
+        filter.brainAreaFilterType = findBrainAreaFilterType(data.brainAreaFilterTypeOption || PredicateType.AnatomicalRegion);
 
         filter.filter = data.filter ? FilterContents.deserialize(data.filter, constants) : null;
 

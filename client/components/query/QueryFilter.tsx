@@ -13,7 +13,7 @@ import {NdbConstants} from "../../models/constants";
 import {BrainAreaFilterTypeSelect} from "../editors/BrainAreaFilterTypeSelect";
 import {
     BRAIN_AREA_FILTER_TYPES, BrainAreaFilterType,
-    BrainAreaFilterTypeOption
+    PredicateType
 } from "../../models/brainAreaFilterType";
 import {CompositionSelect} from "../editors/CompositionSelect";
 import {UIQueryPredicate} from "../../models/uiQueryPredicate";
@@ -361,11 +361,11 @@ export class QueryFilter extends React.Component<IQueryFilterProps, {}> {
 
     private chooseFilterRender() {
         switch (this.props.queryFilter.brainAreaFilterType.option) {
-            case BrainAreaFilterTypeOption.AnatomicalRegion:
+            case PredicateType.AnatomicalRegion:
                 return this.renderCompartmentQuery();
-            case BrainAreaFilterTypeOption.CustomRegion:
+            case PredicateType.CustomRegion:
                 return this.renderSphereQuery();
-            case BrainAreaFilterTypeOption.IdOrDoi:
+            case PredicateType.IdOrDoi:
                 return this.renderByIdQuery();
             default:
                 return null;

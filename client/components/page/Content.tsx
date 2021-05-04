@@ -11,7 +11,7 @@ import {ApolloConsumer} from "react-apollo";
 import {NEURONS_QUERY} from "../../graphql/neurons";
 import {ApolloError} from "apollo-client";
 import {INeuron} from "../../models/neuron";
-import {SearchScope, UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
+import {CcfVersion, SearchScope, UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
 import cuid = require("cuid");
 
 interface IContentProps {
@@ -113,8 +113,9 @@ export class Content extends React.Component<IContentProps, IContentState> {
             PreferencesManager.Instance.AppendQueryHistory(this.state.predicates);
 
             const context = {
-                scope: this.props.searchScope,
                 nonce: nonce || cuid(),
+                scope: this.props.searchScope,
+                ccfVersion: CcfVersion.Ccf25,
                 predicates: this.state.predicates.map(f => f.asFilterInput())
             };
 
