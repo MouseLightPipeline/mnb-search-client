@@ -187,9 +187,9 @@ export class SharkViewer {
                 indexLookup[customAttributes.radius.value.length - 1] = swc_json[node].sampleNumber;
             }
         }
-        geometry.addAttribute('position', new THREE.Float32BufferAttribute(customAttributes.vertices.value, 3));
-        geometry.addAttribute('radius', new THREE.Float32BufferAttribute(customAttributes.radius.value, 1));
-        geometry.addAttribute('typeColor', new THREE.Float32BufferAttribute(customAttributes.typeColor.value, 3));
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(customAttributes.vertices.value, 3));
+        geometry.setAttribute('radius', new THREE.Float32BufferAttribute(customAttributes.radius.value, 1));
+        geometry.setAttribute('typeColor', new THREE.Float32BufferAttribute(customAttributes.typeColor.value, 3));
 
         material = new THREE.ShaderMaterial(
             {
@@ -378,11 +378,11 @@ export class SharkViewer {
             }
 
             coneGeom.setIndex(new THREE.Uint32BufferAttribute(coneAttributes.indices.value, 1));
-            coneGeom.addAttribute('position', new THREE.Float32BufferAttribute(coneAttributes.vertices.value, 3));
-            coneGeom.addAttribute('radius', new THREE.Float32BufferAttribute(coneAttributes.radius.value, 1));
-            coneGeom.addAttribute('typeColor', new THREE.Float32BufferAttribute(coneAttributes.typeColor.value, 3));
-            coneGeom.addAttribute('normal', new THREE.Float32BufferAttribute(coneAttributes.normals.value, 3));
-            coneGeom.addAttribute('uv', new THREE.Float32BufferAttribute(coneAttributes.uv.value, 2));
+            coneGeom.setAttribute('position', new THREE.Float32BufferAttribute(coneAttributes.vertices.value, 3));
+            coneGeom.setAttribute('radius', new THREE.Float32BufferAttribute(coneAttributes.radius.value, 1));
+            coneGeom.setAttribute('typeColor', new THREE.Float32BufferAttribute(coneAttributes.typeColor.value, 3));
+            coneGeom.setAttribute('normal', new THREE.Float32BufferAttribute(coneAttributes.normals.value, 3));
+            coneGeom.setAttribute('uv', new THREE.Float32BufferAttribute(coneAttributes.uv.value, 2));
 
             const coneMaterial = new THREE.ShaderMaterial(
                 {

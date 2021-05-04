@@ -120,7 +120,7 @@ export class AxisViewer implements ICameraObserver {
     private loadAxes() {
         this._axesGroup = new THREE.Group();
 
-        const axes = new THREE.AxisHelper(0.25);
+        const axes = new THREE.AxesHelper(0.25);
 
         this._axesGroup.add(axes);
 
