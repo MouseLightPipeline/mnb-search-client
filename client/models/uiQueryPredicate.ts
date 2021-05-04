@@ -11,7 +11,7 @@ import cuid = require("cuid");
 
 export enum CcfVersion {
     Ccf25 = "CCFV25",
-    Ccf30 = "CCFV25",
+    Ccf30 = "CCFV30",
 }
 
 export enum SearchScope {

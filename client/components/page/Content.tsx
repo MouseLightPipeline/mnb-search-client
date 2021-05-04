@@ -12,6 +12,7 @@ import {NEURONS_QUERY} from "../../graphql/neurons";
 import {ApolloError} from "apollo-client";
 import {INeuron} from "../../models/neuron";
 import {CcfVersion, SearchScope, UIQueryPredicate, UIQueryPredicates} from "../../models/uiQueryPredicate";
+import {ViewerMeshVersion} from "../../models/compartmentMeshSet";
 import cuid = require("cuid");
 
 interface IContentProps {
@@ -115,7 +116,7 @@ export class Content extends React.Component<IContentProps, IContentState> {
             const context = {
                 nonce: nonce || cuid(),
                 scope: this.props.searchScope,
-                ccfVersion: CcfVersion.Ccf25,
+                ccfVersion: PreferencesManager.Instance.ViewerMeshVersion === ViewerMeshVersion.Janelia ? CcfVersion.Ccf25 : CcfVersion.Ccf30,
                 predicates: this.state.predicates.map(f => f.asFilterInput())
             };
 
