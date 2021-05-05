@@ -11,6 +11,8 @@ import {IBrainArea} from "../../models/brainArea";
 import {HighlightSelectionMode} from "./TracingViewer";
 import {NeuronViewModel} from "../../viewmodel/neuronViewModel";
 import {NEURON_VIEW_MODES, NeuronViewMode} from "../../viewmodel/neuronViewMode";
+import {INotificationListener, PreferencesManager} from "../../util/preferencesManager";
+import {ViewerMeshVersion} from "../../models/compartmentMeshSet";
 
 interface IActiveTracingItemProps {
     viewModel: NeuronViewModel;
@@ -39,7 +41,7 @@ class ActiveTracingItemList extends React.Component<IActiveTracingItemProps, {}>
         let somaBrainAreaLabel = null;
 
         if (soma) {
-            const somaBrainArea = this.props.lookupBrainArea(soma.brainAreaIdCcfV25);
+            const somaBrainArea = this.props.lookupBrainArea(PreferencesManager.Instance.ViewerMeshVersion === ViewerMeshVersion.Janelia ? soma.brainAreaIdCcfV25 : soma.brainAreaIdCcfV30);
 
             if (somaBrainArea) {
                 let somaDisplayBrainArea = somaBrainArea;
@@ -140,7 +142,7 @@ interface IViewerSelectionState {
     isDragging?;
 }
 
-export class ViewerSelection extends React.Component<IViewerSelectionProps, IViewerSelectionState> {
+export class ViewerSelection extends React.Component<IViewerSelectionProps, IViewerSelectionState> implements INotificationListener {
     private _isTracking = false;
     private _startTop;
     private _startLeft;
@@ -156,6 +158,14 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             left: 10,
             isDragging: false
         }
+
+        PreferencesManager.Instance.addListener(this);
+    }
+
+    public preferenceChanged(name: string) {
+        if (name === "viewerMeshVersion") {
+            this.forceUpdate();
+        }
     }
 
     private lookupStructureIdentifier(id: string) {
@@ -169,7 +179,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
     public renderSelection() {
         const node = this.props.selectedNode;
 
-        const brainArea = this.lookupBrainArea(node.brainAreaIdCcfV25);
+        const brainArea = this.lookupBrainArea(PreferencesManager.Instance.ViewerMeshVersion === ViewerMeshVersion.Janelia ? node.brainAreaIdCcfV25 : node.brainAreaIdCcfV30);
 
         let displayBrainArea = brainArea;
 
@@ -206,7 +216,7 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
         let somaBrainAreaLabel = null;
 
         if (structure.value !== StructureIdentifier.soma && this.props.selectedTracing && this.props.selectedTracing.soma) {
-            const somaBrainArea = this.lookupBrainArea(this.props.selectedTracing.soma.brainAreaIdCcfV25);
+            const somaBrainArea = this.lookupBrainArea(PreferencesManager.Instance.ViewerMeshVersion === ViewerMeshVersion.Janelia ? this.props.selectedTracing.soma.brainAreaIdCcfV25 : this.props.selectedTracing.soma.brainAreaIdCcfV30);
 
             let somaDisplayBrainArea = somaBrainArea;
 

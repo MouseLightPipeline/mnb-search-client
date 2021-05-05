@@ -18,8 +18,7 @@ debug(`search scope will limited to ${SearchScope[ServerConfiguration.searchScop
 const apiUri = `http://${ServerConfiguration.graphQLService.hostname}:${ServerConfiguration.graphQLService.port}`;
 const tracingsUri = `http://${ServerConfiguration.tracingsService.hostname}:${ServerConfiguration.tracingsService.port}`;
 const staticUri = `http://${ServerConfiguration.staticService.hostname}:${ServerConfiguration.staticService.port}`;
-const exportSwcUri = `http://${ServerConfiguration.exportSwcService.hostname}:${ServerConfiguration.exportSwcService.port}`;
-const exportJsonUri = `http://${ServerConfiguration.exportJsonService.hostname}:${ServerConfiguration.exportJsonService.port}`;
+const exportUri = `http://${ServerConfiguration.exportService.hostname}:${ServerConfiguration.exportService.port}`;
 
 let app = null;
 
@@ -83,11 +82,8 @@ if (process.env.NODE_ENV !== "production") {
     debug(`proxying ${ServerConfiguration.staticService.endpoint} to ${staticUri}`);
     app.use(`${ServerConfiguration.staticService.endpoint}`, proxy(`${staticUri}`, {proxyReqPathResolver: req => "/static" + req.url}));
 
-    debug(`proxying ${ServerConfiguration.exportSwcService.endpoint} to ${exportSwcUri}`);
-    app.use(`${ServerConfiguration.exportSwcService.endpoint}`, proxy(`${exportSwcUri}`, {proxyReqPathResolver: maintainBaseUrl}));
-
-    debug(`proxying ${ServerConfiguration.exportJsonService.endpoint} to ${exportJsonUri}`);
-    app.use(`${ServerConfiguration.exportJsonService.endpoint}`, proxy(`${exportJsonUri}`, {proxyReqPathResolver: maintainBaseUrl}));
+    debug(`proxying ${ServerConfiguration.exportService.endpoint} to ${exportUri}`);
+    app.use(`${ServerConfiguration.exportService.endpoint}`, proxy(`${exportUri}`, {proxyReqPathResolver: req => "/export" + req.url}));
 
     app.use(express.static(rootPath));
 
@@ -122,11 +118,8 @@ function devServer() {
             [ServerConfiguration.staticService.endpoint]: {
                 target: staticUri
             },
-            [ServerConfiguration.exportSwcService.endpoint]: {
-                target: exportSwcUri
-            },
-            [ServerConfiguration.exportJsonService.endpoint]: {
-                target: exportJsonUri
+            [ServerConfiguration.exportService.endpoint]: {
+                target: exportUri
             },
             ["/slice"]: {
                 target: staticUri

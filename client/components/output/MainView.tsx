@@ -208,15 +208,15 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
                 return;
             }
 
-            const location = format === ExportFormat.JSON ? "/json" : "/swc";
-
-            fetch(location, {
+            fetch("/export", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    ids
+                    ids,
+                    ccfVersion: PreferencesManager.Instance.ViewerMeshVersion,
+                    format
                 })
             }).then(async (response) => {
                 if (response.status !== 200) {

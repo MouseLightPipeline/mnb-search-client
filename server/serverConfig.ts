@@ -16,8 +16,7 @@ export interface IServiceOptions {
     graphQLService: ServiceLocation,
     tracingsService: ServiceLocation,
     staticService: ServiceLocation,
-    exportSwcService: ServiceLocation,
-    exportJsonService: ServiceLocation,
+    exportService: ServiceLocation,
     exportLimit: number
 }
 
@@ -43,15 +42,10 @@ const configuration: IServiceOptions = {
         port: 5000,
         endpoint: "/static",
     },
-    exportSwcService: {
+    exportService: {
         hostname: "export-api",
         port: 5000,
-        endpoint: "/swc"
-    },
-    exportJsonService: {
-        hostname: "export-api",
-        port: 5000,
-        endpoint: "/json"
+        endpoint: "/export"
     },
     exportLimit: 20
 };
@@ -78,13 +72,9 @@ function loadServerConfiguration() {
     options.staticService.port = parseInt(process.env.STATIC_API_PORT) || options.staticService.port;
     options.staticService.endpoint = process.env.STATIC_API_ENDPOINT || options.staticService.endpoint;
 
-    options.exportSwcService.hostname = process.env.EXPORT_API_HOST || options.exportSwcService.hostname;
-    options.exportSwcService.port = parseInt(process.env.EXPORT_API_PORT) || options.exportSwcService.port;
-    options.exportSwcService.endpoint = process.env.EXPORT_API_SWC_ENDPOINT || options.exportSwcService.endpoint;
-
-    options.exportJsonService.hostname = process.env.EXPORT_API_HOST || options.exportJsonService.hostname;
-    options.exportJsonService.port = parseInt(process.env.EXPORT_API_PORT) || options.exportJsonService.port;
-    options.exportJsonService.endpoint = process.env.EXPORT_API_JSON_ENDPOINT || options.exportJsonService.endpoint;
+    options.exportService.hostname = process.env.EXPORT_API_HOST || options.exportService.hostname;
+    options.exportService.port = parseInt(process.env.EXPORT_API_PORT) || options.exportService.port;
+    options.exportService.endpoint = process.env.EXPORT_API_ENDPOINT || options.exportService.endpoint;
 
     options.exportLimit = parseInt(process.env.SEARCH_CLIENT_EXPORT_LIMIT) || options.exportLimit;
 
