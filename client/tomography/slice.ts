@@ -22,7 +22,7 @@ export class Slice {
     private readonly _mask: THREE.Texture = null;
     private readonly _slicePlane: SlicePlane = null;
 
-    private _geometry: THREE.Geometry = null;
+    private _geometry = null;
     private _location: number;
 
     public constructor(plane: SlicePlane) {
