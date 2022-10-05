@@ -68,10 +68,15 @@ interface IOutputContainerProps {
     compartmentMeshVersion?: ViewerMeshVersion;
 
     requestExport?(tracingIds: string[], format: ExportFormat): any;
+
     populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
+
     onToggleBrainArea(id: string): void;
+
     onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel): void;
+
     onMutateBrainAreas(added: string[], removed: string[]): void;
+
     onToggleQueryCollapsed(): void;
 }
 
@@ -831,13 +836,14 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 
 function saveFile(data: any, filename: string, mime: string = null) {
     const blob = new Blob([data], {type: mime || "text/plain;charset=utf-8"});
-        const blobURL = window.URL.createObjectURL(blob);
-        const tempLink = document.createElement("a");
-        tempLink.href = blobURL;
-        tempLink.setAttribute("download", filename);
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
+
+    const blobURL = window.URL.createObjectURL(blob);
+    const tempLink = document.createElement("a");
+    tempLink.href = blobURL;
+    tempLink.setAttribute("download", filename);
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
 }
 
 function dataToBlob(encoded) {
