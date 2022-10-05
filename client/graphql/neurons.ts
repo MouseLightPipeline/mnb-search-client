@@ -21,6 +21,10 @@ export const NEURONS_QUERY = gql`query SearchNeurons($context: SearchContext) {
         id
         acronym
       }
+      manualSomaCompartment {
+        id
+        acronym
+      }
       sample {
         id
         idNumber
