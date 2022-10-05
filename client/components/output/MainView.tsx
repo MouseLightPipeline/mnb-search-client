@@ -68,10 +68,15 @@ interface IOutputContainerProps {
     compartmentMeshVersion?: ViewerMeshVersion;
 
     requestExport?(tracingIds: string[], format: ExportFormat): any;
+
     populateCustomPredicate?(position: IPositionInput, replace: boolean): void;
+
     onToggleBrainArea(id: string): void;
+
     onRemoveBrainAreaFromHistory(viewModel: BrainCompartmentViewModel): void;
+
     onMutateBrainAreas(added: string[], removed: string[]): void;
+
     onToggleQueryCollapsed(): void;
 }
 
@@ -832,21 +837,13 @@ export class MainView extends React.Component<IOutputContainerProps, IOutputCont
 function saveFile(data: any, filename: string, mime: string = null) {
     const blob = new Blob([data], {type: mime || "text/plain;charset=utf-8"});
 
-    if (typeof window.navigator.msSaveBlob !== "undefined") {
-        // IE workaround for "HTML7007: One or more blob URLs were
-        // revoked by closing the blob for which they were created.
-        // These URLs will no longer resolve as the data backing
-        // the URL has been freed."
-        window.navigator.msSaveBlob(blob, filename);
-    } else {
-        const blobURL = window.URL.createObjectURL(blob);
-        const tempLink = document.createElement("a");
-        tempLink.href = blobURL;
-        tempLink.setAttribute("download", filename);
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
-    }
+    const blobURL = window.URL.createObjectURL(blob);
+    const tempLink = document.createElement("a");
+    tempLink.href = blobURL;
+    tempLink.setAttribute("download", filename);
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
 }
 
 function dataToBlob(encoded) {
