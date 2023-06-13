@@ -58,6 +58,10 @@ export class FilterContents {
         return !this.neuronalStructure || !this.neuronalStructure.IsSoma;
     }
 
+    public get IsSoma(): boolean {
+        return this.neuronalStructure.IsSoma;
+    }
+
     public serialize() {
         return {
             tracingIdsOrDOIs: this.tracingIdsOrDOIs,
