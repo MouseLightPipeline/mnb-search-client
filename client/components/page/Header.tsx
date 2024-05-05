@@ -53,6 +53,15 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
             return (<Dropdown.Item key={s.name} onClick={() => this.onSelectExampleQuery(s)}>{s.name}</Dropdown.Item>);
         });
 
+        const downloadMenuItems = [
+            <Dropdown.Item key={"1"} onClick={() => this.onShowShortcuts()}>
+                <a href="/download/2022-02-28-json.tar.gz" style={{color: "black"}}>Latest data in CCFv2.5 and CCFv3 as JSON files</a>
+            </Dropdown.Item>,
+            <Dropdown.Item key={"2"} onClick={() => this.onShowShortcuts()}>
+                <a href="/download/2022-02-28-json.tar.gz" style={{color: "black"}}>Incomplete neurites in CCFv2.5 and CCFv3 as JSON files</a>
+            </Dropdown.Item>
+        ];
+
         let message = null;
 
         const helpItems = [
@@ -62,6 +71,9 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
             </Dropdown.Item>,
             <Dropdown.Item key={"2"} onClick={() => this.onShowShortcuts()}>
                 Shortcuts
+            </Dropdown.Item>,
+            <Dropdown.Item key={"2"} onClick={() => this.setState({showTutorial: true})}>
+                Tutorial Video
             </Dropdown.Item>,
             <Dropdown.Item key={"3"} href="mailto:mouselightadmin@janelia.hhmi.org">
                 Report an Issue
@@ -114,15 +126,17 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                 </Menu.Item>
                 <Menu.Item fitted="horizontally" style={{margin: "0 40px"}}>
                     {message ||
-                    <a href="http://www.janelia.org" target="_blank" style={{maxWidth: "214px"}}>
-                        <Image size="small" src={hhmiImage}/>
-                    </a>}
+                        <a href="http://www.janelia.org" target="_blank" style={{maxWidth: "214px"}}>
+                            <Image size="small" src={hhmiImage}/>
+                        </a>}
                 </Menu.Item>
 
                 <Menu.Menu position="right" style={{height: "79px"}}>
-                    <MenuItem onClick={() => this.setState({showTutorial: true})}>
-                        Tutorial Video
-                    </MenuItem>
+                    <Dropdown item text="Download">
+                        <Dropdown.Menu>
+                            {downloadMenuItems}
+                        </Dropdown.Menu>
+                    </Dropdown>
                     <Dropdown item text="Examples - Try It Now!">
                         <Dropdown.Menu>
                             {exampleMenuItems}
@@ -137,7 +151,7 @@ export class PageHeader extends React.Component<IHeadingProps, IHeadingState> {
                         </Dropdown.Menu>
                     </Dropdown>
 
-                    {PreferencesManager.HavePreferences ?  <PreferencesMenuItem/> : null}
+                    {PreferencesManager.HavePreferences ? <PreferencesMenuItem/> : null}
                 </Menu.Menu>
             </Menu>
         );

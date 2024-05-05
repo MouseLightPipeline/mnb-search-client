@@ -7,55 +7,60 @@ import {PredicateTypeValue, PredicateType} from "../models/brainAreaFilterType";
 import {CcfVersion, SearchScope} from "../models/uiQueryPredicate";
 
 export const NEURONS_QUERY = gql`query SearchNeurons($context: SearchContext) {
-  searchNeurons(context: $context) {
-    nonce
-    ccfVersion
-    queryTime
-    totalCount
-    
-    neurons {
-      id
-      idString
-      consensus
-      brainArea {
-        id
-        acronym
-      }
-      manualSomaCompartment {
-        id
-        acronym
-      }
-      sample {
-        id
-        idNumber
-      }
-      tracings {
-        id
-        tracingStructure {
-          id
-          name
-          value
+    searchNeurons(context: $context) {
+        nonce
+        ccfVersion
+        queryTime
+        totalCount
+
+        neurons {
+            id
+            idString
+            consensus
+            brainArea {
+                id
+                acronym
+            }
+            manualSomaCompartment {
+                id
+                acronym
+            },
+            legacySomaCompartments {
+                id
+                acronym
+            }
+            hortaDeepLink
+            sample {
+                id
+                idNumber
+            }
+            tracings {
+                id
+                tracingStructure {
+                    id
+                    name
+                    value
+                }
+                soma {
+                    id
+                    x
+                    y
+                    z
+                    radius
+                    parentNumber
+                    sampleNumber
+                    brainAreaIdCcfV25
+                    brainAreaIdCcfV30
+                    structureIdentifierId
+                }
+            }
         }
-        soma {
-          id
-          x
-          y
-          z
-          radius
-          parentNumber
-          sampleNumber
-          brainAreaIdCcfV25
-          brainAreaIdCcfV30
-          structureIdentifierId
+
+        error {
+            name
+            message
         }
-      }
     }
-    
-    error {
-      name
-      message
-    }
-  }
 }`;
 
 export type SearchPredicate = {

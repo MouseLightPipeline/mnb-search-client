@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Dropdown, Icon, List, MenuItem, Popup} from "semantic-ui-react";
+import {Dropdown, Icon, List, ListItem, MenuItem, Popup} from "semantic-ui-react";
 
 import {ITracingNode} from "../../models/tracingNode";
 import {StructureIdentifier} from "../../models/structureIdentifier";
@@ -19,10 +19,15 @@ interface IActiveTracingItemProps {
     isSelected: boolean;
 
     lookupBrainArea(id: string | number): IBrainArea;
+
     onRemoveFromHistory(neuron: NeuronViewModel): void;
+
     onToggleLoadedGeometry(id: string): void;
+
     onToggleTracing(id: string): void;
+
     onSetHighlightedNeuron(neuron: NeuronViewModel): void;
+
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
@@ -124,13 +129,21 @@ interface IViewerSelectionProps {
     cycleFocusNeuronId: string;
 
     onRemoveActiveTracing(n: NeuronViewModel): void;
+
     onToggleLoadedGeometry(id: string): void;
+
     onToggleTracing(id: string): void;
+
     onToggleLimitToHighlighted(): void;
+
     onChangeHighlightMode(): void;
+
     onSetHighlightedNeuron(neuron: NeuronViewModel): void;
+
     onCycleHighlightNeuron(direction: number): void;
+
     populateCustomPredicate(position: IPositionInput, replace: boolean): void;
+
     onChangeNeuronViewMode(neuron: NeuronViewModel, viewMode: NeuronViewMode): void;
 }
 
@@ -211,49 +224,75 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
             z: node.z
         };
 
-        const label = structure.value === StructureIdentifier.soma ? "Soma brain area:" : "Node brain area:";
+        const label = structure.value === StructureIdentifier.soma ? "Soma compartment:" : "Node compartment:"
+
+        const generateSomaPopup = (brainArea: IBrainArea, isCurated: boolean = false, isLegacy: boolean = false) => {
+            let displayBrainArea = brainArea;
+
+            while (!displayBrainArea.geometryEnable) {
+                displayBrainArea = this.lookupBrainArea(displayBrainArea.parentStructureId);
+            }
+
+            const marker = isCurated ? "\u00A7" : (isLegacy ? "\u271D" :"");
+
+            const trigger = (
+                <a onClick={() => this.props.onToggleLoadedGeometry(displayBrainArea.id)}>
+                    {isLegacy ? <i>{brainArea.acronym}</i> : brainArea.acronym}<sup>{marker}</sup>
+                </a>
+            )
+
+            return (
+                <Popup trigger={trigger}>
+                    <div>
+                        <strong>{brainArea.name}</strong>
+                        {isCurated ? (<div>Human-curated compartment</div>) : null}
+                        {isLegacy ? (<div>Historical compartment assignment</div>) : null}
+                    </div>
+                </Popup>
+            );
+        };
 
         let somaBrainAreaLabel = null;
 
         if (structure.value !== StructureIdentifier.soma && this.props.selectedTracing && this.props.selectedTracing.soma) {
+            const popups: JSX.Element[] = [];
+
             const somaBrainArea = this.lookupBrainArea(PreferencesManager.Instance.ViewerMeshVersion === ViewerMeshVersion.Janelia ? this.props.selectedTracing.soma.brainAreaIdCcfV25 : this.props.selectedTracing.soma.brainAreaIdCcfV30);
 
-            let somaDisplayBrainArea = somaBrainArea;
-
-            if (somaDisplayBrainArea) {
-                while (!somaDisplayBrainArea.geometryEnable) {
-                    somaDisplayBrainArea = this.lookupBrainArea(somaDisplayBrainArea.parentStructureId);
-                }
+            if (somaBrainArea) {
+                popups.push(generateSomaPopup(somaBrainArea))
             }
 
-            const somaBrainAreaTrigger = somaBrainArea ? (
-                <a onClick={() => this.props.onToggleLoadedGeometry(somaBrainArea.id)}>
-                    {` ${somaBrainArea.acronym}`}
-                </a>
-            ): null;
+            const neuron = this.props.selectedTracing.neuron.neuron;
 
-            const somaBrainAreaPopup = somaBrainArea ? (
-                <Popup trigger={somaBrainAreaTrigger} style={{maxHeight: "30px"}}>{somaDisplayBrainArea.name}</Popup>
-            ) : null;
+            if (neuron.manualSomaCompartment) {
+                popups.push(generateSomaPopup(this.lookupBrainArea(neuron.manualSomaCompartment.id), true));
+            }
+
+            if (neuron.legacySomaCompartments) {
+                neuron.legacySomaCompartments.map(c => popups.push(generateSomaPopup(this.lookupBrainArea(c.id), false, true)))
+            }
 
             somaBrainAreaLabel = (
                 <span>
                     <strong>
-                        Soma brain area:
+                        {popups.length > 1 ? "Soma compartments: " : "Soma compartment: "}
                     </strong>
-                    {somaBrainAreaPopup}
+                    <List horizontal size="small">
+                    {popups.map((p, idx) => (<ListItem key={`popup_${idx}`}>{p}</ListItem>))}
+                    </List>
                 </span>
             );
         }
 
-        const nodeBrainAreaTrigger = displayBrainArea ?  (
+        const nodeBrainAreaTrigger = displayBrainArea ? (
             <a onClick={() => this.props.onToggleLoadedGeometry(displayBrainArea.id)}>
                 {`${brainArea.acronym}`}
             </a>
         ) : null;
 
-        const nodeBrainAreaPopup = brainArea ?  (
-            <Popup trigger={nodeBrainAreaTrigger} style={{maxHeight: "30px"}}>{brainArea.name}</Popup>
+        const nodeBrainAreaPopup = brainArea ? (
+            <Popup trigger={nodeBrainAreaTrigger}><strong>{brainArea.name}</strong></Popup>
         ) : null;
 
         return (
@@ -264,8 +303,6 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                         <br/>
                         <strong>{`${label} `}</strong>
                         {nodeBrainAreaPopup}
-                        <br/>
-                        {somaBrainAreaLabel}
                     </div>
                     <div style={{order: 2, flex: "1 1 0"}}/>
                     <div style={{order: 3, paddingLeft: "20px"}}>
@@ -274,7 +311,10 @@ export class ViewerSelection extends React.Component<IViewerSelectionProps, IVie
                         <strong>z:</strong>{` ${node.z.toFixed(1)}`}
                     </div>
                 </div>
-                <div style={{order: 2, marginTop: "4px", paddingTop: "4px", borderTop: "1px solid #ddd"}}>
+                <div style={{order: 2}}>
+                    {somaBrainAreaLabel}
+                </div>
+                <div style={{order: 3, marginTop: "4px", paddingTop: "4px", borderTop: "1px solid #ddd"}}>
                     <strong>{`Update filter with custom region: `}</strong>
                     <a onClick={() => this.props.populateCustomPredicate(position, true)}>
                         replace

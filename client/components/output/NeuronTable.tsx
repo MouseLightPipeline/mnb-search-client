@@ -52,6 +52,52 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
         options.splice(0, 1);
     }
 
+    let compartment = <span>{v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}</span>
+
+    const curated = v.neuron.manualSomaCompartment ? (<span key="curated">, {v.neuron.manualSomaCompartment.acronym}<sup>{"\u00A7"}</sup></span>) : null
+
+    let legacy = [];
+
+    if (v.neuron.legacySomaCompartments) {
+        legacy = v.neuron.legacySomaCompartments.map(c => (<span key={c.id}><i>, {c.acronym}</i><sup>{"\u271D"}</sup></span>))
+    }
+
+    if (curated || legacy.length > 0) {
+        const trigger = (
+            <div>
+                {compartment}
+                {curated}
+                {legacy.map(c => c)}
+            </div>
+        );
+        const content = (<div>
+                The automated registration soma compartment is listed first.
+                <br/>A human-curated compartment, if available, is indicated
+                by <strong>{"\u00A7"}</strong>.
+                <br/>Historical compartment assignments, that have since been replaced through updated registrations or curation, are indicated
+                by <strong>{"\u271D"}</strong>
+            </div>
+        )
+        compartment = (<Popup key={v.neuron.id} trigger={trigger} header="Soma Compartment" content={content}/>);
+    }
+
+    let idString = (<div>{v.neuron.idString}{v.neuron.consensus == ConsensusStatus.Single ? "*" : ""}</div>)
+
+    if (v.neuron.hortaDeepLink) {
+        const idStringContent = (<div>
+                Click copy icon to copy a Horta Cloud deep link for the neuron to your clipboard. This value may be pasted into Horta Cloud's deep link
+                feature.
+            </div>
+        );
+
+        const copyTrigger = (<Icon size="small" name="copy" onClick={() => navigator.clipboard.writeText(v.neuron.hortaDeepLink)}/>);
+
+        idString = (<div style={{display: "flex", alignItems: "center"}}>
+            <Popup size="small" key={v.neuron.id} trigger={idString} header="Horta Cloud" content={idStringContent}/>
+            <Popup size="small" key={v.neuron.id} trigger={copyTrigger} content="Copied!" on="click"/>
+        </div>);
+    }
+
     return (
         <tr>
             <td>
@@ -92,12 +138,10 @@ export const OutputTableRow = observer((props: IOutputTableRowProps) => {
                       onClick={() => props.onChangeNeuronMirror(v, !v.mirror)}/>
             </td>
             <td style={{verticalAlign: "middle"}}>
-                {v.neuron.idString}{v.neuron.consensus == ConsensusStatus.Single ? "*" : ""}
+                {idString}
             </td>
             <td style={{verticalAlign: "middle"}}>
-                {v.neuron.brainArea ? v.neuron.brainArea.acronym : "unknown"}
-                <br/>
-                {v.neuron.manualSomaCompartment ? v.neuron.manualSomaCompartment.acronym : ""}
+                {compartment}
             </td>
             <td>
                 <Icon size="small" name="clone" onClick={() => Tomography.setSample(v.neuron.sample)}/>

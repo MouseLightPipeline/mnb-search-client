@@ -170,10 +170,6 @@ class SettingsDialog extends React.Component<ISettingsDialogProps, ISettingsDial
                                         defaultValue={PreferencesManager.Instance.TracingFetchBatchSize}/>
                             </div>
                         </div> : null}
-
-                    <div>
-                        <a href="/download/2022-02-28-json.tar.gz">Download</a> the latest data (released 2022.02.28) in bulk.  It contains all neurons in CCFv2.5 (MouseLight Legacy) and CCFv3 as JSON files.
-                    </div>
                 </Modal.Content>
                 <Modal.Actions>
                     <Button onClick={this.props.onHide}>Close</Button>

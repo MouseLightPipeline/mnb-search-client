@@ -22,6 +22,8 @@ export interface INeuron {
     z: number;
     brainArea?: IBrainArea;
     manualSomaCompartment?: IBrainArea;
+    legacySomaCompartments?: IBrainArea[];
+    hortaDeepLink?: string;
     sample?: ISample;
     tracings?: ITracing[];
     createAt: Date;
